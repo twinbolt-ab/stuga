@@ -1,0 +1,155 @@
+'use client'
+
+import { useState, useRef, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Lightbulb, LightbulbOff } from 'lucide-react'
+import { clsx } from 'clsx'
+import type { HAEntity } from '@/types/ha'
+import { useLightControl } from '@/lib/hooks/useLightControl'
+
+// Minimum drag distance to trigger brightness change
+const DRAG_THRESHOLD = 10
+// Pixels to move for full brightness range
+const DRAG_RANGE = 200
+
+interface LightSliderProps {
+  light: HAEntity
+  disabled?: boolean
+}
+
+export function LightSlider({ light, disabled = false }: LightSliderProps) {
+  const { setLightBrightness, toggleLight, getLightBrightness } = useLightControl()
+  const initialBrightness = getLightBrightness(light)
+  const [localBrightness, setLocalBrightness] = useState(initialBrightness)
+  const [isDragging, setIsDragging] = useState(false)
+  const [showBrightnessOverlay, setShowBrightnessOverlay] = useState(false)
+  const cardRef = useRef<HTMLDivElement>(null)
+  const dragStartRef = useRef<{ x: number; brightness: number } | null>(null)
+
+  const isOn = light.state === 'on'
+  const displayName = light.attributes.friendly_name || light.entity_id.split('.')[1]
+
+  // Swipe gesture handlers
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    if (disabled) return
+
+    dragStartRef.current = {
+      x: e.clientX,
+      brightness: isDragging ? localBrightness : initialBrightness,
+    }
+    setLocalBrightness(dragStartRef.current.brightness)
+  }, [disabled, isDragging, localBrightness, initialBrightness])
+
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    if (!dragStartRef.current || disabled) return
+
+    const deltaX = e.clientX - dragStartRef.current.x
+
+    // Check if we've crossed the drag threshold
+    if (!isDragging && Math.abs(deltaX) > DRAG_THRESHOLD) {
+      setIsDragging(true)
+      setShowBrightnessOverlay(true)
+      ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+    }
+
+    if (isDragging) {
+      // Calculate new brightness based on drag distance
+      const brightnessChange = (deltaX / DRAG_RANGE) * 100
+      const newBrightness = Math.max(0, Math.min(100, dragStartRef.current.brightness + brightnessChange))
+      setLocalBrightness(Math.round(newBrightness))
+      setLightBrightness(light.entity_id, Math.round(newBrightness))
+    }
+  }, [disabled, isDragging, light.entity_id, setLightBrightness])
+
+  const handlePointerUp = useCallback((e: React.PointerEvent) => {
+    if (isDragging) {
+      // Commit the brightness change
+      setLightBrightness(light.entity_id, localBrightness, true)
+      ;(e.target as HTMLElement).releasePointerCapture(e.pointerId)
+
+      // Hide overlay after a short delay
+      setTimeout(() => setShowBrightnessOverlay(false), 300)
+    }
+
+    setIsDragging(false)
+    dragStartRef.current = null
+  }, [isDragging, light.entity_id, localBrightness, setLightBrightness])
+
+  const handleToggle = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (disabled || isDragging) return
+    toggleLight(light.entity_id)
+  }, [light.entity_id, toggleLight, disabled, isDragging])
+
+  // Sync local state with actual state when not dragging
+  const displayBrightness = isDragging ? localBrightness : initialBrightness
+
+  return (
+    <div
+      ref={cardRef}
+      className="relative rounded-lg overflow-hidden bg-card"
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+      style={{ touchAction: 'pan-y' }}
+    >
+      {/* Brightness fill background */}
+      {isOn && (
+        <motion.div
+          className="absolute inset-0 origin-left pointer-events-none"
+          style={{ backgroundColor: 'var(--brightness-fill)' }}
+          initial={false}
+          animate={{
+            scaleX: displayBrightness / 100,
+          }}
+          transition={{ duration: isDragging ? 0 : 0.3 }}
+        />
+      )}
+
+      {/* Brightness percentage overlay */}
+      <AnimatePresence>
+        {showBrightnessOverlay && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="absolute inset-0 flex items-center justify-center bg-card/80 backdrop-blur-sm z-10 pointer-events-none"
+          >
+            <span className="text-2xl font-bold text-accent">
+              {displayBrightness}%
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="relative z-0 flex items-center gap-3 py-2 px-2">
+        {/* Toggle button */}
+        <button
+          onClick={handleToggle}
+          className={clsx(
+            'p-2 rounded-lg transition-colors touch-feedback',
+            isOn
+              ? 'bg-accent/20 text-accent'
+              : 'bg-border/50 text-muted hover:bg-border'
+          )}
+          aria-label={`Toggle ${displayName}`}
+        >
+          {isOn ? (
+            <Lightbulb className="w-5 h-5" />
+          ) : (
+            <LightbulbOff className="w-5 h-5" />
+          )}
+        </button>
+
+        {/* Light name and brightness */}
+        <div className="flex-1 min-w-0 flex items-center justify-between">
+          <span className="text-sm font-medium truncate">{displayName}</span>
+          <span className="text-xs text-muted ml-2">
+            {isOn ? `${displayBrightness}%` : 'Off'}
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}

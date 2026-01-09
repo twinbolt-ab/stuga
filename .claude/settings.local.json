@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__home-assistant__GetLiveContext",
+      "Bash(xargs cat:*)",
+      "WebSearch"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

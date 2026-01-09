@@ -1,0 +1,38 @@
+{
+  "greeting": {
+    "night": "Good night",
+    "morning": "Good morning",
+    "afternoon": "Good afternoon",
+    "evening": "Good evening"
+  },
+  "connection": {
+    "connecting": "Connecting..."
+  },
+  "rooms": {
+    "title": "Rooms",
+    "loading": "Loading rooms...",
+    "connectingToHA": "Connecting to Home Assistant...",
+    "reorderHint": "Tap outside to save",
+    "noDevices": "No controllable devices in this room"
+  },
+  "settings": {
+    "title": "Settings",
+    "close": "Close",
+    "theme": {
+      "title": "Theme",
+      "dark": "Dark mode",
+      "light": "Light mode"
+    },
+    "reorder": {
+      "title": "Reorder rooms",
+      "description": "Change room order"
+    }
+  },
+  "devices": {
+    "lightsOn": "{count} on",
+    "lightsOff": "Off",
+    "scenes": "Scenes",
+    "lights": "Lights",
+    "doneReordering": "Done reordering"
+  }
+}
