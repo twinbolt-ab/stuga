@@ -21,9 +21,11 @@ class HAWebSocket {
   private areaRegistryMessageId = 0
   private labelRegistryMessageId = 0
   private floorRegistryMessageId = 0
+  private deviceRegistryMessageId = 0
   private areas = new Map<string, string>() // area_id -> area name
   private areaRegistry = new Map<string, AreaRegistryEntry>() // area_id -> full registry entry
   private entityRegistry = new Map<string, EntityRegistryEntry>() // entity_id -> full registry entry
+  private deviceRegistry = new Map<string, { id: string; area_id?: string }>() // device_id -> device
   private labels = new Map<string, HALabel>() // label_id -> label
   private floors = new Map<string, HAFloor>() // floor_id -> floor
   private registryHandlers = new Set<RegistryHandler>()
@@ -84,6 +86,7 @@ class HAWebSocket {
         this.fetchLabelRegistry()
         this.fetchFloorRegistry()
         this.fetchAreaRegistry()
+        this.fetchDeviceRegistry()
         this.fetchEntityRegistry()
         this.fetchAllStates()
         break
@@ -123,12 +126,26 @@ class HAWebSocket {
             }
             console.log('[HA WS] Loaded', this.areas.size, 'areas')
             this.notifyRegistryHandlers()
+          } else if (message.id === this.deviceRegistryMessageId && Array.isArray(message.result)) {
+            // Device registry response
+            for (const device of message.result as { id: string; area_id?: string }[]) {
+              this.deviceRegistry.set(device.id, device)
+            }
+            console.log('[HA WS] Loaded', this.deviceRegistry.size, 'devices')
+            // Re-map entity areas in case entity registry loaded first
+            this.remapEntityAreas()
           } else if (message.id === this.entityRegistryMessageId && Array.isArray(message.result)) {
             // Entity registry response - map entity_id to area name
             for (const entry of message.result as EntityRegistryEntry[]) {
               this.entityRegistry.set(entry.entity_id, entry)
-              if (entry.area_id) {
-                const areaName = this.areas.get(entry.area_id)
+              // Check entity area first, then fall back to device area
+              let areaId = entry.area_id
+              if (!areaId && entry.device_id) {
+                const device = this.deviceRegistry.get(entry.device_id)
+                areaId = device?.area_id
+              }
+              if (areaId) {
+                const areaName = this.areas.get(areaId)
                 if (areaName) {
                   this.entityAreas.set(entry.entity_id, areaName)
                 }
@@ -216,6 +233,14 @@ class HAWebSocket {
     })
   }
 
+  private fetchDeviceRegistry() {
+    this.deviceRegistryMessageId = this.messageId++
+    this.send({
+      id: this.deviceRegistryMessageId,
+      type: 'config/device_registry/list',
+    })
+  }
+
   private fetchAllStates() {
     this.statesMessageId = this.messageId++
     this.send({
@@ -232,6 +257,27 @@ class HAWebSocket {
         entity.attributes.area = areaName
       }
     }
+  }
+
+  private remapEntityAreas() {
+    // Re-process entity-to-area mappings (called when device registry loads)
+    for (const [entityId, entry] of this.entityRegistry) {
+      if (this.entityAreas.has(entityId)) continue // Already mapped
+
+      // Check device area
+      if (entry.device_id) {
+        const device = this.deviceRegistry.get(entry.device_id)
+        if (device?.area_id) {
+          const areaName = this.areas.get(device.area_id)
+          if (areaName) {
+            this.entityAreas.set(entityId, areaName)
+          }
+        }
+      }
+    }
+    this.applyAreasToEntities()
+    this.notifyMessageHandlers()
+    this.notifyRegistryHandlers()
   }
 
   private send(message: Record<string, unknown>) {

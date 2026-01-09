@@ -3,25 +3,19 @@
 import { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTheme } from 'next-themes'
-import { Moon, Sun, GripVertical, X, Layers, Check } from 'lucide-react'
+import { Moon, Sun, GripVertical, X } from 'lucide-react'
 import { t } from '@/lib/i18n'
 
 interface SettingsMenuProps {
   isOpen: boolean
   onClose: () => void
   onEnterReorderMode: () => void
-  hasFloors?: boolean
-  groupByFloors?: boolean
-  onToggleGroupByFloors?: () => void
 }
 
 export function SettingsMenu({
   isOpen,
   onClose,
   onEnterReorderMode,
-  hasFloors = false,
-  groupByFloors = true,
-  onToggleGroupByFloors,
 }: SettingsMenuProps) {
   const { resolvedTheme, setTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
@@ -125,25 +119,6 @@ export function SettingsMenu({
                   <p className="text-sm text-muted">{t.settings.reorder.description}</p>
                 </div>
               </button>
-
-              {/* Group by Floors - only shown if floors exist */}
-              {hasFloors && (
-                <button
-                  onClick={onToggleGroupByFloors}
-                  className="w-full flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-border/30 transition-colors touch-feedback"
-                >
-                  <div className="p-2.5 rounded-xl bg-border/50">
-                    <Layers className="w-5 h-5 text-foreground" />
-                  </div>
-                  <div className="flex-1 text-left">
-                    <p className="font-medium text-foreground">{t.settings.floors.title}</p>
-                    <p className="text-sm text-muted">{t.settings.floors.description}</p>
-                  </div>
-                  <div className={`p-1 rounded-md transition-colors ${groupByFloors ? 'bg-accent text-white' : 'bg-border/50 text-muted'}`}>
-                    <Check className="w-4 h-4" />
-                  </div>
-                </button>
-              )}
 
               {/* Bottom padding for safe area */}
               <div className="h-4" />

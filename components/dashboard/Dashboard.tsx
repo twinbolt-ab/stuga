@@ -1,58 +1,47 @@
 'use client'
 
-import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react'
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import { LayoutGroup } from 'framer-motion'
 import { Header } from '@/components/layout/Header'
 import { RoomCard } from '@/components/dashboard/RoomCard'
-import { FloorHeading } from '@/components/dashboard/FloorHeading'
 import { ReorderableGrid } from '@/components/dashboard/ReorderableGrid'
 import { useRooms } from '@/lib/hooks/useRooms'
 import { useRoomOrder } from '@/lib/hooks/useRoomOrder'
-import { useSettings } from '@/lib/hooks/useSettings'
 import { t } from '@/lib/i18n'
 import type { RoomWithDevices } from '@/types/ha'
 
 export function Dashboard() {
   const { rooms, floors, isConnected } = useRooms()
   const { reorderAreas } = useRoomOrder()
-  const { groupByFloors, setGroupByFloors } = useSettings()
   const [expandedRoomId, setExpandedRoomId] = useState<string | null>(null)
   const [isRoomReorderMode, setIsRoomReorderMode] = useState(false)
   const [isDeviceReorderMode, setIsDeviceReorderMode] = useState(false)
   const [orderedRooms, setOrderedRooms] = useState<RoomWithDevices[]>([])
+  const [selectedFloorId, setSelectedFloorId] = useState<string | null>(null)
 
-  const hasFloors = floors.length > 0
-  const shouldGroupByFloors = hasFloors && groupByFloors
+  // Check if there are rooms without a floor
+  const hasUnassignedRooms = useMemo(() => {
+    return rooms.some((room) => !room.floorId)
+  }, [rooms])
 
-  // Group rooms by floor
-  const roomsByFloor = useMemo(() => {
-    if (!shouldGroupByFloors) return null
-
-    const grouped = new Map<string | null, RoomWithDevices[]>()
-
-    // Initialize with floor order
-    for (const floor of floors) {
-      grouped.set(floor.floor_id, [])
+  // Auto-select first floor when floors load
+  useEffect(() => {
+    if (floors.length > 0 && selectedFloorId === null) {
+      setSelectedFloorId(floors[0].floor_id)
     }
-    grouped.set(null, []) // For rooms without a floor
+  }, [floors, selectedFloorId])
 
-    // Group rooms
-    for (const room of rooms) {
-      const floorId = room.floorId || null
-      const floorRooms = grouped.get(floorId) || []
-      floorRooms.push(room)
-      grouped.set(floorId, floorRooms)
+  // Filter rooms by selected floor
+  const filteredRooms = useMemo(() => {
+    if (selectedFloorId === null) {
+      // Show rooms without a floor assigned
+      return rooms.filter((room) => !room.floorId)
     }
+    return rooms.filter((room) => room.floorId === selectedFloorId)
+  }, [rooms, selectedFloorId])
 
-    return grouped
-  }, [rooms, floors, shouldGroupByFloors])
-
-  const handleToggleGroupByFloors = useCallback(() => {
-    setGroupByFloors(!groupByFloors)
-  }, [groupByFloors, setGroupByFloors])
-
-  // Keep orderedRooms in sync with rooms when not in reorder mode
-  const displayRooms = isRoomReorderMode ? orderedRooms : rooms
+  // Keep orderedRooms in sync with filteredRooms when not in reorder mode
+  const displayRooms = isRoomReorderMode ? orderedRooms : filteredRooms
 
   const handleToggleExpand = useCallback((roomId: string) => {
     if (isRoomReorderMode) return // Disable expand in room reorder mode
@@ -66,9 +55,9 @@ export function Dashboard() {
     } else {
       // No room expanded - enable room reordering
       setIsRoomReorderMode(true)
-      setOrderedRooms([...rooms])
+      setOrderedRooms([...filteredRooms])
     }
-  }, [expandedRoomId, rooms])
+  }, [expandedRoomId, filteredRooms])
 
   const handleExitReorderMode = useCallback(async () => {
     if (isDeviceReorderMode) {
@@ -85,14 +74,14 @@ export function Dashboard() {
     // Find items that moved and save their new positions
     for (let i = 0; i < orderedRooms.length; i++) {
       const room = orderedRooms[i]
-      const originalIndex = rooms.findIndex(r => r.id === room.id)
+      const originalIndex = filteredRooms.findIndex(r => r.id === room.id)
       if (originalIndex !== i && room.areaId) {
         await reorderAreas(items, originalIndex, i)
       }
     }
 
     setIsRoomReorderMode(false)
-  }, [isDeviceReorderMode, rooms, orderedRooms, reorderAreas])
+  }, [isDeviceReorderMode, filteredRooms, orderedRooms, reorderAreas])
 
   const handleReorder = useCallback((newOrder: RoomWithDevices[]) => {
     setOrderedRooms(newOrder)
@@ -124,16 +113,8 @@ export function Dashboard() {
   const isAnyReorderMode = isRoomReorderMode || isDeviceReorderMode
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header
-        isConnected={isConnected}
-        onEnterReorderMode={handleEnterReorderMode}
-        hasFloors={hasFloors}
-        groupByFloors={groupByFloors}
-        onToggleGroupByFloors={handleToggleGroupByFloors}
-      />
-
-      <div className="px-4 py-6">
+    <div className="min-h-screen bg-background pb-20">
+      <div className="px-4 py-4">
         {/* Rooms grid */}
         <section>
           {isAnyReorderMode && (
@@ -143,9 +124,11 @@ export function Dashboard() {
           {displayRooms.length === 0 ? (
             <div className="card p-8 text-center">
               <p className="text-muted">
-                {isConnected
+                {!isConnected
+                  ? t.rooms.connectingToHA
+                  : rooms.length === 0
                   ? t.rooms.loading
-                  : t.rooms.connectingToHA}
+                  : t.rooms.noRoomsOnFloor}
               </p>
             </div>
           ) : isRoomReorderMode ? (
@@ -170,69 +153,32 @@ export function Dashboard() {
           ) : (
             <LayoutGroup>
               <div ref={gridRef} className="grid grid-cols-2 gap-3">
-                {shouldGroupByFloors && roomsByFloor ? (
-                  // Grouped by floors
-                  <>
-                    {floors.map((floor) => {
-                      const floorRooms = roomsByFloor.get(floor.floor_id) || []
-                      if (floorRooms.length === 0) return null
-                      return (
-                        <React.Fragment key={floor.floor_id}>
-                          <FloorHeading floor={floor} />
-                          {floorRooms.map((room, index) => (
-                            <RoomCard
-                              key={room.id}
-                              room={room}
-                              index={index}
-                              isExpanded={expandedRoomId === room.id}
-                              isReorderMode={false}
-                              isDeviceReorderMode={isDeviceReorderMode && expandedRoomId === room.id}
-                              onToggleExpand={() => handleToggleExpand(room.id)}
-                              onExitDeviceReorderMode={handleExitReorderMode}
-                            />
-                          ))}
-                        </React.Fragment>
-                      )
-                    })}
-                    {/* Other rooms (no floor assigned) */}
-                    {(roomsByFloor.get(null) || []).length > 0 && (
-                      <>
-                        <FloorHeading floor={null} label={t.floors.other} />
-                        {(roomsByFloor.get(null) || []).map((room, index) => (
-                          <RoomCard
-                            key={room.id}
-                            room={room}
-                            index={index}
-                            isExpanded={expandedRoomId === room.id}
-                            isReorderMode={false}
-                            isDeviceReorderMode={isDeviceReorderMode && expandedRoomId === room.id}
-                            onToggleExpand={() => handleToggleExpand(room.id)}
-                            onExitDeviceReorderMode={handleExitReorderMode}
-                          />
-                        ))}
-                      </>
-                    )}
-                  </>
-                ) : (
-                  // Flat list (no grouping)
-                  displayRooms.map((room, index) => (
-                    <RoomCard
-                      key={room.id}
-                      room={room}
-                      index={index}
-                      isExpanded={expandedRoomId === room.id}
-                      isReorderMode={false}
-                      isDeviceReorderMode={isDeviceReorderMode && expandedRoomId === room.id}
-                      onToggleExpand={() => handleToggleExpand(room.id)}
-                      onExitDeviceReorderMode={handleExitReorderMode}
-                    />
-                  ))
-                )}
+                {displayRooms.map((room, index) => (
+                  <RoomCard
+                    key={room.id}
+                    room={room}
+                    index={index}
+                    isExpanded={expandedRoomId === room.id}
+                    isReorderMode={false}
+                    isDeviceReorderMode={isDeviceReorderMode && expandedRoomId === room.id}
+                    onToggleExpand={() => handleToggleExpand(room.id)}
+                    onExitDeviceReorderMode={handleExitReorderMode}
+                  />
+                ))}
               </div>
             </LayoutGroup>
           )}
         </section>
       </div>
+
+      <Header
+        isConnected={isConnected}
+        onEnterReorderMode={handleEnterReorderMode}
+        floors={floors}
+        selectedFloorId={selectedFloorId}
+        onSelectFloor={setSelectedFloorId}
+        hasUnassignedRooms={hasUnassignedRooms}
+      />
     </div>
   )
 }

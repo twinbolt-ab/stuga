@@ -1,9 +1,7 @@
 {
-  "greeting": {
-    "night": "Good night",
-    "morning": "Good morning",
-    "afternoon": "Good afternoon",
-    "evening": "Good evening"
+  "nav": {
+    "overview": "Overview",
+    "settings": "Settings"
   },
   "connection": {
     "connecting": "Connecting..."
@@ -13,7 +11,8 @@
     "loading": "Loading rooms...",
     "connectingToHA": "Connecting to Home Assistant...",
     "reorderHint": "Tap outside to save",
-    "noDevices": "No controllable devices in this room"
+    "noDevices": "No controllable devices in this room",
+    "noRoomsOnFloor": "No rooms on this floor"
   },
   "settings": {
     "title": "Settings",
