@@ -5,7 +5,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Lightbulb, LightbulbOff } from 'lucide-react'
 import { clsx } from 'clsx'
 import type { HAEntity } from '@/types/ha'
+import { MdiIcon } from '@/components/ui/MdiIcon'
 import { useLightControl } from '@/lib/hooks/useLightControl'
+import { haWebSocket } from '@/lib/ha-websocket'
 
 // Minimum drag distance to trigger brightness change
 const DRAG_THRESHOLD = 10
@@ -28,6 +30,7 @@ export function LightSlider({ light, disabled = false }: LightSliderProps) {
 
   const isOn = light.state === 'on'
   const displayName = light.attributes.friendly_name || light.entity_id.split('.')[1]
+  const entityIcon = haWebSocket.getEntityIcon(light.entity_id)
 
   // Swipe gesture handlers
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
@@ -135,7 +138,9 @@ export function LightSlider({ light, disabled = false }: LightSliderProps) {
           )}
           aria-label={`Toggle ${displayName}`}
         >
-          {isOn ? (
+          {entityIcon ? (
+            <MdiIcon icon={entityIcon} className="w-5 h-5" />
+          ) : isOn ? (
             <Lightbulb className="w-5 h-5" />
           ) : (
             <LightbulbOff className="w-5 h-5" />

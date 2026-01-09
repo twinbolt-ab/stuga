@@ -68,6 +68,7 @@ export interface RoomWithDevices {
   id: string
   name: string
   areaId?: string
+  icon?: string
   devices: HAEntity[]
   lightsOn: number
   totalLights: number

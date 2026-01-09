@@ -3,27 +3,10 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { clsx } from 'clsx'
-import {
-  Lightbulb,
-  Thermometer,
-  Droplets,
-  ChevronDown,
-  Home,
-  Bed,
-  Bath,
-  Utensils,
-  Sofa,
-  Car,
-  Waves,
-  Trees,
-  Briefcase,
-  DoorOpen,
-  Archive,
-  Layers,
-  Star,
-} from 'lucide-react'
+import { Lightbulb, Thermometer, ChevronDown, Home } from 'lucide-react'
 import type { RoomWithDevices } from '@/types/ha'
 import { RoomExpanded } from './RoomExpanded'
+import { MdiIcon } from '@/components/ui/MdiIcon'
 import { useLightControl } from '@/lib/hooks/useLightControl'
 import { t, interpolate } from '@/lib/i18n'
 
@@ -41,23 +24,6 @@ interface RoomCardProps {
   onDragOver?: () => void
   onDrop?: () => void
   onDragEnd?: () => void
-}
-
-const ROOM_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  'hall': DoorOpen,
-  'kok': Utensils,
-  'matbord-och-vardagsrum': Sofa,
-  'sovrum-vuxna': Bed,
-  'cleos-rum': Star,
-  'noras-rum': Star,
-  'stora-badrummet': Bath,
-  'lilla-badrummet': Bath,
-  'kontor': Briefcase,
-  'garage': Car,
-  'pool': Waves,
-  'tradgard': Trees,
-  'forrad-trappa': Archive,
-  'kallare': Layers,
 }
 
 // Minimum drag distance to trigger brightness change (prevents accidental drags)
@@ -94,8 +60,6 @@ export function RoomCard({
   const dragStartRef = useRef<{ x: number; brightness: number } | null>(null)
   const cardRef = useRef<HTMLDivElement>(null)
   const didDragRef = useRef(false)
-
-  const Icon = ROOM_ICONS[room.id] || Home
 
   // Scroll to center when expanded
   useEffect(() => {
@@ -183,7 +147,7 @@ export function RoomCard({
   const cardClassName = clsx(
     'card w-full text-left relative overflow-hidden',
     'transition-all duration-200',
-    isExpanded ? 'p-4 col-span-2' : 'px-4 py-2.5',
+    isExpanded ? 'p-4 col-span-2' : 'px-4 py-1.5',
     isReorderMode && 'cursor-grab active:cursor-grabbing',
     isDragging && 'opacity-50 scale-95',
     isDragOver && 'ring-2 ring-accent scale-105'
@@ -225,20 +189,25 @@ export function RoomCard({
         {/* Header row - icon left, name centered */}
         <div
           className={clsx(
-            'flex items-center mb-2 -ml-2',
-            isExpanded && 'cursor-pointer'
+            'flex items-center -ml-2',
+            isExpanded ? 'mb-2 cursor-pointer' : 'mb-1'
           )}
           onClick={handleHeaderClick}
         >
           <div
             className={clsx(
-              'p-2.5 rounded-xl transition-colors flex-shrink-0 z-10',
+              'rounded-xl transition-colors flex-shrink-0 z-10',
+              isExpanded ? 'p-2.5' : 'p-2',
               hasLightsOn
                 ? 'bg-accent/20 text-accent'
                 : 'bg-border/50 text-muted'
             )}
           >
-            <Icon className="w-5 h-5" />
+            {room.icon ? (
+              <MdiIcon icon={room.icon} className={isExpanded ? 'w-5 h-5' : 'w-4 h-4'} />
+            ) : (
+              <Home className={isExpanded ? 'w-5 h-5' : 'w-4 h-4'} />
+            )}
           </div>
           <h3 className="font-semibold text-foreground truncate flex-1 text-center pl-2 pr-1">
             {room.name}
@@ -270,12 +239,6 @@ export function RoomCard({
             </span>
           )}
 
-          {room.humidity !== undefined && (
-            <span className="flex items-center gap-1">
-              <Droplets className="w-3.5 h-3.5" />
-              <span>{room.humidity}%</span>
-            </span>
-          )}
           </div>
 
           {!isReorderMode && (

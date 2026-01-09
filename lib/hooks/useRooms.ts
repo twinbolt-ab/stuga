@@ -82,32 +82,46 @@ export function useRooms() {
       const lights = devices.filter((d) => d.entity_id.startsWith('light.'))
       const lightsOn = lights.filter((l) => l.state === 'on').length
 
-      // Find temperature sensor
-      const tempSensor = devices.find(
+      // Find temperature sensors and average valid values
+      const tempSensors = devices.filter(
         (d) =>
           d.entity_id.startsWith('sensor.') &&
           d.attributes.device_class === 'temperature'
       )
+      const validTemps = tempSensors
+        .map((s) => parseFloat(s.state))
+        .filter((v) => !isNaN(v))
+      const temperature = validTemps.length > 0
+        ? validTemps.reduce((a, b) => a + b, 0) / validTemps.length
+        : undefined
 
-      // Find humidity sensor
-      const humiditySensor = devices.find(
+      // Find humidity sensors and average valid values
+      const humiditySensors = devices.filter(
         (d) =>
           d.entity_id.startsWith('sensor.') &&
           d.attributes.device_class === 'humidity'
       )
+      const validHumidities = humiditySensors
+        .map((s) => parseFloat(s.state))
+        .filter((v) => !isNaN(v))
+      const humidity = validHumidities.length > 0
+        ? Math.round(validHumidities.reduce((a, b) => a + b, 0) / validHumidities.length)
+        : undefined
 
-      // Get order from HA labels (or default)
+      // Get order and icon from HA
       const order = areaId ? haWebSocket.getAreaOrder(areaId) : DEFAULT_ORDER
+      const icon = areaId ? haWebSocket.getAreaIcon(areaId) : undefined
 
       result.push({
         id: slugify(name),
         name,
         areaId: areaId || undefined,
+        icon,
         devices,
         lightsOn,
         totalLights: lights.length,
-        temperature: tempSensor ? parseFloat(tempSensor.state) : undefined,
-        humidity: humiditySensor ? parseFloat(humiditySensor.state) : undefined,
+        temperature,
+        humidity,
         order,
       })
     }

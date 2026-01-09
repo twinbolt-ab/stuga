@@ -2,12 +2,14 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { motion, Reorder } from 'framer-motion'
-import { Thermometer, Droplets, Sparkles, GripVertical } from 'lucide-react'
+import { Thermometer, Droplets, Sparkles, GripVertical, Power } from 'lucide-react'
 import { clsx } from 'clsx'
 import type { RoomWithDevices, HAEntity } from '@/types/ha'
 import { LightSlider } from './LightSlider'
+import { MdiIcon } from '@/components/ui/MdiIcon'
 import { useHAConnection } from '@/lib/hooks/useHAConnection'
 import { useDeviceOrder } from '@/lib/hooks/useDeviceOrder'
+import { haWebSocket } from '@/lib/ha-websocket'
 import { t } from '@/lib/i18n'
 
 interface RoomExpandedProps {
@@ -22,6 +24,7 @@ export function RoomExpanded({ room, isReorderMode = false, onExitReorderMode }:
 
   // Filter and sort devices by type and order
   const lights = sortDevicesByOrder(room.devices.filter((d) => d.entity_id.startsWith('light.')))
+  const switches = room.devices.filter((d) => d.entity_id.startsWith('switch.'))
   const scenes = room.devices.filter((d) => d.entity_id.startsWith('scene.'))
 
   const [orderedLights, setOrderedLights] = useState<HAEntity[]>(lights)
@@ -50,6 +53,23 @@ export function RoomExpanded({ room, isReorderMode = false, onExitReorderMode }:
     callService('scene', 'turn_on', { entity_id: scene.entity_id })
   }
 
+  const handleSwitchToggle = (sw: HAEntity) => {
+    const service = sw.state === 'on' ? 'turn_off' : 'turn_on'
+    callService('switch', service, { entity_id: sw.entity_id })
+  }
+
+  // Remove room name from scene name if present
+  const getSceneDisplayName = (scene: HAEntity) => {
+    const name = scene.attributes.friendly_name || scene.entity_id.split('.')[1]
+    const roomNameLower = room.name.toLowerCase()
+    const nameLower = name.toLowerCase()
+
+    if (nameLower.startsWith(roomNameLower)) {
+      return name.slice(room.name.length).trim() || name
+    }
+    return name
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, height: 0 }}
@@ -66,21 +86,28 @@ export function RoomExpanded({ room, isReorderMode = false, onExitReorderMode }:
               {t.devices.scenes}
             </h4>
             <div className="flex flex-wrap gap-2">
-              {scenes.map((scene) => (
-                <button
-                  key={scene.entity_id}
-                  onClick={() => handleSceneActivate(scene)}
-                  className={clsx(
-                    'px-3 py-1.5 rounded-full text-sm font-medium',
-                    'bg-border/50 hover:bg-accent/20 hover:text-accent',
-                    'transition-colors touch-feedback',
-                    'flex items-center gap-1.5'
-                  )}
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  {scene.attributes.friendly_name || scene.entity_id.split('.')[1]}
-                </button>
-              ))}
+              {scenes.map((scene) => {
+                const sceneIcon = haWebSocket.getEntityIcon(scene.entity_id)
+                return (
+                  <button
+                    key={scene.entity_id}
+                    onClick={() => handleSceneActivate(scene)}
+                    className={clsx(
+                      'px-3 py-1.5 rounded-full text-sm font-medium',
+                      'bg-border/50 hover:bg-accent/20 hover:text-accent',
+                      'transition-colors touch-feedback',
+                      'flex items-center gap-1.5'
+                    )}
+                  >
+                    {sceneIcon ? (
+                      <MdiIcon icon={sceneIcon} className="w-3.5 h-3.5" />
+                    ) : (
+                      <Sparkles className="w-3.5 h-3.5" />
+                    )}
+                    {getSceneDisplayName(scene)}
+                  </button>
+                )
+              })}
             </div>
           </div>
         )}
@@ -122,6 +149,49 @@ export function RoomExpanded({ room, isReorderMode = false, onExitReorderMode }:
           </div>
         )}
 
+        {/* Switches */}
+        {switches.length > 0 && (
+          <div className="mb-4">
+            <h4 className="text-xs font-medium text-muted uppercase tracking-wide mb-2">
+              {t.devices.switches}
+            </h4>
+            <div className="space-y-1">
+              {switches.map((sw) => {
+                const isOn = sw.state === 'on'
+                const switchIcon = haWebSocket.getEntityIcon(sw.entity_id)
+                return (
+                  <button
+                    key={sw.entity_id}
+                    onClick={() => handleSwitchToggle(sw)}
+                    className={clsx(
+                      'w-full flex items-center justify-between px-3 py-2 rounded-lg',
+                      'transition-colors touch-feedback',
+                      isOn ? 'bg-accent/20' : 'bg-border/30'
+                    )}
+                  >
+                    <span className={clsx(
+                      'text-sm font-medium truncate',
+                      isOn ? 'text-foreground' : 'text-muted'
+                    )}>
+                      {sw.attributes.friendly_name || sw.entity_id.split('.')[1]}
+                    </span>
+                    <div className={clsx(
+                      'p-1.5 rounded-full transition-colors',
+                      isOn ? 'bg-accent text-white' : 'bg-border text-muted'
+                    )}>
+                      {switchIcon ? (
+                        <MdiIcon icon={switchIcon} className="w-4 h-4" />
+                      ) : (
+                        <Power className="w-4 h-4" />
+                      )}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Sensors */}
         {(room.temperature !== undefined || room.humidity !== undefined) && (
           <div className="flex items-center gap-4 text-sm text-muted pt-2">
@@ -141,7 +211,7 @@ export function RoomExpanded({ room, isReorderMode = false, onExitReorderMode }:
         )}
 
         {/* Empty state */}
-        {lights.length === 0 && scenes.length === 0 && (
+        {lights.length === 0 && switches.length === 0 && scenes.length === 0 && (
           <p className="text-sm text-muted py-2">
             {t.rooms.noDevices}
           </p>

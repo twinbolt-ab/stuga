@@ -316,6 +316,24 @@ class HAWebSocket {
     return this.labels
   }
 
+  // Get icon for an area
+  getAreaIcon(areaId: string): string | undefined {
+    return this.areaRegistry.get(areaId)?.icon
+  }
+
+  // Get icon for an entity (from registry or attributes)
+  getEntityIcon(entityId: string): string | undefined {
+    const registryEntry = this.entityRegistry.get(entityId)
+    if (registryEntry?.icon) return registryEntry.icon
+
+    const entity = this.entities.get(entityId)
+    if (entity?.attributes.icon && typeof entity.attributes.icon === 'string') {
+      return entity.attributes.icon
+    }
+
+    return undefined
+  }
+
   // Order helpers - extract order from giraff-*-order-XX labels
   getAreaOrder(areaId: string): number {
     const area = this.areaRegistry.get(areaId)
