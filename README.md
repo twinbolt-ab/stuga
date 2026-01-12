@@ -23,8 +23,15 @@ Home Assistant is powerful, but its dashboard requires YAML and card configurati
 - **Zero config** — No YAML, no card configurations
 - **In-place editing** — Edit rooms, devices, and floors directly from the dashboard
 - **HA-native persistence** — All changes save directly to Home Assistant
-- **Drag & drop** — Reorder rooms and devices with gestures
+- **Drag & drop** — Reorder rooms with gestures
 - **Mobile-first** — Built for phones, scales up gracefully
+
+<p align="center">
+  <a href="https://github.com/twinbolt-ab/giraff/raw/main/public/giraff-demo.mp4">
+    <img src="public/giraff.png" alt="Watch demo" width="80"><br>
+    <strong>▶ Watch demo video</strong>
+  </a>
+</p>
 
 ---
 
