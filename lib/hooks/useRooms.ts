@@ -3,8 +3,9 @@
 import { useMemo, useState, useEffect } from 'react'
 import { useHAConnection } from './useHAConnection'
 import { haWebSocket } from '../ha-websocket'
+import { getShowHiddenItems } from '../config'
 import type { HAEntity, HAFloor, RoomWithDevices } from '@/types/ha'
-import { DEFAULT_ORDER } from '../constants'
+import { DEFAULT_ORDER, STORAGE_KEYS } from '../constants'
 
 function slugify(name: string): string {
   return name
@@ -20,6 +21,30 @@ function slugify(name: string): string {
 export function useRooms() {
   const { entities, isConnected } = useHAConnection()
   const [registryVersion, setRegistryVersion] = useState(0)
+  const [showHiddenItems, setShowHiddenItems] = useState(false)
+
+  // Load showHiddenItems on mount and listen for changes
+  useEffect(() => {
+    setShowHiddenItems(getShowHiddenItems())
+
+    // Listen for localStorage changes (from other components)
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEYS.SHOW_HIDDEN_ITEMS) {
+        setShowHiddenItems(e.newValue === 'true')
+      }
+    }
+    window.addEventListener('storage', handleStorage)
+
+    // Also poll for changes from same tab (storage event doesn't fire for same tab)
+    const interval = setInterval(() => {
+      setShowHiddenItems(getShowHiddenItems())
+    }, 500)
+
+    return () => {
+      window.removeEventListener('storage', handleStorage)
+      clearInterval(interval)
+    }
+  }, [])
 
   // Subscribe to registry updates for order changes
   useEffect(() => {
@@ -37,8 +62,8 @@ export function useRooms() {
 
     // Group entities by area (we'll extract area from friendly_name or entity_id patterns)
     for (const entity of entities.values()) {
-      // Skip hidden entities
-      if (hiddenEntities.has(entity.entity_id)) continue
+      // Skip hidden entities (unless showHiddenItems is enabled)
+      if (!showHiddenItems && hiddenEntities.has(entity.entity_id)) continue
 
       const areaName = extractAreaFromEntity(entity)
       if (areaName) {
@@ -129,7 +154,7 @@ export function useRooms() {
     })
 
     return { rooms: result, floors: floorsArray }
-  }, [entities, registryVersion])
+  }, [entities, registryVersion, showHiddenItems])
 
   return { rooms, floors, isConnected }
 }

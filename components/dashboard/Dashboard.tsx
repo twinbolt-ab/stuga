@@ -8,13 +8,14 @@ import { RoomCard } from '@/components/dashboard/RoomCard'
 import { ReorderableGrid } from '@/components/dashboard/ReorderableGrid'
 import { RoomEditModal } from '@/components/dashboard/RoomEditModal'
 import { BulkEditRoomsModal, BulkEditDevicesModal } from '@/components/dashboard/BulkEditModal'
+import { UncategorizedView } from '@/components/dashboard/UncategorizedView'
 import { EditModeProvider, useEditMode } from '@/lib/contexts/EditModeContext'
 import { useRooms } from '@/lib/hooks/useRooms'
 import { useRoomOrder } from '@/lib/hooks/useRoomOrder'
 import { useEnabledDomains } from '@/lib/hooks/useEnabledDomains'
 import { ORDER_GAP } from '@/lib/constants'
 import { t, interpolate } from '@/lib/i18n'
-import type { RoomWithDevices } from '@/types/ha'
+import type { RoomWithDevices, HAEntity } from '@/types/ha'
 
 // Inner component that uses the context
 function DashboardContent() {
@@ -28,10 +29,12 @@ function DashboardContent() {
     isEditMode,
     isRoomEditMode,
     isDeviceEditMode,
+    isUncategorizedEditMode,
     selectedCount,
     selectedIds,
     enterRoomEdit,
     enterDeviceEdit,
+    enterUncategorizedEdit,
     exitEditMode,
     clearSelection,
   } = useEditMode()
@@ -126,13 +129,15 @@ function DashboardContent() {
   }, [])
 
   const handleEnterEditMode = useCallback(() => {
-    if (expandedRoomId) {
+    if (selectedFloorId === '__uncategorized__') {
+      enterUncategorizedEdit()
+    } else if (expandedRoomId) {
       enterDeviceEdit(expandedRoomId)
     } else {
       enterRoomEdit()
       setOrderedRooms([...filteredRooms])
     }
-  }, [expandedRoomId, filteredRooms, enterRoomEdit, enterDeviceEdit])
+  }, [selectedFloorId, expandedRoomId, filteredRooms, enterRoomEdit, enterDeviceEdit, enterUncategorizedEdit])
 
   const handleExitEditMode = useCallback(() => {
     exitEditMode()
@@ -142,19 +147,32 @@ function DashboardContent() {
     setOrderedRooms(newOrder)
   }, [])
 
+  const handleViewUncategorized = useCallback(() => {
+    setSelectedFloorId('__uncategorized__' as unknown as string)
+  }, [])
+
   // Get selected rooms for bulk edit modal
   const selectedRoomsForEdit = useMemo(() => {
     const roomsToSearch = isRoomEditMode ? orderedRooms : filteredRooms
     return roomsToSearch.filter(r => selectedIds.has(r.id))
   }, [isRoomEditMode, orderedRooms, filteredRooms, selectedIds])
 
-  // Get selected devices for bulk edit modal (from expanded room)
+  // Get selected devices for bulk edit modal (from expanded room or uncategorized)
   const selectedDevicesForEdit = useMemo(() => {
+    if (isUncategorizedEditMode) {
+      // Get all entities and filter selected ones
+      const allEntities: HAEntity[] = []
+      rooms.forEach(r => allEntities.push(...r.devices))
+      // Also need to get uncategorized entities - they're not in rooms
+      // For now, we'll get them directly from the context/selection
+      // The BulkEditDevicesModal just needs entity_ids to work
+      return Array.from(selectedIds).map(id => ({ entity_id: id } as HAEntity))
+    }
     if (!isDeviceEditMode || !expandedRoomId) return []
     const expandedRoom = rooms.find(r => r.id === expandedRoomId)
     if (!expandedRoom) return []
     return expandedRoom.devices.filter(d => selectedIds.has(d.entity_id))
-  }, [isDeviceEditMode, expandedRoomId, rooms, selectedIds])
+  }, [isDeviceEditMode, isUncategorizedEditMode, expandedRoomId, rooms, selectedIds])
 
   const gridRef = useRef<HTMLDivElement>(null)
 
@@ -204,7 +222,7 @@ function DashboardContent() {
               <div className="flex items-center gap-2">
                 {selectedCount > 0 && (
                   <button
-                    onClick={() => isDeviceEditMode ? setShowBulkEditDevices(true) : setShowBulkEditRooms(true)}
+                    onClick={() => (isDeviceEditMode || isUncategorizedEditMode) ? setShowBulkEditDevices(true) : setShowBulkEditRooms(true)}
                     className="px-3 py-1.5 rounded-full bg-accent text-white text-sm font-medium hover:bg-accent/90 transition-colors"
                   >
                     {t.bulkEdit.editSelected}
@@ -223,9 +241,11 @@ function DashboardContent() {
       </AnimatePresence>
 
       <div className="px-4 py-4">
-        {/* Rooms grid */}
+        {/* Uncategorized view or Rooms grid */}
         <section>
-          {displayRooms.length === 0 ? (
+          {selectedFloorId === '__uncategorized__' ? (
+            <UncategorizedView allRooms={rooms} />
+          ) : displayRooms.length === 0 ? (
             <div className="card p-8 text-center">
               <p className="text-muted">
                 {!isConnected
@@ -279,6 +299,7 @@ function DashboardContent() {
         onSelectFloor={setSelectedFloorId}
         hasUnassignedRooms={hasUnassignedRooms}
         isEditMode={isRoomEditMode}
+        onViewUncategorized={handleViewUncategorized}
       />
 
       <RoomEditModal

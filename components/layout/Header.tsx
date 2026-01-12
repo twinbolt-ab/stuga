@@ -17,6 +17,7 @@ interface BottomNavProps {
   onSelectFloor: (floorId: string | null) => void
   hasUnassignedRooms: boolean
   isEditMode?: boolean
+  onViewUncategorized?: () => void
 }
 
 export function BottomNav({
@@ -26,6 +27,7 @@ export function BottomNav({
   onSelectFloor,
   hasUnassignedRooms,
   isEditMode = false,
+  onViewUncategorized,
 }: BottomNavProps) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [editingFloor, setEditingFloor] = useState<HAFloor | null>(null)
@@ -169,6 +171,7 @@ export function BottomNav({
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         onEnterEditMode={onEnterEditMode}
+        onViewUncategorized={onViewUncategorized}
       />
 
       <FloorEditModal

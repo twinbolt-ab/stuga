@@ -26,4 +26,5 @@ export const STORAGE_KEYS = {
   HA_TOKEN: 'giraff-ha-token',
   SETUP_COMPLETE: 'giraff-setup-complete',
   ENABLED_DOMAINS: 'giraff-enabled-domains',
+  SHOW_HIDDEN_ITEMS: 'giraff-show-hidden-items',
 } as const

@@ -70,9 +70,14 @@ export function LightSlider({ light, disabled = false }: LightSliderProps) {
     }
 
     if (isDragging) {
-      // Map screen position to brightness: left edge = 0%, right edge = 100%
+      // Map screen position to brightness with padding for easier mobile use
+      // 0% starts at 24px from left, 100% ends at 24px from right
+      // Dragging past these points still clamps to 0% or 100%
+      const padding = 24
       const screenWidth = window.innerWidth
-      const newBrightness = Math.max(0, Math.min(100, (e.clientX / screenWidth) * 100))
+      const effectiveWidth = screenWidth - padding * 2
+      const relativeX = e.clientX - padding
+      const newBrightness = Math.max(0, Math.min(100, (relativeX / effectiveWidth) * 100))
       setLocalBrightness(Math.round(newBrightness))
       setLightBrightness(light.entity_id, Math.round(newBrightness))
     }

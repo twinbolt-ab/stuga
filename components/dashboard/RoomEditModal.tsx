@@ -5,7 +5,7 @@ import { Trash2 } from 'lucide-react'
 import { EditModal } from '@/components/ui/EditModal'
 import { FormField } from '@/components/ui/FormField'
 import { TextInput } from '@/components/ui/TextInput'
-import { Select } from '@/components/ui/Select'
+import { ComboBox } from '@/components/ui/ComboBox'
 import { IconPickerField } from '@/components/ui/IconPickerField'
 import { RoomDeleteDialog } from '@/components/dashboard/RoomDeleteDialog'
 import { t } from '@/lib/i18n'
@@ -76,10 +76,13 @@ export function RoomEditModal({ room, allRooms = [], floors, onClose }: RoomEdit
         </FormField>
 
         <FormField label={t.edit.room.floor}>
-          <Select
+          <ComboBox
             value={floorId}
             onChange={setFloorId}
             options={floorOptions}
+            placeholder={t.floors.none}
+            onCreate={(name) => haWebSocket.createFloor(name)}
+            createLabel={t.edit.createFloor}
           />
         </FormField>
 

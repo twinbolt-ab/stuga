@@ -5,7 +5,7 @@ import { Trash2 } from 'lucide-react'
 import { EditModal } from '@/components/ui/EditModal'
 import { FormField } from '@/components/ui/FormField'
 import { TextInput } from '@/components/ui/TextInput'
-import { Select } from '@/components/ui/Select'
+import { ComboBox } from '@/components/ui/ComboBox'
 import { Toggle } from '@/components/ui/Toggle'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { t, interpolate } from '@/lib/i18n'
@@ -115,11 +115,13 @@ export function DeviceEditModal({ device, rooms, onClose }: DeviceEditModalProps
           </FormField>
 
           <FormField label={labels.room}>
-            <Select
+            <ComboBox
               value={roomId}
               onChange={setRoomId}
               options={roomOptions}
               placeholder="Select room..."
+              onCreate={(name) => haWebSocket.createArea(name)}
+              createLabel={t.edit.createRoom}
             />
           </FormField>
 

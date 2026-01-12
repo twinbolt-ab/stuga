@@ -82,6 +82,10 @@
       "description": "Choose which device types to show",
       "reset": "Reset to defaults"
     },
+    "showHidden": {
+      "title": "Show hidden items",
+      "description": "Display entities hidden in Home Assistant"
+    },
     "connection": {
       "title": "Connection",
       "description": "Manage Home Assistant connection",
@@ -111,6 +115,12 @@
   "floors": {
     "other": "Other",
     "none": "None"
+  },
+  "uncategorized": {
+    "title": "Uncategorized Items",
+    "menuTitle": "Uncategorized items",
+    "menuDescription": "View entities without a room",
+    "empty": "All entities are assigned to rooms"
   },
   "devices": {
     "lightsOn": "{count} on",
@@ -149,7 +159,9 @@
     },
     "save": "Save",
     "saving": "Saving...",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "createRoom": "Create room",
+    "createFloor": "Create floor"
   },
   "iconPicker": {
     "title": "Select Icon",

@@ -1,19 +1,21 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { getEnabledDomains, setEnabledDomains as saveEnabledDomains, isEntityVisible as checkEntityVisible } from '../config'
+import { getEnabledDomains, setEnabledDomains as saveEnabledDomains, isEntityVisible as checkEntityVisible, getShowHiddenItems, setShowHiddenItems as saveShowHiddenItems } from '../config'
 import { DEFAULT_ENABLED_DOMAINS, type ConfigurableDomain } from '@/types/ha'
 
 /**
- * Hook for managing configurable entity domains
+ * Hook for managing configurable entity domains and visibility settings
  * Returns the current enabled domains and utilities for checking entity visibility
  */
 export function useEnabledDomains() {
   const [enabledDomains, setEnabledDomainsState] = useState<ConfigurableDomain[]>(DEFAULT_ENABLED_DOMAINS)
+  const [showHiddenItems, setShowHiddenItemsState] = useState(false)
 
   // Load from localStorage on mount
   useEffect(() => {
     setEnabledDomainsState(getEnabledDomains())
+    setShowHiddenItemsState(getShowHiddenItems())
   }, [])
 
   // Save domains and update state
@@ -44,11 +46,19 @@ export function useEnabledDomains() {
     setEnabledDomains(DEFAULT_ENABLED_DOMAINS)
   }, [setEnabledDomains])
 
+  // Toggle showHiddenItems
+  const setShowHiddenItems = useCallback((show: boolean) => {
+    saveShowHiddenItems(show)
+    setShowHiddenItemsState(show)
+  }, [])
+
   return {
     enabledDomains,
     setEnabledDomains,
     isEntityVisible,
     toggleDomain,
     resetToDefaults,
+    showHiddenItems,
+    setShowHiddenItems,
   }
 }

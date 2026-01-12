@@ -105,3 +105,19 @@ export function isEntityVisible(entityId: string, enabledDomains?: ConfigurableD
   const domains = enabledDomains ?? getEnabledDomains()
   return domains.some(domain => entityId.startsWith(`${domain}.`))
 }
+
+/**
+ * Get showHiddenItems setting from localStorage
+ */
+export function getShowHiddenItems(): boolean {
+  if (typeof window === 'undefined') return false
+  return localStorage.getItem(STORAGE_KEYS.SHOW_HIDDEN_ITEMS) === 'true'
+}
+
+/**
+ * Save showHiddenItems setting to localStorage
+ */
+export function setShowHiddenItems(show: boolean): void {
+  if (typeof window === 'undefined') return
+  localStorage.setItem(STORAGE_KEYS.SHOW_HIDDEN_ITEMS, show ? 'true' : 'false')
+}

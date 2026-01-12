@@ -200,6 +200,20 @@ export function RoomExpanded({ room, allRooms }: RoomExpandedProps) {
     [room.devices, enabledDomains]
   )
 
+  // Temperature and humidity sensors for display
+  const temperatureSensors = useMemo(
+    () => room.devices.filter(
+      (d) => d.entity_id.startsWith('sensor.') && d.attributes.device_class === 'temperature'
+    ).filter((d) => !isNaN(parseFloat(d.state))),
+    [room.devices]
+  )
+  const humiditySensors = useMemo(
+    () => room.devices.filter(
+      (d) => d.entity_id.startsWith('sensor.') && d.attributes.device_class === 'humidity'
+    ).filter((d) => !isNaN(parseFloat(d.state))),
+    [room.devices]
+  )
+
   const [orderedLights, setOrderedLights] = useState<HAEntity[]>(lights)
   const [orderedSwitches, setOrderedSwitches] = useState<HAEntity[]>(switches)
   const [orderedInputBooleans, setOrderedInputBooleans] = useState<HAEntity[]>(inputBooleans)
@@ -667,26 +681,379 @@ export function RoomExpanded({ room, allRooms }: RoomExpandedProps) {
           </div>
         )}
 
-        {/* Sensors */}
-        {(room.temperature !== undefined || room.humidity !== undefined) && (
-          <div className="flex items-center gap-4 text-sm text-muted pt-2">
-            {room.temperature !== undefined && (
-              <span className="flex items-center gap-1.5">
-                <Thermometer className="w-4 h-4" />
-                {room.temperature.toFixed(1)}°C
-              </span>
-            )}
-            {room.humidity !== undefined && (
-              <span className="flex items-center gap-1.5">
-                <Droplets className="w-4 h-4" />
-                {room.humidity}%
-              </span>
+        {/* Climate */}
+        {climates.length > 0 && (
+          <div className="mb-4">
+            <SectionHeader>{t.domains.climate}</SectionHeader>
+            {isInEditMode ? (
+              <Reorder.Group
+                axis="y"
+                values={orderedClimates}
+                onReorder={handleClimatesReorder}
+                className="space-y-2"
+              >
+                {orderedClimates.map((climate) => {
+                  const climateSelected = isSelected(climate.entity_id)
+                  return (
+                    <Reorder.Item
+                      key={climate.entity_id}
+                      value={climate}
+                      className={clsx(
+                        'px-3 py-3 rounded-xl bg-border/30 cursor-grab active:cursor-grabbing',
+                        'ring-1 ring-accent/30',
+                        climateSelected && 'ring-2 ring-accent'
+                      )}
+                      whileDrag={{ scale: 1.02, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <SelectionCheckbox
+                          isSelected={climateSelected}
+                          onToggle={() => toggleSelection(climate.entity_id)}
+                        />
+                        <button
+                          onClick={() => handleDeviceEdit(climate)}
+                          className="p-1 rounded-lg hover:bg-border/50 transition-colors"
+                        >
+                          <Pencil className="w-4 h-4 text-muted" />
+                        </button>
+                        <GripVertical className="w-4 h-4 text-muted flex-shrink-0" />
+                        <span className="flex-1 text-sm font-medium text-foreground truncate">
+                          {getEntityDisplayName(climate)}
+                        </span>
+                      </div>
+                    </Reorder.Item>
+                  )
+                })}
+              </Reorder.Group>
+            ) : (
+              <div className="space-y-2">
+                {climates.map((climate) => {
+                  const currentTemp = climate.attributes.current_temperature as number | undefined
+                  const targetTemp = climate.attributes.temperature as number | undefined
+                  const hvacMode = climate.state
+                  const isOff = hvacMode === 'off'
+                  const climateIcon = haWebSocket.getEntityIcon(climate.entity_id)
+
+                  return (
+                    <div
+                      key={climate.entity_id}
+                      className={clsx(
+                        'px-3 py-3 rounded-xl transition-colors',
+                        isOff ? 'bg-border/30' : 'bg-accent/10'
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        {/* Icon */}
+                        <div className={clsx(
+                          'p-2 rounded-lg transition-colors flex-shrink-0',
+                          isOff ? 'bg-border/50 text-muted' : 'bg-accent/20 text-accent'
+                        )}>
+                          {climateIcon ? (
+                            <MdiIcon icon={climateIcon} className="w-5 h-5" />
+                          ) : (
+                            <Thermometer className="w-5 h-5" />
+                          )}
+                        </div>
+
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-foreground truncate">
+                              {getEntityDisplayName(climate)}
+                            </span>
+                            {!isOff && (
+                              <span className={clsx(
+                                'px-2 py-0.5 rounded-full text-xs font-medium capitalize',
+                                hvacMode === 'heat' && 'bg-orange-500/20 text-orange-500',
+                                hvacMode === 'cool' && 'bg-blue-500/20 text-blue-500',
+                                hvacMode === 'heat_cool' && 'bg-purple-500/20 text-purple-500',
+                                hvacMode === 'auto' && 'bg-green-500/20 text-green-500',
+                                !['heat', 'cool', 'heat_cool', 'auto'].includes(hvacMode) && 'bg-accent/20 text-accent'
+                              )}>
+                                {hvacMode}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3 mt-0.5 text-xs text-muted">
+                            {currentTemp !== undefined && (
+                              <span>Current: {currentTemp}°</span>
+                            )}
+                            {targetTemp !== undefined && !isOff && (
+                              <span>Target: {targetTemp}°</span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Power toggle */}
+                        <button
+                          onClick={() => handleClimateToggle(climate)}
+                          className={clsx(
+                            'p-2 rounded-lg transition-colors touch-feedback',
+                            isOff ? 'bg-border/50 text-muted' : 'bg-accent text-white'
+                          )}
+                        >
+                          <Power className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
             )}
           </div>
         )}
 
+        {/* Covers */}
+        {covers.length > 0 && (
+          <div className="mb-4">
+            <SectionHeader>{t.domains.cover}</SectionHeader>
+            {isInEditMode ? (
+              <Reorder.Group
+                axis="y"
+                values={orderedCovers}
+                onReorder={handleCoversReorder}
+                className="space-y-1"
+              >
+                {orderedCovers.map((cover) => {
+                  const coverSelected = isSelected(cover.entity_id)
+                  return (
+                    <Reorder.Item
+                      key={cover.entity_id}
+                      value={cover}
+                      className={clsx(
+                        'w-full flex items-center gap-2 px-2 py-2 rounded-lg bg-border/30 cursor-grab active:cursor-grabbing',
+                        'ring-1 ring-accent/30',
+                        coverSelected && 'ring-2 ring-accent'
+                      )}
+                      whileDrag={{ scale: 1.02, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                    >
+                      <SelectionCheckbox
+                        isSelected={coverSelected}
+                        onToggle={() => toggleSelection(cover.entity_id)}
+                      />
+                      <button
+                        onClick={() => handleDeviceEdit(cover)}
+                        className="p-1 rounded-lg hover:bg-border/50 transition-colors"
+                      >
+                        <Pencil className="w-4 h-4 text-muted" />
+                      </button>
+                      <GripVertical className="w-4 h-4 text-muted flex-shrink-0" />
+                      <span className="flex-1 text-sm font-medium text-foreground truncate">
+                        {getEntityDisplayName(cover)}
+                      </span>
+                    </Reorder.Item>
+                  )
+                })}
+              </Reorder.Group>
+            ) : (
+              <div className="space-y-1">
+                {covers.map((cover) => {
+                  const isOpen = cover.state === 'open'
+                  const isClosed = cover.state === 'closed'
+                  const coverIcon = haWebSocket.getEntityIcon(cover.entity_id)
+
+                  return (
+                    <div
+                      key={cover.entity_id}
+                      className={clsx(
+                        'w-full flex items-center gap-2 px-2 py-2 rounded-lg transition-colors',
+                        isOpen ? 'bg-accent/20' : 'bg-border/30'
+                      )}
+                    >
+                      {/* Icon */}
+                      <div className={clsx(
+                        'p-2 rounded-lg transition-colors flex-shrink-0',
+                        isOpen ? 'bg-accent/20 text-accent' : 'bg-border/50 text-muted'
+                      )}>
+                        {coverIcon ? (
+                          <MdiIcon icon={coverIcon} className="w-5 h-5" />
+                        ) : (
+                          <Blinds className="w-5 h-5" />
+                        )}
+                      </div>
+
+                      {/* Name */}
+                      <span className={clsx(
+                        'flex-1 text-sm font-medium truncate',
+                        isOpen ? 'text-foreground' : 'text-muted'
+                      )}>
+                        {getEntityDisplayName(cover)}
+                      </span>
+
+                      {/* State */}
+                      <span className="text-xs text-muted capitalize">
+                        {cover.state}
+                      </span>
+
+                      {/* Control buttons */}
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleCoverOpen(cover)}
+                          disabled={isOpen}
+                          className={clsx(
+                            'p-1.5 rounded-lg transition-colors touch-feedback',
+                            isOpen ? 'text-muted/50' : 'bg-border/50 text-foreground hover:bg-accent/20'
+                          )}
+                        >
+                          <ChevronUp className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleCoverStop(cover)}
+                          className="p-1.5 rounded-lg bg-border/50 text-foreground hover:bg-accent/20 transition-colors touch-feedback"
+                        >
+                          <Square className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={() => handleCoverClose(cover)}
+                          disabled={isClosed}
+                          className={clsx(
+                            'p-1.5 rounded-lg transition-colors touch-feedback',
+                            isClosed ? 'text-muted/50' : 'bg-border/50 text-foreground hover:bg-accent/20'
+                          )}
+                        >
+                          <ChevronDown className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Fans */}
+        {fans.length > 0 && (
+          <div className="mb-4">
+            <SectionHeader>{t.domains.fan}</SectionHeader>
+            {isInEditMode ? (
+              <Reorder.Group
+                axis="y"
+                values={orderedFans}
+                onReorder={handleFansReorder}
+                className="space-y-1"
+              >
+                {orderedFans.map((fan) => (
+                  <Reorder.Item
+                    key={fan.entity_id}
+                    value={fan}
+                    className="cursor-grab active:cursor-grabbing"
+                    whileDrag={{ scale: 1.02, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                  >
+                    <ToggleButton
+                      entity={fan}
+                      isInEditMode={isInEditMode}
+                      isSelected={isSelected(fan.entity_id)}
+                      onToggle={() => handleFanToggle(fan)}
+                      onEdit={() => handleDeviceEdit(fan)}
+                      onToggleSelection={() => toggleSelection(fan.entity_id)}
+                      fallbackIcon={<Fan className="w-5 h-5" />}
+                    />
+                  </Reorder.Item>
+                ))}
+              </Reorder.Group>
+            ) : (
+              <div className="space-y-1">
+                {fans.map((fan) => {
+                  const isOn = fan.state === 'on'
+                  const percentage = fan.attributes.percentage as number | undefined
+                  const fanIcon = haWebSocket.getEntityIcon(fan.entity_id)
+
+                  return (
+                    <div
+                      key={fan.entity_id}
+                      className={clsx(
+                        'w-full flex items-center gap-2 px-2 py-2 rounded-lg transition-colors',
+                        isOn ? 'bg-accent/20' : 'bg-border/30'
+                      )}
+                    >
+                      {/* Icon */}
+                      <div className={clsx(
+                        'p-2 rounded-lg transition-colors flex-shrink-0',
+                        isOn ? 'bg-accent/20 text-accent' : 'bg-border/50 text-muted'
+                      )}>
+                        {fanIcon ? (
+                          <MdiIcon icon={fanIcon} className="w-5 h-5" />
+                        ) : (
+                          <Fan className="w-5 h-5" />
+                        )}
+                      </div>
+
+                      {/* Clickable area */}
+                      <button
+                        onClick={() => handleFanToggle(fan)}
+                        className="flex-1 flex items-center gap-3 touch-feedback"
+                      >
+                        {/* Name */}
+                        <span className={clsx(
+                          'flex-1 text-sm font-medium truncate text-left',
+                          isOn ? 'text-foreground' : 'text-muted'
+                        )}>
+                          {getEntityDisplayName(fan)}
+                        </span>
+
+                        {/* Speed indicator */}
+                        {isOn && percentage !== undefined && (
+                          <span className="text-xs text-accent font-medium">
+                            {percentage}%
+                          </span>
+                        )}
+
+                        {/* State indicator */}
+                        <span className="text-xs text-muted">
+                          {isOn ? 'On' : 'Off'}
+                        </span>
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Sensors */}
+        {(temperatureSensors.length > 0 || humiditySensors.length > 0) && (
+          <div className="text-sm text-muted pt-2 space-y-1">
+            {/* Temperature sensors */}
+            {temperatureSensors.length === 1 ? (
+              <span className="flex items-center gap-1.5">
+                <Thermometer className="w-4 h-4" />
+                {parseFloat(temperatureSensors[0].state).toFixed(1)}°C
+              </span>
+            ) : temperatureSensors.length > 1 ? (
+              <div className="space-y-0.5">
+                {temperatureSensors.map((sensor) => (
+                  <div key={sensor.entity_id} className="flex items-center gap-1.5">
+                    <Thermometer className="w-4 h-4 flex-shrink-0" />
+                    <span className="truncate">{getEntityDisplayName(sensor)}</span>
+                    <span className="ml-auto tabular-nums">{parseFloat(sensor.state).toFixed(1)}°C</span>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+            {/* Humidity sensors */}
+            {humiditySensors.length === 1 ? (
+              <span className="flex items-center gap-1.5">
+                <Droplets className="w-4 h-4" />
+                {Math.round(parseFloat(humiditySensors[0].state))}%
+              </span>
+            ) : humiditySensors.length > 1 ? (
+              <div className="space-y-0.5">
+                {humiditySensors.map((sensor) => (
+                  <div key={sensor.entity_id} className="flex items-center gap-1.5">
+                    <Droplets className="w-4 h-4 flex-shrink-0" />
+                    <span className="truncate">{getEntityDisplayName(sensor)}</span>
+                    <span className="ml-auto tabular-nums">{Math.round(parseFloat(sensor.state))}%</span>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        )}
+
         {/* Empty state */}
-        {lights.length === 0 && switches.length === 0 && scenes.length === 0 && inputBooleans.length === 0 && inputNumbers.length === 0 && (
+        {lights.length === 0 && switches.length === 0 && scenes.length === 0 && inputBooleans.length === 0 && inputNumbers.length === 0 && climates.length === 0 && covers.length === 0 && fans.length === 0 && (
           <p className="text-sm text-muted py-2">
             {t.rooms.noDevices}
           </p>

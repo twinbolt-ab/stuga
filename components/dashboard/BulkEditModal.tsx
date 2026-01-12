@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { EditModal } from '@/components/ui/EditModal'
 import { FormField } from '@/components/ui/FormField'
 import { Select } from '@/components/ui/Select'
+import { ComboBox } from '@/components/ui/ComboBox'
 import { t, interpolate } from '@/lib/i18n'
 import { haWebSocket } from '@/lib/ha-websocket'
 import type { RoomWithDevices, HAFloor, HAEntity } from '@/types/ha'
@@ -56,10 +57,13 @@ export function BulkEditRoomsModal({ rooms, floors, onClose, onComplete }: BulkE
     >
       <div className="space-y-4">
         <FormField label={t.bulkEdit.rooms.moveToFloor}>
-          <Select
+          <ComboBox
             value={floorId}
             onChange={setFloorId}
             options={floorOptions}
+            placeholder="— No change —"
+            onCreate={(name) => haWebSocket.createFloor(name)}
+            createLabel={t.edit.createFloor}
           />
         </FormField>
 
@@ -146,10 +150,13 @@ export function BulkEditDevicesModal({ devices, rooms, onClose, onComplete }: Bu
     >
       <div className="space-y-4">
         <FormField label={t.bulkEdit.devices.moveToRoom}>
-          <Select
+          <ComboBox
             value={roomId}
             onChange={setRoomId}
             options={roomOptions}
+            placeholder="— No change —"
+            onCreate={(name) => haWebSocket.createArea(name)}
+            createLabel={t.edit.createRoom}
           />
         </FormField>
 

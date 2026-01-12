@@ -4,29 +4,33 @@ import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTheme } from 'next-themes'
 import { useRouter } from 'next/navigation'
-import { Moon, Sun, Pencil, X, Wifi, Layers, LogOut } from 'lucide-react'
+import { Moon, Sun, Pencil, X, Wifi, Layers, LogOut, Package, Eye, EyeOff } from 'lucide-react'
 import { t } from '@/lib/i18n'
 import { ConnectionSettingsModal } from '@/components/settings/ConnectionSettingsModal'
 import { DomainConfigModal } from '@/components/settings/DomainConfigModal'
 import { clearCredentials } from '@/lib/config'
 import { haWebSocket } from '@/lib/ha-websocket'
+import { useEnabledDomains } from '@/lib/hooks/useEnabledDomains'
 
 interface SettingsMenuProps {
   isOpen: boolean
   onClose: () => void
   onEnterEditMode: () => void
+  onViewUncategorized?: () => void
 }
 
 export function SettingsMenu({
   isOpen,
   onClose,
   onEnterEditMode,
+  onViewUncategorized,
 }: SettingsMenuProps) {
   const router = useRouter()
   const { resolvedTheme, setTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
   const [showConnectionSettings, setShowConnectionSettings] = useState(false)
   const [showDomainConfig, setShowDomainConfig] = useState(false)
+  const { showHiddenItems, setShowHiddenItems } = useEnabledDomains()
 
   // Close on escape key
   useEffect(() => {
@@ -47,6 +51,11 @@ export function SettingsMenu({
   const handleEdit = () => {
     onClose()
     onEnterEditMode()
+  }
+
+  const handleViewUncategorized = () => {
+    onClose()
+    onViewUncategorized?.()
   }
 
   const handleThemeToggle = () => {
@@ -146,6 +155,42 @@ export function SettingsMenu({
                 <div className="flex-1 text-left">
                   <p className="font-medium text-foreground">{t.settings.domains.title}</p>
                   <p className="text-sm text-muted">{t.settings.domains.description}</p>
+                </div>
+              </button>
+
+              {/* Show Hidden Items */}
+              <button
+                onClick={() => setShowHiddenItems(!showHiddenItems)}
+                className="w-full flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-border/30 transition-colors touch-feedback"
+              >
+                <div className="p-2.5 rounded-xl bg-border/50">
+                  {showHiddenItems ? (
+                    <Eye className="w-5 h-5 text-foreground" />
+                  ) : (
+                    <EyeOff className="w-5 h-5 text-foreground" />
+                  )}
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="font-medium text-foreground">{t.settings.showHidden.title}</p>
+                  <p className="text-sm text-muted">{t.settings.showHidden.description}</p>
+                </div>
+                {/* Toggle indicator */}
+                <div className={`w-10 h-6 rounded-full transition-colors ${showHiddenItems ? 'bg-accent' : 'bg-border'}`}>
+                  <div className={`w-5 h-5 mt-0.5 rounded-full bg-white shadow transition-transform ${showHiddenItems ? 'translate-x-4.5 ml-0.5' : 'translate-x-0.5'}`} />
+                </div>
+              </button>
+
+              {/* Uncategorized Items */}
+              <button
+                onClick={handleViewUncategorized}
+                className="w-full flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-border/30 transition-colors touch-feedback"
+              >
+                <div className="p-2.5 rounded-xl bg-border/50">
+                  <Package className="w-5 h-5 text-foreground" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="font-medium text-foreground">{t.uncategorized.menuTitle}</p>
+                  <p className="text-sm text-muted">{t.uncategorized.menuDescription}</p>
                 </div>
               </button>
 

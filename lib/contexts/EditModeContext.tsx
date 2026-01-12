@@ -7,11 +7,13 @@ export type EditMode =
   | { type: 'normal' }
   | { type: 'edit-rooms'; selectedIds: Set<string> }
   | { type: 'edit-devices'; roomId: string; selectedIds: Set<string> }
+  | { type: 'edit-uncategorized'; selectedIds: Set<string> }
 
 // Actions
 type EditModeAction =
   | { type: 'ENTER_ROOM_EDIT' }
   | { type: 'ENTER_DEVICE_EDIT'; roomId: string }
+  | { type: 'ENTER_UNCATEGORIZED_EDIT' }
   | { type: 'EXIT_EDIT_MODE' }
   | { type: 'TOGGLE_SELECTION'; id: string }
   | { type: 'CLEAR_SELECTION' }
@@ -25,11 +27,14 @@ function editModeReducer(state: EditMode, action: EditModeAction): EditMode {
     case 'ENTER_DEVICE_EDIT':
       return { type: 'edit-devices', roomId: action.roomId, selectedIds: new Set() }
 
+    case 'ENTER_UNCATEGORIZED_EDIT':
+      return { type: 'edit-uncategorized', selectedIds: new Set() }
+
     case 'EXIT_EDIT_MODE':
       return { type: 'normal' }
 
     case 'TOGGLE_SELECTION':
-      if (state.type === 'edit-rooms' || state.type === 'edit-devices') {
+      if (state.type === 'edit-rooms' || state.type === 'edit-devices' || state.type === 'edit-uncategorized') {
         const newSelectedIds = new Set(state.selectedIds)
         if (newSelectedIds.has(action.id)) {
           newSelectedIds.delete(action.id)
@@ -41,7 +46,7 @@ function editModeReducer(state: EditMode, action: EditModeAction): EditMode {
       return state
 
     case 'CLEAR_SELECTION':
-      if (state.type === 'edit-rooms' || state.type === 'edit-devices') {
+      if (state.type === 'edit-rooms' || state.type === 'edit-devices' || state.type === 'edit-uncategorized') {
         return { ...state, selectedIds: new Set() }
       }
       return state
@@ -60,6 +65,7 @@ interface EditModeContextValue {
   isEditMode: boolean
   isRoomEditMode: boolean
   isDeviceEditMode: boolean
+  isUncategorizedEditMode: boolean
   isSelected: (id: string) => boolean
   selectedCount: number
   selectedIds: Set<string>
@@ -67,6 +73,7 @@ interface EditModeContextValue {
   // Actions
   enterRoomEdit: () => void
   enterDeviceEdit: (roomId: string) => void
+  enterUncategorizedEdit: () => void
   exitEditMode: () => void
   toggleSelection: (id: string) => void
   clearSelection: () => void
@@ -86,9 +93,10 @@ export function EditModeProvider({ children }: EditModeProviderProps) {
   const isEditMode = mode.type !== 'normal'
   const isRoomEditMode = mode.type === 'edit-rooms'
   const isDeviceEditMode = mode.type === 'edit-devices'
+  const isUncategorizedEditMode = mode.type === 'edit-uncategorized'
 
   const selectedIds = useMemo(() => {
-    if (mode.type === 'edit-rooms' || mode.type === 'edit-devices') {
+    if (mode.type === 'edit-rooms' || mode.type === 'edit-devices' || mode.type === 'edit-uncategorized') {
       return mode.selectedIds
     }
     return new Set<string>()
@@ -101,6 +109,7 @@ export function EditModeProvider({ children }: EditModeProviderProps) {
   // Actions
   const enterRoomEdit = useCallback(() => dispatch({ type: 'ENTER_ROOM_EDIT' }), [])
   const enterDeviceEdit = useCallback((roomId: string) => dispatch({ type: 'ENTER_DEVICE_EDIT', roomId }), [])
+  const enterUncategorizedEdit = useCallback(() => dispatch({ type: 'ENTER_UNCATEGORIZED_EDIT' }), [])
   const exitEditMode = useCallback(() => dispatch({ type: 'EXIT_EDIT_MODE' }), [])
   const toggleSelection = useCallback((id: string) => dispatch({ type: 'TOGGLE_SELECTION', id }), [])
   const clearSelection = useCallback(() => dispatch({ type: 'CLEAR_SELECTION' }), [])
@@ -110,11 +119,13 @@ export function EditModeProvider({ children }: EditModeProviderProps) {
     isEditMode,
     isRoomEditMode,
     isDeviceEditMode,
+    isUncategorizedEditMode,
     isSelected,
     selectedCount,
     selectedIds,
     enterRoomEdit,
     enterDeviceEdit,
+    enterUncategorizedEdit,
     exitEditMode,
     toggleSelection,
     clearSelection,
@@ -123,11 +134,13 @@ export function EditModeProvider({ children }: EditModeProviderProps) {
     isEditMode,
     isRoomEditMode,
     isDeviceEditMode,
+    isUncategorizedEditMode,
     isSelected,
     selectedCount,
     selectedIds,
     enterRoomEdit,
     enterDeviceEdit,
+    enterUncategorizedEdit,
     exitEditMode,
     toggleSelection,
     clearSelection,

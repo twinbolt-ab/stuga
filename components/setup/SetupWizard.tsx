@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { ArrowRight, Check, Loader2, ExternalLink, AlertCircle, X, Wifi } from 'lucide-react'
 import { saveCredentials } from '@/lib/config'
 import { t } from '@/lib/i18n'
@@ -209,6 +210,14 @@ export function SetupWizard() {
               className="text-center"
             >
               <div className="mb-8">
+                <Image
+                  src="/giraff.png"
+                  alt="Giraff"
+                  width={120}
+                  height={180}
+                  className="mx-auto mb-6"
+                  priority
+                />
                 <h1 className="text-3xl font-bold text-foreground mb-2">
                   {t.setup.welcome.title}
                 </h1>

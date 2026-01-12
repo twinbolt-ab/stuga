@@ -58,7 +58,7 @@ export function EditModal({ isOpen, onClose, title, children }: EditModalProps) 
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 400 }}
-            className="fixed bottom-0 left-0 right-0 z-[100] bg-card rounded-t-2xl shadow-warm-lg max-h-[85vh] overflow-y-auto"
+            className="fixed bottom-0 left-0 right-0 z-[100] bg-card rounded-t-2xl shadow-warm-lg h-[90vh] flex flex-col"
           >
             {/* Handle bar */}
             <div className="flex justify-center pt-3 pb-2">
@@ -78,7 +78,7 @@ export function EditModal({ isOpen, onClose, title, children }: EditModalProps) 
             </div>
 
             {/* Content */}
-            <div className="px-4 py-4 pb-safe">
+            <div className="flex-1 overflow-y-auto px-4 py-4 pb-safe">
               {children}
             </div>
           </motion.div>

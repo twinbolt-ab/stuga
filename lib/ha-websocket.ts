@@ -697,6 +697,58 @@ class HAWebSocket {
     })
   }
 
+  // Create a new area (room)
+  async createArea(name: string, floorId?: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const msgId = this.messageId++
+      this.pendingCallbacks.set(msgId, (success, result) => {
+        if (success && result && typeof result === 'object' && 'area_id' in result) {
+          const newArea = result as AreaRegistryEntry
+          // Add to local registries
+          this.areaRegistry.set(newArea.area_id, newArea)
+          this.areas.set(newArea.area_id, newArea.name)
+          this.notifyRegistryHandlers()
+          resolve(newArea.area_id)
+        } else {
+          reject(new Error('Failed to create area'))
+        }
+      })
+
+      const payload: Record<string, unknown> = {
+        id: msgId,
+        type: 'config/area_registry/create',
+        name,
+      }
+      if (floorId) payload.floor_id = floorId
+
+      this.send(payload)
+    })
+  }
+
+  // Create a new floor
+  async createFloor(name: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const msgId = this.messageId++
+      this.pendingCallbacks.set(msgId, (success, result) => {
+        if (success && result && typeof result === 'object' && 'floor_id' in result) {
+          const newFloor = result as HAFloor
+          // Add to local registry
+          this.floors.set(newFloor.floor_id, newFloor)
+          this.notifyRegistryHandlers()
+          resolve(newFloor.floor_id)
+        } else {
+          reject(new Error('Failed to create floor'))
+        }
+      })
+
+      this.send({
+        id: msgId,
+        type: 'config/floor_registry/create',
+        name,
+      })
+    })
+  }
+
   // Delete a scene
   async deleteScene(entityId: string): Promise<void> {
     return new Promise((resolve, reject) => {
