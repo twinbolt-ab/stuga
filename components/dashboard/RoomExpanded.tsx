@@ -13,6 +13,71 @@ import { useDeviceOrder } from '@/lib/hooks/useDeviceOrder'
 import { haWebSocket } from '@/lib/ha-websocket'
 import { t } from '@/lib/i18n'
 
+// Helper to get display name from entity
+function getEntityDisplayName(entity: HAEntity): string {
+  return entity.attributes.friendly_name || entity.entity_id.split('.')[1]
+}
+
+// Reusable section header
+function SectionHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <h4 className="text-xs font-medium text-muted uppercase tracking-wide mb-2">
+      {children}
+    </h4>
+  )
+}
+
+// Reusable toggle button for switches and input_booleans
+interface ToggleButtonProps {
+  entity: HAEntity
+  isReorderMode: boolean
+  onToggle: () => void
+  onEdit: () => void
+  fallbackIcon: React.ReactNode
+}
+
+function ToggleButton({ entity, isReorderMode, onToggle, onEdit, fallbackIcon }: ToggleButtonProps) {
+  const isOn = entity.state === 'on'
+  const entityIcon = haWebSocket.getEntityIcon(entity.entity_id)
+
+  return (
+    <button
+      onClick={isReorderMode ? onEdit : onToggle}
+      className={clsx(
+        'w-full flex items-center gap-3 px-2 py-2 rounded-lg',
+        'transition-colors touch-feedback',
+        isOn ? 'bg-accent/20' : 'bg-border/30',
+        isReorderMode && 'ring-1 ring-accent/30'
+      )}
+    >
+      {/* Icon on left */}
+      <div className={clsx(
+        'p-2 rounded-lg transition-colors flex-shrink-0',
+        isOn ? 'bg-accent/20 text-accent' : 'bg-border/50 text-muted'
+      )}>
+        {isReorderMode ? (
+          <Pencil className="w-5 h-5" />
+        ) : entityIcon ? (
+          <MdiIcon icon={entityIcon} className="w-5 h-5" />
+        ) : (
+          fallbackIcon
+        )}
+      </div>
+      {/* Name */}
+      <span className={clsx(
+        'flex-1 text-sm font-medium truncate text-left',
+        isOn ? 'text-foreground' : 'text-muted'
+      )}>
+        {getEntityDisplayName(entity)}
+      </span>
+      {/* State indicator on right */}
+      <span className="text-xs text-muted">
+        {isOn ? 'On' : 'Off'}
+      </span>
+    </button>
+  )
+}
+
 interface RoomExpandedProps {
   room: RoomWithDevices
   allRooms: RoomWithDevices[]
@@ -95,9 +160,9 @@ export function RoomExpanded({ room, allRooms, isReorderMode = false, onExitReor
 
   // Remove room name from scene name if present
   const getSceneDisplayName = (scene: HAEntity) => {
-    const name = scene.attributes.friendly_name || scene.entity_id.split('.')[1]
-    const roomNameLower = room.name.toLowerCase()
+    const name = getEntityDisplayName(scene)
     const nameLower = name.toLowerCase()
+    const roomNameLower = room.name.toLowerCase()
 
     if (nameLower.startsWith(roomNameLower)) {
       return name.slice(room.name.length).trim() || name
@@ -111,10 +176,9 @@ export function RoomExpanded({ room, allRooms, isReorderMode = false, onExitReor
       animate={{ opacity: 1, height: 'auto' }}
       exit={{ opacity: 0, height: 0 }}
       transition={{ duration: 0.2, ease: 'easeOut' }}
-      className="overflow-hidden"
     >
       <div
-        className="pt-3 mt-3 border-t border-border max-h-[60vh] overflow-y-auto scroll-smooth pb-1 overscroll-contain"
+        className="pt-3 mt-3 border-t border-border max-h-[60vh] overflow-y-auto scroll-smooth pb-1 px-0.5 -mx-0.5 overscroll-contain"
         style={{ touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}
         onPointerDown={(e) => e.stopPropagation()}
         onPointerMove={(e) => e.stopPropagation()}
@@ -124,9 +188,7 @@ export function RoomExpanded({ room, allRooms, isReorderMode = false, onExitReor
         {/* Scenes */}
         {scenes.length > 0 && (
           <div className="mb-4">
-            <h4 className="text-xs font-medium text-muted uppercase tracking-wide mb-2">
-              {t.devices.scenes}
-            </h4>
+            <SectionHeader>{t.devices.scenes}</SectionHeader>
             <div className="flex flex-wrap gap-2">
               {scenes.map((scene) => {
                 const sceneIcon = haWebSocket.getEntityIcon(scene.entity_id)
@@ -160,9 +222,7 @@ export function RoomExpanded({ room, allRooms, isReorderMode = false, onExitReor
         {/* Lights */}
         {lights.length > 0 && (
           <div className="mb-4">
-            <h4 className="text-xs font-medium text-muted uppercase tracking-wide mb-2">
-              {t.devices.lights}
-            </h4>
+            <SectionHeader>{t.devices.lights}</SectionHeader>
             {isReorderMode ? (
               <Reorder.Group
                 axis="y"
@@ -206,49 +266,18 @@ export function RoomExpanded({ room, allRooms, isReorderMode = false, onExitReor
         {/* Switches */}
         {switches.length > 0 && (
           <div className="mb-4">
-            <h4 className="text-xs font-medium text-muted uppercase tracking-wide mb-2">
-              {t.devices.switches}
-            </h4>
+            <SectionHeader>{t.devices.switches}</SectionHeader>
             <div className="space-y-1">
-              {switches.map((sw) => {
-                const isOn = sw.state === 'on'
-                const switchIcon = haWebSocket.getEntityIcon(sw.entity_id)
-                return (
-                  <button
-                    key={sw.entity_id}
-                    onClick={() => isReorderMode ? handleDeviceEdit(sw) : handleSwitchToggle(sw)}
-                    className={clsx(
-                      'w-full flex items-center justify-between px-3 py-2 rounded-lg',
-                      'transition-colors touch-feedback',
-                      isOn ? 'bg-accent/20' : 'bg-border/30',
-                      isReorderMode && 'ring-1 ring-accent/30'
-                    )}
-                  >
-                    <span className={clsx(
-                      'text-sm font-medium truncate',
-                      isOn ? 'text-foreground' : 'text-muted'
-                    )}>
-                      {sw.attributes.friendly_name || sw.entity_id.split('.')[1]}
-                    </span>
-                    {isReorderMode ? (
-                      <div className="p-1.5 rounded-full bg-border/50 text-muted">
-                        <Pencil className="w-4 h-4" />
-                      </div>
-                    ) : (
-                      <div className={clsx(
-                        'p-1.5 rounded-full transition-colors',
-                        isOn ? 'bg-accent text-white' : 'bg-border text-muted'
-                      )}>
-                        {switchIcon ? (
-                          <MdiIcon icon={switchIcon} className="w-4 h-4" />
-                        ) : (
-                          <Power className="w-4 h-4" />
-                        )}
-                      </div>
-                    )}
-                  </button>
-                )
-              })}
+              {switches.map((sw) => (
+                <ToggleButton
+                  key={sw.entity_id}
+                  entity={sw}
+                  isReorderMode={isReorderMode}
+                  onToggle={() => handleSwitchToggle(sw)}
+                  onEdit={() => handleDeviceEdit(sw)}
+                  fallbackIcon={<Power className="w-5 h-5" />}
+                />
+              ))}
             </div>
           </div>
         )}
@@ -256,50 +285,19 @@ export function RoomExpanded({ room, allRooms, isReorderMode = false, onExitReor
         {/* Input Booleans & Numbers */}
         {(inputBooleans.length > 0 || inputNumbers.length > 0) && (
           <div className="mb-4">
-            <h4 className="text-xs font-medium text-muted uppercase tracking-wide mb-2">
-              {t.devices.inputs}
-            </h4>
+            <SectionHeader>{t.devices.inputs}</SectionHeader>
             <div className="space-y-1">
               {/* Input Booleans (toggles) */}
-              {inputBooleans.map((input) => {
-                const isOn = input.state === 'on'
-                const inputIcon = haWebSocket.getEntityIcon(input.entity_id)
-                return (
-                  <button
-                    key={input.entity_id}
-                    onClick={() => isReorderMode ? handleDeviceEdit(input) : handleInputBooleanToggle(input)}
-                    className={clsx(
-                      'w-full flex items-center justify-between px-3 py-2 rounded-lg',
-                      'transition-colors touch-feedback',
-                      isOn ? 'bg-accent/20' : 'bg-border/30',
-                      isReorderMode && 'ring-1 ring-accent/30'
-                    )}
-                  >
-                    <span className={clsx(
-                      'text-sm font-medium truncate',
-                      isOn ? 'text-foreground' : 'text-muted'
-                    )}>
-                      {input.attributes.friendly_name || input.entity_id.split('.')[1]}
-                    </span>
-                    {isReorderMode ? (
-                      <div className="p-1.5 rounded-full bg-border/50 text-muted">
-                        <Pencil className="w-4 h-4" />
-                      </div>
-                    ) : (
-                      <div className={clsx(
-                        'p-1.5 rounded-full transition-colors',
-                        isOn ? 'bg-accent text-white' : 'bg-border text-muted'
-                      )}>
-                        {inputIcon ? (
-                          <MdiIcon icon={inputIcon} className="w-4 h-4" />
-                        ) : (
-                          <ToggleLeft className="w-4 h-4" />
-                        )}
-                      </div>
-                    )}
-                  </button>
-                )
-              })}
+              {inputBooleans.map((input) => (
+                <ToggleButton
+                  key={input.entity_id}
+                  entity={input}
+                  isReorderMode={isReorderMode}
+                  onToggle={() => handleInputBooleanToggle(input)}
+                  onEdit={() => handleDeviceEdit(input)}
+                  fallbackIcon={<ToggleLeft className="w-5 h-5" />}
+                />
+              ))}
 
               {/* Input Numbers (sliders) */}
               {inputNumbers.map((input) => {
@@ -313,43 +311,47 @@ export function RoomExpanded({ room, allRooms, isReorderMode = false, onExitReor
                   <div
                     key={input.entity_id}
                     className={clsx(
-                      'px-3 py-2 rounded-lg bg-border/30',
+                      'px-2 py-2 rounded-lg bg-border/30',
                       isReorderMode && 'ring-1 ring-accent/30'
                     )}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-foreground truncate">
-                        {input.attributes.friendly_name || input.entity_id.split('.')[1]}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted tabular-nums">
-                          {value}{unit}
-                        </span>
+                    <div className="flex items-center gap-3">
+                      {/* Icon on left */}
+                      <div
+                        className="p-2 rounded-lg bg-border/50 text-muted flex-shrink-0 cursor-pointer"
+                        onClick={isReorderMode ? () => handleDeviceEdit(input) : undefined}
+                      >
                         {isReorderMode ? (
-                          <button
-                            onClick={() => handleDeviceEdit(input)}
-                            className="p-1 rounded-full bg-border/50 text-muted"
-                          >
-                            <Pencil className="w-3.5 h-3.5" />
-                          </button>
+                          <Pencil className="w-5 h-5" />
                         ) : inputIcon ? (
-                          <MdiIcon icon={inputIcon} className="w-4 h-4 text-muted" />
+                          <MdiIcon icon={inputIcon} className="w-5 h-5" />
                         ) : (
-                          <SlidersHorizontal className="w-4 h-4 text-muted" />
+                          <SlidersHorizontal className="w-5 h-5" />
+                        )}
+                      </div>
+                      {/* Name and slider */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium text-foreground truncate">
+                            {getEntityDisplayName(input)}
+                          </span>
+                          <span className="text-xs text-muted tabular-nums ml-2">
+                            {value}{unit}
+                          </span>
+                        </div>
+                        {!isReorderMode && (
+                          <input
+                            type="range"
+                            min={min}
+                            max={max}
+                            step={step}
+                            value={value}
+                            onChange={(e) => handleInputNumberChange(input, parseFloat(e.target.value))}
+                            className="w-full h-1.5 bg-border rounded-full appearance-none cursor-pointer accent-accent"
+                          />
                         )}
                       </div>
                     </div>
-                    {!isReorderMode && (
-                      <input
-                        type="range"
-                        min={min}
-                        max={max}
-                        step={step}
-                        value={value}
-                        onChange={(e) => handleInputNumberChange(input, parseFloat(e.target.value))}
-                        className="w-full h-1.5 bg-border rounded-full appearance-none cursor-pointer accent-accent"
-                      />
-                    )}
                   </div>
                 )
               })}
