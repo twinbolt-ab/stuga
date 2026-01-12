@@ -78,5 +78,21 @@
     "clear": "Clear icon",
     "noResults": "No icons found",
     "selectIcon": "Select an icon"
+  },
+  "bulkEdit": {
+    "selected": "{count} selected",
+    "selectAll": "Select All",
+    "deselectAll": "Clear",
+    "editSelected": "Edit",
+    "rooms": {
+      "title": "Edit {count} Rooms",
+      "moveToFloor": "Move to floor"
+    },
+    "devices": {
+      "title": "Edit {count} Devices",
+      "moveToRoom": "Move to room",
+      "hide": "Hide all",
+      "unhide": "Unhide all"
+    }
   }
 }

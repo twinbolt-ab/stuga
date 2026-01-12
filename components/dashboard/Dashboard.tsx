@@ -7,11 +7,12 @@ import { Header } from '@/components/layout/Header'
 import { RoomCard } from '@/components/dashboard/RoomCard'
 import { ReorderableGrid } from '@/components/dashboard/ReorderableGrid'
 import { RoomEditModal } from '@/components/dashboard/RoomEditModal'
+import { BulkEditRoomsModal, BulkEditDevicesModal } from '@/components/dashboard/BulkEditModal'
 import { useRooms } from '@/lib/hooks/useRooms'
 import { useRoomOrder } from '@/lib/hooks/useRoomOrder'
 import { ORDER_GAP } from '@/lib/constants'
-import { t } from '@/lib/i18n'
-import type { RoomWithDevices } from '@/types/ha'
+import { t, interpolate } from '@/lib/i18n'
+import type { RoomWithDevices, HAEntity } from '@/types/ha'
 
 export function Dashboard() {
   const { rooms, floors, isConnected } = useRooms()
@@ -24,6 +25,12 @@ export function Dashboard() {
   const [hasInitializedFloor, setHasInitializedFloor] = useState(false)
   const [editingRoom, setEditingRoom] = useState<RoomWithDevices | null>(null)
   const [showEditModeInfo, setShowEditModeInfo] = useState(false)
+
+  // Selection state for bulk editing
+  const [selectedRoomIds, setSelectedRoomIds] = useState<Set<string>>(new Set())
+  const [selectedDeviceIds, setSelectedDeviceIds] = useState<Set<string>>(new Set())
+  const [showBulkEditRooms, setShowBulkEditRooms] = useState(false)
+  const [showBulkEditDevices, setShowBulkEditDevices] = useState(false)
 
   // Check if there are rooms without a floor that have controllable devices
   const hasUnassignedRooms = useMemo(() => {
@@ -96,6 +103,7 @@ export function Dashboard() {
     if (isDeviceReorderMode) {
       // Just exit device reorder mode (saving happens in RoomExpanded)
       setIsDeviceReorderMode(false)
+      setSelectedDeviceIds(new Set())
       return
     }
 
@@ -107,11 +115,66 @@ export function Dashboard() {
     await Promise.all(updates.map(({ areaId, order }) => setAreaOrder(areaId!, order)))
 
     setIsRoomReorderMode(false)
+    setSelectedRoomIds(new Set())
   }, [isDeviceReorderMode, orderedRooms, setAreaOrder])
 
   const handleReorder = useCallback((newOrder: RoomWithDevices[]) => {
     setOrderedRooms(newOrder)
   }, [])
+
+  // Room selection handlers
+  const handleToggleRoomSelection = useCallback((roomId: string) => {
+    setSelectedRoomIds(prev => {
+      const next = new Set(prev)
+      if (next.has(roomId)) {
+        next.delete(roomId)
+      } else {
+        next.add(roomId)
+      }
+      return next
+    })
+  }, [])
+
+  const handleSelectAllRooms = useCallback(() => {
+    const roomsToSelect = isRoomReorderMode ? orderedRooms : filteredRooms
+    setSelectedRoomIds(new Set(roomsToSelect.map(r => r.id)))
+  }, [isRoomReorderMode, orderedRooms, filteredRooms])
+
+  const handleDeselectAllRooms = useCallback(() => {
+    setSelectedRoomIds(new Set())
+  }, [])
+
+  // Device selection handlers
+  const handleToggleDeviceSelection = useCallback((deviceId: string) => {
+    setSelectedDeviceIds(prev => {
+      const next = new Set(prev)
+      if (next.has(deviceId)) {
+        next.delete(deviceId)
+      } else {
+        next.add(deviceId)
+      }
+      return next
+    })
+  }, [])
+
+  const handleSelectAllDevices = useCallback((devices: HAEntity[]) => {
+    setSelectedDeviceIds(new Set(devices.map(d => d.entity_id)))
+  }, [])
+
+  const handleDeselectAllDevices = useCallback(() => {
+    setSelectedDeviceIds(new Set())
+  }, [])
+
+  // Get selected rooms for bulk edit modal
+  const selectedRoomsForEdit = useMemo(() => {
+    const roomsToSearch = isRoomReorderMode ? orderedRooms : filteredRooms
+    return roomsToSearch.filter(r => selectedRoomIds.has(r.id))
+  }, [isRoomReorderMode, orderedRooms, filteredRooms, selectedRoomIds])
+
+  // Get selected devices for bulk edit modal
+  const getSelectedDevicesForEdit = useCallback((devices: HAEntity[]) => {
+    return devices.filter(d => selectedDeviceIds.has(d.entity_id))
+  }, [selectedDeviceIds])
 
   const gridRef = useRef<HTMLDivElement>(null)
   const isAnyReorderMode = isRoomReorderMode || isDeviceReorderMode
@@ -130,42 +193,72 @@ export function Dashboard() {
           >
             <div className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-accent uppercase tracking-wide">
-                  {t.editMode.title}
-                </span>
-                <div className="relative">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setShowEditModeInfo(!showEditModeInfo)
-                    }}
-                    className="p-1 rounded-full hover:bg-accent/20 transition-colors"
-                    aria-label="Info"
-                  >
-                    <Info className="w-4 h-4 text-accent" />
-                  </button>
-                  <AnimatePresence>
-                    {showEditModeInfo && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -4, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -4, scale: 0.95 }}
-                        transition={{ duration: 0.15 }}
-                        className="absolute left-0 top-full mt-2 w-64 p-3 rounded-xl bg-card border border-border shadow-warm-lg text-sm text-muted z-50"
+                {/* Show selection count or edit mode title */}
+                {isRoomReorderMode && selectedRoomIds.size > 0 ? (
+                  <>
+                    <button
+                      onClick={handleDeselectAllRooms}
+                      className="p-1 rounded-full hover:bg-accent/20 transition-colors"
+                      aria-label="Clear selection"
+                    >
+                      <X className="w-4 h-4 text-accent" />
+                    </button>
+                    <span className="text-sm font-semibold text-accent">
+                      {interpolate(t.bulkEdit.selected, { count: selectedRoomIds.size })}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-sm font-semibold text-accent uppercase tracking-wide">
+                      {t.editMode.title}
+                    </span>
+                    <div className="relative">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setShowEditModeInfo(!showEditModeInfo)
+                        }}
+                        className="p-1 rounded-full hover:bg-accent/20 transition-colors"
+                        aria-label="Info"
                       >
-                        {t.editMode.info}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
+                        <Info className="w-4 h-4 text-accent" />
+                      </button>
+                      <AnimatePresence>
+                        {showEditModeInfo && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -4, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -4, scale: 0.95 }}
+                            transition={{ duration: 0.15 }}
+                            className="absolute left-0 top-full mt-2 w-64 p-3 rounded-xl bg-card border border-border shadow-warm-lg text-sm text-muted z-50"
+                          >
+                            {t.editMode.info}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </>
+                )}
               </div>
-              <button
-                onClick={handleExitReorderMode}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent text-white text-sm font-medium hover:bg-accent/90 transition-colors"
-              >
-                <X className="w-4 h-4" />
-                {t.editMode.done}
-              </button>
+
+              <div className="flex items-center gap-2">
+                {/* Edit button when items selected */}
+                {isRoomReorderMode && selectedRoomIds.size > 0 && (
+                  <button
+                    onClick={() => setShowBulkEditRooms(true)}
+                    className="px-3 py-1.5 rounded-full bg-accent text-white text-sm font-medium hover:bg-accent/90 transition-colors"
+                  >
+                    {t.bulkEdit.editSelected}
+                  </button>
+                )}
+                {/* Done button */}
+                <button
+                  onClick={handleExitReorderMode}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-border/50 text-foreground text-sm font-medium hover:bg-border transition-colors"
+                >
+                  {t.editMode.done}
+                </button>
+              </div>
             </div>
           </motion.div>
         )}
@@ -199,8 +292,10 @@ export function Dashboard() {
                   isExpanded={false}
                   isReorderMode={true}
                   isDragging={isActive}
+                  isSelected={selectedRoomIds.has(room.id)}
                   onToggleExpand={() => {}}
                   onEdit={() => handleEditRoom(room)}
+                  onToggleSelection={() => handleToggleRoomSelection(room.id)}
                 />
               )}
             />
@@ -239,6 +334,20 @@ export function Dashboard() {
         room={editingRoom}
         floors={floors}
         onClose={() => setEditingRoom(null)}
+      />
+
+      <BulkEditRoomsModal
+        rooms={selectedRoomsForEdit}
+        floors={floors}
+        onClose={() => setShowBulkEditRooms(false)}
+        onComplete={() => setSelectedRoomIds(new Set())}
+      />
+
+      <BulkEditDevicesModal
+        devices={[]}
+        rooms={rooms}
+        onClose={() => setShowBulkEditDevices(false)}
+        onComplete={() => setSelectedDeviceIds(new Set())}
       />
     </div>
   )

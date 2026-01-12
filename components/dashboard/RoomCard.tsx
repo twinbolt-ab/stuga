@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { clsx } from 'clsx'
-import { Lightbulb, Thermometer, ChevronDown, Home } from 'lucide-react'
+import { Lightbulb, Thermometer, ChevronDown, Home, Check } from 'lucide-react'
 import type { RoomWithDevices } from '@/types/ha'
 import { RoomExpanded } from './RoomExpanded'
 import { MdiIcon } from '@/components/ui/MdiIcon'
@@ -19,9 +19,11 @@ interface RoomCardProps {
   isDeviceReorderMode?: boolean
   isDragging?: boolean
   isDragOver?: boolean
+  isSelected?: boolean
   onToggleExpand: () => void
   onExitDeviceReorderMode?: () => void
   onEdit?: () => void
+  onToggleSelection?: () => void
   onDragStart?: () => void
   onDragOver?: () => void
   onDrop?: () => void
@@ -42,9 +44,11 @@ export function RoomCard({
   isDeviceReorderMode = false,
   isDragging = false,
   isDragOver = false,
+  isSelected = false,
   onToggleExpand,
   onExitDeviceReorderMode,
   onEdit,
+  onToggleSelection,
   onDragStart,
   onDragOver,
   onDrop,
@@ -171,7 +175,8 @@ export function RoomCard({
     isExpanded ? 'p-4 col-span-2' : 'px-4 py-1.5',
     isReorderMode && 'cursor-grab active:cursor-grabbing',
     isDragging && 'opacity-50 scale-95',
-    isDragOver && 'ring-2 ring-accent scale-105'
+    isDragOver && 'ring-2 ring-accent scale-105',
+    isSelected && 'ring-2 ring-accent'
   )
 
   const cardContent = (
@@ -215,6 +220,23 @@ export function RoomCard({
           )}
           onClick={handleHeaderClick}
         >
+          {/* Selection checkbox in reorder mode */}
+          {isReorderMode && onToggleSelection && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onToggleSelection()
+              }}
+              className={clsx(
+                'w-5 h-5 rounded-md border-2 flex items-center justify-center mr-1 flex-shrink-0 transition-colors',
+                isSelected
+                  ? 'bg-accent border-accent text-white'
+                  : 'border-border bg-transparent'
+              )}
+            >
+              {isSelected && <Check className="w-3 h-3" />}
+            </button>
+          )}
           <div
             className={clsx(
               'rounded-xl transition-colors flex-shrink-0 z-10',
