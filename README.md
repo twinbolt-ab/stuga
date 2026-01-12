@@ -18,7 +18,9 @@
 
 ## Why Giraff?
 
-Home Assistant is powerful, but its dashboard requires YAML and card configurations. Giraff is an opinionated alternative inspired by Google Home, Hue, and Apple Home.
+Home Assistant is incredibly powerful—but its companion app and dashboards weren't designed for simplicity. Giraff is a fast, beautiful alternative that works out of the box. No YAML, no card configurations, no learning curve. Just open it and control your home.
+
+Inspired by the polish of Google Home, Hue, and Apple Home.
 
 - **Zero config** — No YAML, no card configurations
 - **In-place editing** — Edit rooms, devices, and floors directly from the dashboard
@@ -26,12 +28,7 @@ Home Assistant is powerful, but its dashboard requires YAML and card configurati
 - **Drag & drop** — Reorder rooms with gestures
 - **Mobile-first** — Built for phones, scales up gracefully
 
-<p align="center">
-  <a href="https://github.com/twinbolt-ab/giraff/raw/main/public/giraff-demo.mp4">
-    <img src="public/giraff.png" alt="Watch demo" width="80"><br>
-    <strong>▶ Watch demo video</strong>
-  </a>
-</p>
+https://github.com/twinbolt-ab/giraff/raw/main/public/giraff-demo.mp4
 
 ---
 
