@@ -1,6 +1,6 @@
 name: "Giraff Dashboard"
 description: "A mobile-first, Scandinavian-minimal Home Assistant dashboard"
-version: "1.0.0"
+version: "1.0.1"
 slug: "giraff"
 url: "https://github.com/twinbolt-ab/giraff"
 arch:
