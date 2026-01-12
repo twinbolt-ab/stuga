@@ -128,7 +128,7 @@ docker run -d \
   --name giraff \
   -p 3000:3000 \
   --restart unless-stopped \
-  ghcr.io/twinbolt/giraff:latest
+  ghcr.io/twinbolt-ab/giraff:latest
 ```
 
 Open `http://localhost:3000` and follow the setup wizard to connect to Home Assistant.
@@ -139,7 +139,7 @@ Open `http://localhost:3000` and follow the setup wizard to connect to Home Assi
 ```yaml
 services:
   giraff:
-    image: ghcr.io/twinbolt/giraff:latest
+    image: ghcr.io/twinbolt-ab/giraff:latest
     container_name: giraff
     ports:
       - "3000:3000"
@@ -153,7 +153,7 @@ services:
 
 ```bash
 # Clone the repository
-git clone https://github.com/twinbolt/giraff.git
+git clone https://github.com/twinbolt-ab/giraff.git
 cd giraff
 
 # Install dependencies
@@ -174,7 +174,7 @@ The easiest way to run Giraff — auto-connects to Home Assistant, no setup requ
 
 1. In Home Assistant, go to **Settings → Add-ons → Add-on Store**
 2. Click the menu (⋮) → **Repositories**
-3. Add: `https://github.com/twinbolt/giraff`
+3. Add: `https://github.com/twinbolt-ab/giraff`
 4. Find "Giraff Dashboard" and click **Install**
 5. Start the add-on and click **Open Web UI**
 
@@ -230,7 +230,7 @@ Giraff is currently in **beta**. Core functionality is working, but expect some 
 - [ ] Localization (i18n)
 
 ### Known Issues
-See [open issues](https://github.com/twinbolt/giraff/issues) for current bugs and feature requests.
+See [open issues](https://github.com/twinbolt-ab/giraff/issues) for current bugs and feature requests.
 
 ---
 
@@ -254,8 +254,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ## Community
 
-- **Issues** — [Report bugs or request features](https://github.com/twinbolt/giraff/issues)
-- **Discussions** — [Ask questions and share ideas](https://github.com/twinbolt/giraff/discussions)
+- **Issues** — [Report bugs or request features](https://github.com/twinbolt-ab/giraff/issues)
+- **Discussions** — [Ask questions and share ideas](https://github.com/twinbolt-ab/giraff/discussions)
 <!-- - **Discord** — [Join our community](https://discord.gg/your-invite) -->
 
 If you find Giraff useful, consider giving it a star! It helps others discover the project.
