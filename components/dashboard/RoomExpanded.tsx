@@ -2,17 +2,17 @@
 
 import { useState, useCallback, useEffect, useMemo } from 'react'
 import { motion, Reorder } from 'framer-motion'
-import { Thermometer, Droplets, Sparkles, GripVertical, Power, Pencil, ToggleLeft, SlidersHorizontal, Check, X } from 'lucide-react'
+import { Thermometer, Droplets, Sparkles, GripVertical, Power, Pencil, ToggleLeft, SlidersHorizontal, Check } from 'lucide-react'
 import { clsx } from 'clsx'
 import type { RoomWithDevices, HAEntity } from '@/types/ha'
 import { LightSlider } from './LightSlider'
 import { MdiIcon } from '@/components/ui/MdiIcon'
 import { DeviceEditModal } from './DeviceEditModal'
-import { BulkEditDevicesModal } from './BulkEditModal'
 import { useHAConnection } from '@/lib/hooks/useHAConnection'
 import { useDeviceOrder } from '@/lib/hooks/useDeviceOrder'
+import { useEditMode } from '@/lib/contexts/EditModeContext'
 import { haWebSocket } from '@/lib/ha-websocket'
-import { t, interpolate } from '@/lib/i18n'
+import { t } from '@/lib/i18n'
 
 // Helper to get display name from entity
 function getEntityDisplayName(entity: HAEntity): string {
@@ -56,15 +56,15 @@ function SelectionCheckbox({ isSelected, onToggle }: SelectionCheckboxProps) {
 // Reusable toggle button for switches and input_booleans
 interface ToggleButtonProps {
   entity: HAEntity
-  isReorderMode: boolean
-  isSelected?: boolean
+  isInEditMode: boolean
+  isSelected: boolean
   onToggle: () => void
   onEdit: () => void
-  onToggleSelection?: () => void
+  onToggleSelection: () => void
   fallbackIcon: React.ReactNode
 }
 
-function ToggleButton({ entity, isReorderMode, isSelected = false, onToggle, onEdit, onToggleSelection, fallbackIcon }: ToggleButtonProps) {
+function ToggleButton({ entity, isInEditMode, isSelected, onToggle, onEdit, onToggleSelection, fallbackIcon }: ToggleButtonProps) {
   const isOn = entity.state === 'on'
   const entityIcon = haWebSocket.getEntityIcon(entity.entity_id)
 
@@ -74,17 +74,17 @@ function ToggleButton({ entity, isReorderMode, isSelected = false, onToggle, onE
         'w-full flex items-center gap-3 px-2 py-2 rounded-lg',
         'transition-colors',
         isOn ? 'bg-accent/20' : 'bg-border/30',
-        isReorderMode && 'ring-1 ring-accent/30',
+        isInEditMode && 'ring-1 ring-accent/30',
         isSelected && 'ring-2 ring-accent'
       )}
     >
-      {/* Selection checkbox in reorder mode */}
-      {isReorderMode && onToggleSelection && (
+      {/* Selection checkbox in edit mode */}
+      {isInEditMode && (
         <SelectionCheckbox isSelected={isSelected} onToggle={onToggleSelection} />
       )}
       {/* Clickable area */}
       <button
-        onClick={isReorderMode ? onEdit : onToggle}
+        onClick={isInEditMode ? onEdit : onToggle}
         className="flex-1 flex items-center gap-3 touch-feedback"
       >
         {/* Icon on left */}
@@ -92,7 +92,7 @@ function ToggleButton({ entity, isReorderMode, isSelected = false, onToggle, onE
           'p-2 rounded-lg transition-colors flex-shrink-0',
           isOn ? 'bg-accent/20 text-accent' : 'bg-border/50 text-muted'
         )}>
-          {isReorderMode ? (
+          {isInEditMode ? (
             <Pencil className="w-5 h-5" />
           ) : entityIcon ? (
             <MdiIcon icon={entityIcon} className="w-5 h-5" />
@@ -119,15 +119,23 @@ function ToggleButton({ entity, isReorderMode, isSelected = false, onToggle, onE
 interface RoomExpandedProps {
   room: RoomWithDevices
   allRooms: RoomWithDevices[]
-  isReorderMode?: boolean
-  onExitReorderMode?: () => void
 }
 
-export function RoomExpanded({ room, allRooms, isReorderMode = false, onExitReorderMode }: RoomExpandedProps) {
+export function RoomExpanded({ room, allRooms }: RoomExpandedProps) {
   const { callService } = useHAConnection()
   const { sortDevicesByOrder, reorderDevices } = useDeviceOrder()
 
-  // Filter and sort devices by type and order - memoize to prevent infinite loops
+  // Get edit mode state from context
+  const {
+    isDeviceEditMode,
+    isSelected,
+    toggleSelection,
+  } = useEditMode()
+
+  // This room is in device edit mode
+  const isInEditMode = isDeviceEditMode
+
+  // Filter and sort devices by type and order
   const lights = useMemo(
     () => sortDevicesByOrder(room.devices.filter((d) => d.entity_id.startsWith('light.'))),
     [room.devices, sortDevicesByOrder]
@@ -151,58 +159,14 @@ export function RoomExpanded({ room, allRooms, isReorderMode = false, onExitReor
 
   const [orderedLights, setOrderedLights] = useState<HAEntity[]>(lights)
   const [editingDevice, setEditingDevice] = useState<HAEntity | null>(null)
-  const [selectedDeviceIds, setSelectedDeviceIds] = useState<Set<string>>(new Set())
-  const [showBulkEditDevices, setShowBulkEditDevices] = useState(false)
-
-  // All devices for selection purposes
-  const allDevices = useMemo(() => [
-    ...lights,
-    ...switches,
-    ...scenes,
-    ...inputBooleans,
-    ...inputNumbers
-  ], [lights, switches, scenes, inputBooleans, inputNumbers])
-
-  // Clear selection when exiting reorder mode
-  useEffect(() => {
-    if (!isReorderMode) {
-      setSelectedDeviceIds(new Set())
-    }
-  }, [isReorderMode])
-
-  // Device selection handlers
-  const handleToggleDeviceSelection = useCallback((deviceId: string) => {
-    setSelectedDeviceIds(prev => {
-      const next = new Set(prev)
-      if (next.has(deviceId)) {
-        next.delete(deviceId)
-      } else {
-        next.add(deviceId)
-      }
-      return next
-    })
-  }, [])
-
-  const handleSelectAllDevices = useCallback(() => {
-    setSelectedDeviceIds(new Set(allDevices.map(d => d.entity_id)))
-  }, [allDevices])
-
-  const handleDeselectAllDevices = useCallback(() => {
-    setSelectedDeviceIds(new Set())
-  }, [])
-
-  // Get selected devices for bulk edit
-  const selectedDevicesForEdit = useMemo(() => {
-    return allDevices.filter(d => selectedDeviceIds.has(d.entity_id))
-  }, [allDevices, selectedDeviceIds])
 
   // Sync orderedLights when lights change or reorder mode changes
   useEffect(() => {
     setOrderedLights(lights)
-  }, [lights, isReorderMode])
+  }, [lights, isInEditMode])
 
   const handleDeviceEdit = (device: HAEntity) => {
-    if (isReorderMode) {
+    if (isInEditMode) {
       setEditingDevice(device)
     }
   }
@@ -267,32 +231,6 @@ export function RoomExpanded({ room, allRooms, isReorderMode = false, onExitReor
         onTouchStart={(e) => e.stopPropagation()}
         onTouchMove={(e) => e.stopPropagation()}
       >
-        {/* Selection bar for devices - sticky at top */}
-        {isReorderMode && selectedDeviceIds.size > 0 && (
-          <div className="sticky top-0 z-10 -mx-0.5 px-0.5 pb-3 bg-card">
-            <div className="flex items-center justify-between gap-2 px-3 py-2 bg-accent/10 border border-accent/20 rounded-xl">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleDeselectAllDevices}
-                  className="p-1 rounded-full hover:bg-accent/20 transition-colors"
-                  aria-label="Clear selection"
-                >
-                  <X className="w-4 h-4 text-accent" />
-                </button>
-                <span className="text-sm font-medium text-accent">
-                  {interpolate(t.bulkEdit.selected, { count: selectedDeviceIds.size })}
-                </span>
-              </div>
-              <button
-                onClick={() => setShowBulkEditDevices(true)}
-                className="px-3 py-1 rounded-full bg-accent text-white text-sm font-medium hover:bg-accent/90 transition-colors"
-              >
-                {t.bulkEdit.editSelected}
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* Scenes */}
         {scenes.length > 0 && (
           <div className="mb-4">
@@ -300,7 +238,7 @@ export function RoomExpanded({ room, allRooms, isReorderMode = false, onExitReor
             <div className="flex flex-wrap gap-2">
               {scenes.map((scene) => {
                 const sceneIcon = haWebSocket.getEntityIcon(scene.entity_id)
-                const sceneSelected = selectedDeviceIds.has(scene.entity_id)
+                const sceneSelected = isSelected(scene.entity_id)
                 return (
                   <div
                     key={scene.entity_id}
@@ -309,21 +247,21 @@ export function RoomExpanded({ room, allRooms, isReorderMode = false, onExitReor
                       'bg-border/50 hover:bg-accent/20 hover:text-accent',
                       'transition-colors',
                       'flex items-center gap-1.5',
-                      isReorderMode && 'ring-1 ring-accent/30',
+                      isInEditMode && 'ring-1 ring-accent/30',
                       sceneSelected && 'ring-2 ring-accent'
                     )}
                   >
-                    {isReorderMode && (
+                    {isInEditMode && (
                       <SelectionCheckbox
                         isSelected={sceneSelected}
-                        onToggle={() => handleToggleDeviceSelection(scene.entity_id)}
+                        onToggle={() => toggleSelection(scene.entity_id)}
                       />
                     )}
                     <button
-                      onClick={() => isReorderMode ? handleDeviceEdit(scene) : handleSceneActivate(scene)}
+                      onClick={() => isInEditMode ? handleDeviceEdit(scene) : handleSceneActivate(scene)}
                       className="flex items-center gap-1.5 touch-feedback"
                     >
-                      {isReorderMode ? (
+                      {isInEditMode ? (
                         <Pencil className="w-3.5 h-3.5" />
                       ) : sceneIcon ? (
                         <MdiIcon icon={sceneIcon} className="w-3.5 h-3.5" />
@@ -343,7 +281,7 @@ export function RoomExpanded({ room, allRooms, isReorderMode = false, onExitReor
         {lights.length > 0 && (
           <div className="mb-4">
             <SectionHeader>{t.devices.lights}</SectionHeader>
-            {isReorderMode ? (
+            {isInEditMode ? (
               <Reorder.Group
                 axis="y"
                 values={orderedLights}
@@ -351,7 +289,7 @@ export function RoomExpanded({ room, allRooms, isReorderMode = false, onExitReor
                 className="space-y-1"
               >
                 {orderedLights.map((light) => {
-                  const lightSelected = selectedDeviceIds.has(light.entity_id)
+                  const lightSelected = isSelected(light.entity_id)
                   return (
                     <Reorder.Item
                       key={light.entity_id}
@@ -364,7 +302,7 @@ export function RoomExpanded({ room, allRooms, isReorderMode = false, onExitReor
                     >
                       <SelectionCheckbox
                         isSelected={lightSelected}
-                        onToggle={() => handleToggleDeviceSelection(light.entity_id)}
+                        onToggle={() => toggleSelection(light.entity_id)}
                       />
                       <GripVertical className="w-4 h-4 text-muted flex-shrink-0" />
                       <div className="flex-1 min-w-0">
@@ -402,11 +340,11 @@ export function RoomExpanded({ room, allRooms, isReorderMode = false, onExitReor
                 <ToggleButton
                   key={sw.entity_id}
                   entity={sw}
-                  isReorderMode={isReorderMode}
-                  isSelected={selectedDeviceIds.has(sw.entity_id)}
+                  isInEditMode={isInEditMode}
+                  isSelected={isSelected(sw.entity_id)}
                   onToggle={() => handleSwitchToggle(sw)}
                   onEdit={() => handleDeviceEdit(sw)}
-                  onToggleSelection={() => handleToggleDeviceSelection(sw.entity_id)}
+                  onToggleSelection={() => toggleSelection(sw.entity_id)}
                   fallbackIcon={<Power className="w-5 h-5" />}
                 />
               ))}
@@ -424,11 +362,11 @@ export function RoomExpanded({ room, allRooms, isReorderMode = false, onExitReor
                 <ToggleButton
                   key={input.entity_id}
                   entity={input}
-                  isReorderMode={isReorderMode}
-                  isSelected={selectedDeviceIds.has(input.entity_id)}
+                  isInEditMode={isInEditMode}
+                  isSelected={isSelected(input.entity_id)}
                   onToggle={() => handleInputBooleanToggle(input)}
                   onEdit={() => handleDeviceEdit(input)}
-                  onToggleSelection={() => handleToggleDeviceSelection(input.entity_id)}
+                  onToggleSelection={() => toggleSelection(input.entity_id)}
                   fallbackIcon={<ToggleLeft className="w-5 h-5" />}
                 />
               ))}
@@ -441,30 +379,30 @@ export function RoomExpanded({ room, allRooms, isReorderMode = false, onExitReor
                 const step = typeof input.attributes.step === 'number' ? input.attributes.step : 1
                 const unit = typeof input.attributes.unit_of_measurement === 'string' ? input.attributes.unit_of_measurement : ''
                 const inputIcon = haWebSocket.getEntityIcon(input.entity_id)
-                const inputSelected = selectedDeviceIds.has(input.entity_id)
+                const inputSelected = isSelected(input.entity_id)
                 return (
                   <div
                     key={input.entity_id}
                     className={clsx(
                       'px-2 py-2 rounded-lg bg-border/30',
-                      isReorderMode && 'ring-1 ring-accent/30',
+                      isInEditMode && 'ring-1 ring-accent/30',
                       inputSelected && 'ring-2 ring-accent'
                     )}
                   >
                     <div className="flex items-center gap-3">
-                      {/* Selection checkbox in reorder mode */}
-                      {isReorderMode && (
+                      {/* Selection checkbox in multi-select mode */}
+                      {isInEditMode && (
                         <SelectionCheckbox
                           isSelected={inputSelected}
-                          onToggle={() => handleToggleDeviceSelection(input.entity_id)}
+                          onToggle={() => toggleSelection(input.entity_id)}
                         />
                       )}
                       {/* Icon on left */}
                       <div
                         className="p-2 rounded-lg bg-border/50 text-muted flex-shrink-0 cursor-pointer"
-                        onClick={isReorderMode ? () => handleDeviceEdit(input) : undefined}
+                        onClick={isInEditMode ? () => handleDeviceEdit(input) : undefined}
                       >
-                        {isReorderMode ? (
+                        {isInEditMode ? (
                           <Pencil className="w-5 h-5" />
                         ) : inputIcon ? (
                           <MdiIcon icon={inputIcon} className="w-5 h-5" />
@@ -482,7 +420,7 @@ export function RoomExpanded({ room, allRooms, isReorderMode = false, onExitReor
                             {value}{unit}
                           </span>
                         </div>
-                        {!isReorderMode && (
+                        {!isInEditMode && (
                           <input
                             type="range"
                             min={min}
@@ -532,13 +470,6 @@ export function RoomExpanded({ room, allRooms, isReorderMode = false, onExitReor
         device={editingDevice}
         rooms={allRooms}
         onClose={() => setEditingDevice(null)}
-      />
-
-      <BulkEditDevicesModal
-        devices={showBulkEditDevices ? selectedDevicesForEdit : []}
-        rooms={allRooms}
-        onClose={() => setShowBulkEditDevices(false)}
-        onComplete={() => setSelectedDeviceIds(new Set())}
       />
     </motion.div>
   )

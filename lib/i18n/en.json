@@ -5,8 +5,9 @@
   },
   "editMode": {
     "title": "Edit Mode",
+    "badge": "Edit",
     "done": "Done",
-    "info": "Changes made here will also apply to your devices and dashboards in Home Assistant. Reordering creates labels prefixed with \"giraff-\" to store the order."
+    "instructions": "Drag to reorder, tap to select"
   },
   "connection": {
     "connecting": "Connecting..."

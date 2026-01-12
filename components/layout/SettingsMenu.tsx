@@ -9,13 +9,13 @@ import { t } from '@/lib/i18n'
 interface SettingsMenuProps {
   isOpen: boolean
   onClose: () => void
-  onEnterReorderMode: () => void
+  onEnterEditMode: () => void
 }
 
 export function SettingsMenu({
   isOpen,
   onClose,
-  onEnterReorderMode,
+  onEnterEditMode,
 }: SettingsMenuProps) {
   const { resolvedTheme, setTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
@@ -36,9 +36,9 @@ export function SettingsMenu({
     }
   }, [isOpen, onClose])
 
-  const handleReorder = () => {
+  const handleEdit = () => {
     onClose()
-    onEnterReorderMode()
+    onEnterEditMode()
   }
 
   const handleThemeToggle = () => {
@@ -108,7 +108,7 @@ export function SettingsMenu({
 
               {/* Edit Mode */}
               <button
-                onClick={handleReorder}
+                onClick={handleEdit}
                 className="w-full flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-border/30 transition-colors touch-feedback"
               >
                 <div className="p-2.5 rounded-xl bg-border/50">

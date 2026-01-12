@@ -3,11 +3,12 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { clsx } from 'clsx'
-import { Lightbulb, Thermometer, ChevronDown, Home, Check } from 'lucide-react'
+import { Lightbulb, Thermometer, ChevronDown, Home, Check, Pencil } from 'lucide-react'
 import type { RoomWithDevices } from '@/types/ha'
 import { RoomExpanded } from './RoomExpanded'
 import { MdiIcon } from '@/components/ui/MdiIcon'
 import { useLightControl } from '@/lib/hooks/useLightControl'
+import { useEditMode } from '@/lib/contexts/EditModeContext'
 import { t, interpolate } from '@/lib/i18n'
 
 interface RoomCardProps {
@@ -15,15 +16,10 @@ interface RoomCardProps {
   allRooms?: RoomWithDevices[]
   index: number
   isExpanded: boolean
-  isReorderMode?: boolean
-  isDeviceReorderMode?: boolean
   isDragging?: boolean
   isDragOver?: boolean
-  isSelected?: boolean
   onToggleExpand: () => void
-  onExitDeviceReorderMode?: () => void
   onEdit?: () => void
-  onToggleSelection?: () => void
   onDragStart?: () => void
   onDragOver?: () => void
   onDrop?: () => void
@@ -40,21 +36,32 @@ export function RoomCard({
   allRooms = [],
   index,
   isExpanded,
-  isReorderMode = false,
-  isDeviceReorderMode = false,
   isDragging = false,
   isDragOver = false,
-  isSelected = false,
   onToggleExpand,
-  onExitDeviceReorderMode,
   onEdit,
-  onToggleSelection,
   onDragStart,
   onDragOver,
   onDrop,
   onDragEnd,
 }: RoomCardProps) {
   const { setRoomBrightness, getAverageBrightness, toggleRoomLights } = useLightControl()
+
+  // Get edit mode state from context
+  const {
+    mode,
+    isRoomEditMode,
+    isDeviceEditMode,
+    isSelected,
+    toggleSelection,
+  } = useEditMode()
+
+  // Derive if this card is in an edit mode
+  const isInEditMode = isRoomEditMode
+  const isThisRoomSelected = isSelected(room.id)
+
+  // Check if this room is in device edit mode
+  const isDeviceInEditMode = isDeviceEditMode && mode.type === 'edit-devices' && mode.roomId === room.id
 
   const lights = room.devices.filter((d) => d.entity_id.startsWith('light.'))
   const hasLights = lights.length > 0
@@ -72,7 +79,6 @@ export function RoomCard({
   // Scroll to center when expanded
   useEffect(() => {
     if (isExpanded && cardRef.current) {
-      // Small delay to let the expansion animation start
       setTimeout(() => {
         cardRef.current?.scrollIntoView({
           behavior: 'smooth',
@@ -84,7 +90,7 @@ export function RoomCard({
 
   // Swipe gesture handlers - disabled when expanded
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    if (!hasLights || isReorderMode || isExpanded) return
+    if (!hasLights || isInEditMode || isExpanded) return
 
     didDragRef.current = false
     dragStartRef.current = {
@@ -93,29 +99,24 @@ export function RoomCard({
       brightness: isBrightnessDragging ? localBrightness : getAverageBrightness(lights),
     }
     setLocalBrightness(dragStartRef.current.brightness)
-  }, [hasLights, isBrightnessDragging, localBrightness, getAverageBrightness, lights, isReorderMode, isExpanded])
+  }, [hasLights, isBrightnessDragging, localBrightness, getAverageBrightness, lights, isInEditMode, isExpanded])
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    if (isReorderMode) return
+    if (isInEditMode) return
 
     if (!dragStartRef.current || !hasLights) return
 
     const deltaX = e.clientX - dragStartRef.current.x
     const deltaY = e.clientY - dragStartRef.current.y
 
-    // If not yet dragging brightness, check gesture direction
     if (!isBrightnessDragging) {
-      // If vertical movement exceeds threshold first, cancel tracking to allow scroll
       if (Math.abs(deltaY) > DRAG_THRESHOLD) {
         dragStartRef.current = null
         return
       }
 
-      // Check if we've crossed the drag threshold for brightness control
       if (Math.abs(deltaX) > DRAG_THRESHOLD) {
-        // Only start brightness drag if horizontal movement is dominant
         if (Math.abs(deltaY) > Math.abs(deltaX)) {
-          // Vertical movement dominant - cancel drag tracking to allow scroll
           dragStartRef.current = null
           return
         }
@@ -127,21 +128,17 @@ export function RoomCard({
     }
 
     if (isBrightnessDragging) {
-      // Calculate new brightness based on drag distance
       const brightnessChange = (deltaX / DRAG_RANGE) * 100
       const newBrightness = Math.max(0, Math.min(100, dragStartRef.current.brightness + brightnessChange))
       setLocalBrightness(Math.round(newBrightness))
       setRoomBrightness(lights, Math.round(newBrightness))
     }
-  }, [hasLights, isBrightnessDragging, lights, setRoomBrightness, isReorderMode])
+  }, [hasLights, isBrightnessDragging, lights, setRoomBrightness, isInEditMode])
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
     if (isBrightnessDragging) {
-      // Commit the brightness change
       setRoomBrightness(lights, localBrightness, true)
       ;(e.target as HTMLElement).releasePointerCapture(e.pointerId)
-
-      // Hide overlay after a short delay
       setTimeout(() => setShowBrightnessOverlay(false), 300)
     }
 
@@ -149,34 +146,35 @@ export function RoomCard({
     dragStartRef.current = null
   }, [isBrightnessDragging, lights, localBrightness, setRoomBrightness])
 
-  // Handle card click - toggle lights if collapsed, do nothing if expanded (header handles collapse)
   const handleCardClick = useCallback(() => {
-    if (isReorderMode || didDragRef.current) return
-    if (isExpanded) return // Header area handles collapse
+    if (isInEditMode || didDragRef.current) return
+    if (isExpanded) return
     if (!hasLights) return
     toggleRoomLights(lights)
-  }, [hasLights, isReorderMode, isExpanded, lights, toggleRoomLights])
+  }, [hasLights, isInEditMode, isExpanded, lights, toggleRoomLights])
 
-  // Handle header click - collapse if expanded, otherwise let card click handle it
   const handleHeaderClick = useCallback((e: React.MouseEvent) => {
-    if (isReorderMode || didDragRef.current) return
+    if (isInEditMode || didDragRef.current) return
     if (isExpanded) {
       e.stopPropagation()
       onToggleExpand()
     }
-  }, [isReorderMode, isExpanded, onToggleExpand])
+  }, [isInEditMode, isExpanded, onToggleExpand])
 
-  // Display brightness - use local when dragging, otherwise calculate from actual state
+  const handleToggleSelection = useCallback(() => {
+    toggleSelection(room.id)
+  }, [toggleSelection, room.id])
+
   const displayBrightness = isBrightnessDragging ? localBrightness : initialBrightness
 
   const cardClassName = clsx(
     'card w-full text-left relative overflow-hidden',
-    !isReorderMode && 'transition-all duration-200',
+    !isInEditMode && 'transition-all duration-200',
     isExpanded ? 'p-4 col-span-2' : 'px-4 py-1.5',
-    isReorderMode && 'cursor-grab active:cursor-grabbing',
+    isInEditMode && 'cursor-grab active:cursor-grabbing',
     isDragging && 'opacity-50 scale-95',
     isDragOver && 'ring-2 ring-accent scale-105',
-    isSelected && 'ring-2 ring-accent'
+    isThisRoomSelected && 'ring-2 ring-accent'
   )
 
   const cardContent = (
@@ -220,22 +218,39 @@ export function RoomCard({
           )}
           onClick={handleHeaderClick}
         >
-          {/* Selection checkbox in reorder mode */}
-          {isReorderMode && onToggleSelection && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                onToggleSelection()
-              }}
-              className={clsx(
-                'w-5 h-5 rounded-md border-2 flex items-center justify-center mr-1 flex-shrink-0 transition-colors',
-                isSelected
-                  ? 'bg-accent border-accent text-white'
-                  : 'border-border bg-transparent'
-              )}
-            >
-              {isSelected && <Check className="w-3 h-3" />}
-            </button>
+          {/* Selection checkbox and edit button in edit mode */}
+          {isInEditMode && (
+            <div className="flex items-center gap-1 mr-1">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleToggleSelection()
+                }}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+                className={clsx(
+                  'w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-colors',
+                  isThisRoomSelected
+                    ? 'bg-accent border-accent text-white'
+                    : 'border-border bg-transparent'
+                )}
+              >
+                {isThisRoomSelected && <Check className="w-3 h-3" />}
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onEdit?.()
+                }}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+                className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 text-muted hover:text-accent transition-colors"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+              </button>
+            </div>
           )}
           <div
             className={clsx(
@@ -284,7 +299,7 @@ export function RoomCard({
 
           </div>
 
-          {!isReorderMode && (
+          {!isInEditMode && (
             <button
               onClick={(e) => {
                 e.stopPropagation()
@@ -305,12 +320,10 @@ export function RoomCard({
 
         {/* Expanded content */}
         <AnimatePresence>
-          {isExpanded && !isReorderMode && (
+          {isExpanded && !isInEditMode && (
             <RoomExpanded
               room={room}
               allRooms={allRooms}
-              isReorderMode={isDeviceReorderMode}
-              onExitReorderMode={onExitDeviceReorderMode}
             />
           )}
         </AnimatePresence>
@@ -318,14 +331,10 @@ export function RoomCard({
     </>
   )
 
-  if (isReorderMode) {
+  if (isInEditMode) {
     return (
       <div
         draggable
-        onClick={(e) => {
-          e.stopPropagation()
-          onEdit?.()
-        }}
         onDragStart={(e) => {
           e.dataTransfer.effectAllowed = 'move'
           e.dataTransfer.setData('text/plain', String(index))

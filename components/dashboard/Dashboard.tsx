@@ -2,41 +2,54 @@
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
-import { X, Info } from 'lucide-react'
+import { X } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { RoomCard } from '@/components/dashboard/RoomCard'
 import { ReorderableGrid } from '@/components/dashboard/ReorderableGrid'
 import { RoomEditModal } from '@/components/dashboard/RoomEditModal'
 import { BulkEditRoomsModal, BulkEditDevicesModal } from '@/components/dashboard/BulkEditModal'
+import { EditModeProvider, useEditMode } from '@/lib/contexts/EditModeContext'
 import { useRooms } from '@/lib/hooks/useRooms'
 import { useRoomOrder } from '@/lib/hooks/useRoomOrder'
 import { ORDER_GAP } from '@/lib/constants'
 import { t, interpolate } from '@/lib/i18n'
-import type { RoomWithDevices, HAEntity } from '@/types/ha'
+import type { RoomWithDevices } from '@/types/ha'
 
-export function Dashboard() {
+// Inner component that uses the context
+function DashboardContent() {
   const { rooms, floors, isConnected } = useRooms()
   const { setAreaOrder } = useRoomOrder()
+
+  // Edit mode from context
+  const {
+    mode,
+    isEditMode,
+    isRoomEditMode,
+    isDeviceEditMode,
+    selectedCount,
+    selectedIds,
+    enterRoomEdit,
+    enterDeviceEdit,
+    exitEditMode,
+    clearSelection,
+  } = useEditMode()
+
+  // Local UI state
   const [expandedRoomId, setExpandedRoomId] = useState<string | null>(null)
-  const [isRoomReorderMode, setIsRoomReorderMode] = useState(false)
-  const [isDeviceReorderMode, setIsDeviceReorderMode] = useState(false)
   const [orderedRooms, setOrderedRooms] = useState<RoomWithDevices[]>([])
   const [selectedFloorId, setSelectedFloorId] = useState<string | null>(null)
   const [hasInitializedFloor, setHasInitializedFloor] = useState(false)
   const [editingRoom, setEditingRoom] = useState<RoomWithDevices | null>(null)
-  const [showEditModeInfo, setShowEditModeInfo] = useState(false)
-
-  // Selection state for bulk editing
-  const [selectedRoomIds, setSelectedRoomIds] = useState<Set<string>>(new Set())
-  const [selectedDeviceIds, setSelectedDeviceIds] = useState<Set<string>>(new Set())
   const [showBulkEditRooms, setShowBulkEditRooms] = useState(false)
   const [showBulkEditDevices, setShowBulkEditDevices] = useState(false)
+
+  // Track mode changes to save room order when exiting
+  const prevModeTypeRef = useRef(mode.type)
 
   // Check if there are rooms without a floor that have controllable devices
   const hasUnassignedRooms = useMemo(() => {
     return rooms.some((room) => {
       if (room.floorId) return false
-      // Only show "Other" if the room has lights, switches, or scenes
       const hasControllableDevices = room.devices.some((d) =>
         d.entity_id.startsWith('light.') ||
         d.entity_id.startsWith('switch.') ||
@@ -59,7 +72,6 @@ export function Dashboard() {
   // Filter rooms by selected floor
   const filteredRooms = useMemo(() => {
     if (selectedFloorId === null) {
-      // Show rooms without a floor assigned that have controllable devices
       return rooms.filter((room) => {
         if (room.floorId) return false
         return room.devices.some((d) =>
@@ -74,116 +86,73 @@ export function Dashboard() {
     return rooms.filter((room) => room.floorId === selectedFloorId)
   }, [rooms, selectedFloorId])
 
-  // Keep orderedRooms in sync with filteredRooms when not in reorder mode
-  const displayRooms = isRoomReorderMode ? orderedRooms : filteredRooms
+  // Save room order when exiting room edit mode
+  useEffect(() => {
+    const wasRoomEdit = prevModeTypeRef.current === 'edit-rooms'
+    const isNowNormal = mode.type === 'normal'
+
+    if (wasRoomEdit && isNowNormal && orderedRooms.length > 0) {
+      // Save room order
+      const updates = orderedRooms
+        .map((room, idx) => ({ areaId: room.areaId, order: (idx + 1) * ORDER_GAP }))
+        .filter(item => item.areaId)
+
+      Promise.all(updates.map(({ areaId, order }) => setAreaOrder(areaId!, order)))
+    }
+
+    prevModeTypeRef.current = mode.type
+  }, [mode.type, orderedRooms, setAreaOrder])
+
+  // Display rooms
+  const displayRooms = isRoomEditMode ? orderedRooms : filteredRooms
 
   const handleToggleExpand = useCallback((roomId: string) => {
-    if (isRoomReorderMode) return // Disable expand in room reorder mode
+    if (isRoomEditMode) return
     setExpandedRoomId((current) => (current === roomId ? null : roomId))
-  }, [isRoomReorderMode])
+  }, [isRoomEditMode])
 
   const handleEditRoom = useCallback((room: RoomWithDevices) => {
     setEditingRoom(room)
   }, [])
 
-  const handleEnterReorderMode = useCallback(() => {
+  const handleEnterEditMode = useCallback(() => {
     if (expandedRoomId) {
-      // Room is expanded - enable device reordering
-      setIsDeviceReorderMode(true)
+      enterDeviceEdit(expandedRoomId)
     } else {
-      // No room expanded - enable room reordering
-      setIsRoomReorderMode(true)
+      enterRoomEdit()
       setOrderedRooms([...filteredRooms])
     }
-  }, [expandedRoomId, filteredRooms])
+  }, [expandedRoomId, filteredRooms, enterRoomEdit, enterDeviceEdit])
 
-  const handleExitReorderMode = useCallback(async () => {
-    setShowEditModeInfo(false)
-
-    if (isDeviceReorderMode) {
-      // Just exit device reorder mode (saving happens in RoomExpanded)
-      setIsDeviceReorderMode(false)
-      setSelectedDeviceIds(new Set())
-      return
-    }
-
-    // Save all room orders based on their final positions
-    const updates = orderedRooms
-      .map((room, idx) => ({ areaId: room.areaId, order: (idx + 1) * ORDER_GAP }))
-      .filter(item => item.areaId)
-
-    await Promise.all(updates.map(({ areaId, order }) => setAreaOrder(areaId!, order)))
-
-    setIsRoomReorderMode(false)
-    setSelectedRoomIds(new Set())
-  }, [isDeviceReorderMode, orderedRooms, setAreaOrder])
+  const handleExitEditMode = useCallback(() => {
+    exitEditMode()
+  }, [exitEditMode])
 
   const handleReorder = useCallback((newOrder: RoomWithDevices[]) => {
     setOrderedRooms(newOrder)
   }, [])
 
-  // Room selection handlers
-  const handleToggleRoomSelection = useCallback((roomId: string) => {
-    setSelectedRoomIds(prev => {
-      const next = new Set(prev)
-      if (next.has(roomId)) {
-        next.delete(roomId)
-      } else {
-        next.add(roomId)
-      }
-      return next
-    })
-  }, [])
-
-  const handleSelectAllRooms = useCallback(() => {
-    const roomsToSelect = isRoomReorderMode ? orderedRooms : filteredRooms
-    setSelectedRoomIds(new Set(roomsToSelect.map(r => r.id)))
-  }, [isRoomReorderMode, orderedRooms, filteredRooms])
-
-  const handleDeselectAllRooms = useCallback(() => {
-    setSelectedRoomIds(new Set())
-  }, [])
-
-  // Device selection handlers
-  const handleToggleDeviceSelection = useCallback((deviceId: string) => {
-    setSelectedDeviceIds(prev => {
-      const next = new Set(prev)
-      if (next.has(deviceId)) {
-        next.delete(deviceId)
-      } else {
-        next.add(deviceId)
-      }
-      return next
-    })
-  }, [])
-
-  const handleSelectAllDevices = useCallback((devices: HAEntity[]) => {
-    setSelectedDeviceIds(new Set(devices.map(d => d.entity_id)))
-  }, [])
-
-  const handleDeselectAllDevices = useCallback(() => {
-    setSelectedDeviceIds(new Set())
-  }, [])
-
   // Get selected rooms for bulk edit modal
   const selectedRoomsForEdit = useMemo(() => {
-    const roomsToSearch = isRoomReorderMode ? orderedRooms : filteredRooms
-    return roomsToSearch.filter(r => selectedRoomIds.has(r.id))
-  }, [isRoomReorderMode, orderedRooms, filteredRooms, selectedRoomIds])
+    const roomsToSearch = isRoomEditMode ? orderedRooms : filteredRooms
+    return roomsToSearch.filter(r => selectedIds.has(r.id))
+  }, [isRoomEditMode, orderedRooms, filteredRooms, selectedIds])
 
-  // Get selected devices for bulk edit modal
-  const getSelectedDevicesForEdit = useCallback((devices: HAEntity[]) => {
-    return devices.filter(d => selectedDeviceIds.has(d.entity_id))
-  }, [selectedDeviceIds])
+  // Get selected devices for bulk edit modal (from expanded room)
+  const selectedDevicesForEdit = useMemo(() => {
+    if (!isDeviceEditMode || !expandedRoomId) return []
+    const expandedRoom = rooms.find(r => r.id === expandedRoomId)
+    if (!expandedRoom) return []
+    return expandedRoom.devices.filter(d => selectedIds.has(d.entity_id))
+  }, [isDeviceEditMode, expandedRoomId, rooms, selectedIds])
 
   const gridRef = useRef<HTMLDivElement>(null)
-  const isAnyReorderMode = isRoomReorderMode || isDeviceReorderMode
 
   return (
-    <div className="min-h-screen bg-background pb-20" onClick={() => setShowEditModeInfo(false)}>
+    <div className="min-h-screen bg-background pb-20">
       {/* Edit mode header bar */}
       <AnimatePresence>
-        {isAnyReorderMode && (
+        {isEditMode && (
           <motion.div
             initial={{ y: -60, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -193,67 +162,43 @@ export function Dashboard() {
           >
             <div className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center gap-2">
-                {/* Show selection count or edit mode title */}
-                {isRoomReorderMode && selectedRoomIds.size > 0 ? (
+                {/* Edit mode badge */}
+                <span className="px-2 py-0.5 rounded-md bg-accent/20 text-accent text-xs font-semibold uppercase tracking-wide">
+                  {t.editMode.badge}
+                </span>
+
+                {/* Selection count or instructions */}
+                {selectedCount > 0 ? (
                   <>
                     <button
-                      onClick={handleDeselectAllRooms}
+                      onClick={clearSelection}
                       className="p-1 rounded-full hover:bg-accent/20 transition-colors"
                       aria-label="Clear selection"
                     >
                       <X className="w-4 h-4 text-accent" />
                     </button>
                     <span className="text-sm font-semibold text-accent">
-                      {interpolate(t.bulkEdit.selected, { count: selectedRoomIds.size })}
+                      {interpolate(t.bulkEdit.selected, { count: selectedCount })}
                     </span>
                   </>
                 ) : (
-                  <>
-                    <span className="text-sm font-semibold text-accent uppercase tracking-wide">
-                      {t.editMode.title}
-                    </span>
-                    <div className="relative">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setShowEditModeInfo(!showEditModeInfo)
-                        }}
-                        className="p-1 rounded-full hover:bg-accent/20 transition-colors"
-                        aria-label="Info"
-                      >
-                        <Info className="w-4 h-4 text-accent" />
-                      </button>
-                      <AnimatePresence>
-                        {showEditModeInfo && (
-                          <motion.div
-                            initial={{ opacity: 0, y: -4, scale: 0.95 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: -4, scale: 0.95 }}
-                            transition={{ duration: 0.15 }}
-                            className="absolute left-0 top-full mt-2 w-64 p-3 rounded-xl bg-card border border-border shadow-warm-lg text-sm text-muted z-50"
-                          >
-                            {t.editMode.info}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  </>
+                  <span className="text-sm text-muted">
+                    {t.editMode.instructions}
+                  </span>
                 )}
               </div>
 
               <div className="flex items-center gap-2">
-                {/* Edit button when items selected */}
-                {isRoomReorderMode && selectedRoomIds.size > 0 && (
+                {selectedCount > 0 && (
                   <button
-                    onClick={() => setShowBulkEditRooms(true)}
+                    onClick={() => isDeviceEditMode ? setShowBulkEditDevices(true) : setShowBulkEditRooms(true)}
                     className="px-3 py-1.5 rounded-full bg-accent text-white text-sm font-medium hover:bg-accent/90 transition-colors"
                   >
                     {t.bulkEdit.editSelected}
                   </button>
                 )}
-                {/* Done button */}
                 <button
-                  onClick={handleExitReorderMode}
+                  onClick={handleExitEditMode}
                   className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-border/50 text-foreground text-sm font-medium hover:bg-border transition-colors"
                 >
                   {t.editMode.done}
@@ -267,7 +212,6 @@ export function Dashboard() {
       <div className="px-4 py-4">
         {/* Rooms grid */}
         <section>
-
           {displayRooms.length === 0 ? (
             <div className="card p-8 text-center">
               <p className="text-muted">
@@ -278,7 +222,7 @@ export function Dashboard() {
                   : t.rooms.noRoomsOnFloor}
               </p>
             </div>
-          ) : isRoomReorderMode ? (
+          ) : isRoomEditMode ? (
             <ReorderableGrid
               items={orderedRooms}
               onReorder={handleReorder}
@@ -290,12 +234,9 @@ export function Dashboard() {
                   room={room}
                   index={index}
                   isExpanded={false}
-                  isReorderMode={true}
                   isDragging={isActive}
-                  isSelected={selectedRoomIds.has(room.id)}
                   onToggleExpand={() => {}}
                   onEdit={() => handleEditRoom(room)}
-                  onToggleSelection={() => handleToggleRoomSelection(room.id)}
                 />
               )}
             />
@@ -309,10 +250,7 @@ export function Dashboard() {
                     allRooms={rooms}
                     index={index}
                     isExpanded={expandedRoomId === room.id}
-                    isReorderMode={false}
-                    isDeviceReorderMode={isDeviceReorderMode && expandedRoomId === room.id}
                     onToggleExpand={() => handleToggleExpand(room.id)}
-                    onExitDeviceReorderMode={handleExitReorderMode}
                   />
                 ))}
               </div>
@@ -322,12 +260,12 @@ export function Dashboard() {
       </div>
 
       <Header
-        onEnterReorderMode={handleEnterReorderMode}
+        onEnterEditMode={handleEnterEditMode}
         floors={floors}
         selectedFloorId={selectedFloorId}
         onSelectFloor={setSelectedFloorId}
         hasUnassignedRooms={hasUnassignedRooms}
-        isEditMode={isRoomReorderMode}
+        isEditMode={isRoomEditMode}
       />
 
       <RoomEditModal
@@ -337,18 +275,27 @@ export function Dashboard() {
       />
 
       <BulkEditRoomsModal
-        rooms={selectedRoomsForEdit}
+        rooms={showBulkEditRooms ? selectedRoomsForEdit : []}
         floors={floors}
         onClose={() => setShowBulkEditRooms(false)}
-        onComplete={() => setSelectedRoomIds(new Set())}
+        onComplete={clearSelection}
       />
 
       <BulkEditDevicesModal
-        devices={[]}
+        devices={showBulkEditDevices ? selectedDevicesForEdit : []}
         rooms={rooms}
         onClose={() => setShowBulkEditDevices(false)}
-        onComplete={() => setSelectedDeviceIds(new Set())}
+        onComplete={clearSelection}
       />
     </div>
+  )
+}
+
+// Outer component that provides the context
+export function Dashboard() {
+  return (
+    <EditModeProvider>
+      <DashboardContent />
+    </EditModeProvider>
   )
 }

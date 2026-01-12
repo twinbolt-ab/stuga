@@ -11,7 +11,7 @@ import { t } from '@/lib/i18n'
 import type { HAFloor } from '@/types/ha'
 
 interface BottomNavProps {
-  onEnterReorderMode: () => void
+  onEnterEditMode: () => void
   floors: HAFloor[]
   selectedFloorId: string | null
   onSelectFloor: (floorId: string | null) => void
@@ -32,7 +32,7 @@ const getWiggleDuration = (index: number) => {
 }
 
 export function BottomNav({
-  onEnterReorderMode,
+  onEnterEditMode,
   floors,
   selectedFloorId,
   onSelectFloor,
@@ -191,7 +191,7 @@ export function BottomNav({
       <SettingsMenu
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
-        onEnterReorderMode={onEnterReorderMode}
+        onEnterEditMode={onEnterEditMode}
       />
 
       <FloorEditModal
