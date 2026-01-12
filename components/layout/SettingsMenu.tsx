@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useMotionValue, PanInfo } from 'framer-motion'
 import { useTheme } from 'next-themes'
 import { Moon, Sun, Pencil, X, Wifi, Layers, Package, Eye, EyeOff } from 'lucide-react'
 import { t } from '@/lib/i18n'
@@ -28,6 +28,13 @@ export function SettingsMenu({
   const [showConnectionSettings, setShowConnectionSettings] = useState(false)
   const [showDomainConfig, setShowDomainConfig] = useState(false)
   const { showHiddenItems, setShowHiddenItems } = useEnabledDomains()
+  const y = useMotionValue(0)
+
+  const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    if (info.offset.y > 100 || info.velocity.y > 500) {
+      onClose()
+    }
+  }
 
   // Close on escape key
   useEffect(() => {
@@ -79,6 +86,11 @@ export function SettingsMenu({
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 400 }}
+            drag="y"
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0, bottom: 0.5 }}
+            onDragEnd={handleDragEnd}
+            style={{ y }}
             className="fixed bottom-0 left-0 right-0 z-50 bg-card rounded-t-2xl shadow-warm-lg"
           >
             {/* Handle bar */}

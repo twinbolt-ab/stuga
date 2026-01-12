@@ -3,7 +3,8 @@
     "allow": [
       "mcp__home-assistant__GetLiveContext",
       "Bash(xargs cat:*)",
-      "WebSearch"
+      "WebSearch",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ],
     "deny": [],
     "ask": []

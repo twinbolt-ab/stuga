@@ -2,9 +2,11 @@
 
 import { useEffect, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from 'framer-motion'
 import { X } from 'lucide-react'
 import { t } from '@/lib/i18n'
+
+const DRAG_CLOSE_THRESHOLD = 150
 
 interface EditModalProps {
   isOpen: boolean
@@ -15,11 +17,19 @@ interface EditModalProps {
 
 export function EditModal({ isOpen, onClose, title, children }: EditModalProps) {
   const [mounted, setMounted] = useState(false)
+  const y = useMotionValue(0)
+  const backdropOpacity = useTransform(y, [0, 300], [1, 0.3])
 
   // Only render portal on client
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    if (info.offset.y > DRAG_CLOSE_THRESHOLD || info.velocity.y > 500) {
+      onClose()
+    }
+  }
 
   // Close on escape key
   useEffect(() => {
@@ -48,6 +58,7 @@ export function EditModal({ isOpen, onClose, title, children }: EditModalProps) 
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
+            style={{ opacity: backdropOpacity }}
             className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]"
             onClick={onClose}
           />
@@ -58,7 +69,12 @@ export function EditModal({ isOpen, onClose, title, children }: EditModalProps) 
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 400 }}
-            className="fixed bottom-0 left-0 right-0 z-[100] bg-card rounded-t-2xl shadow-warm-lg h-[90vh] flex flex-col"
+            drag="y"
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0.1, bottom: 0.5 }}
+            onDragEnd={handleDragEnd}
+            style={{ y }}
+            className="fixed bottom-0 left-0 right-0 z-[100] bg-card rounded-t-2xl shadow-warm-lg h-[90vh] flex flex-col touch-none"
           >
             {/* Handle bar */}
             <div className="flex justify-center pt-3 pb-2">

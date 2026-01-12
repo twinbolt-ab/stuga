@@ -262,9 +262,9 @@ export function RoomCard({
             )}
           >
             {room.icon ? (
-              <MdiIcon icon={room.icon} className={isExpanded ? 'w-5 h-5' : 'w-4 h-4'} />
+              <MdiIcon icon={room.icon} className={isExpanded ? 'w-6 h-6' : 'w-5 h-5'} />
             ) : (
-              <Home className={isExpanded ? 'w-5 h-5' : 'w-4 h-4'} />
+              <Home className={isExpanded ? 'w-6 h-6' : 'w-5 h-5'} />
             )}
           </div>
           <h3 className="font-semibold text-foreground truncate flex-1 text-center pl-2 pr-1">

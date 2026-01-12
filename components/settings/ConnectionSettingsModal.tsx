@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useMotionValue, PanInfo } from 'framer-motion'
 import { X, Check, Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react'
 import { t } from '@/lib/i18n'
 import { getStoredCredentials, updateUrl, updateToken } from '@/lib/config'
@@ -20,6 +20,14 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+
+  const y = useMotionValue(0)
+
+  const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    if (info.offset.y > 100 || info.velocity.y > 500) {
+      onClose()
+    }
+  }
 
   // Load current credentials when modal opens
   useEffect(() => {
@@ -140,6 +148,11 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 400 }}
+            drag="y"
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0, bottom: 0.5 }}
+            onDragEnd={handleDragEnd}
+            style={{ y }}
             className="fixed bottom-0 left-0 right-0 z-[70] bg-card rounded-t-2xl shadow-warm-lg max-h-[80vh] overflow-y-auto"
           >
             {/* Handle bar */}

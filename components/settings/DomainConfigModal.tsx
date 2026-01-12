@@ -1,10 +1,10 @@
 'use client'
 
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, RotateCcw } from 'lucide-react'
+import { motion, AnimatePresence, useMotionValue, PanInfo } from 'framer-motion'
+import { X } from 'lucide-react'
 import { t } from '@/lib/i18n'
 import { useEnabledDomains } from '@/lib/hooks/useEnabledDomains'
-import { ALL_CONFIGURABLE_DOMAINS, DEFAULT_ENABLED_DOMAINS, type ConfigurableDomain } from '@/types/ha'
+import { ALL_CONFIGURABLE_DOMAINS, type ConfigurableDomain } from '@/types/ha'
 
 interface DomainConfigModalProps {
   isOpen: boolean
@@ -26,9 +26,14 @@ const DOMAIN_INFO: Record<ConfigurableDomain, { label: string; icon: string }> =
 }
 
 export function DomainConfigModal({ isOpen, onClose }: DomainConfigModalProps) {
-  const { enabledDomains, toggleDomain, resetToDefaults } = useEnabledDomains()
+  const { enabledDomains, toggleDomain } = useEnabledDomains()
+  const y = useMotionValue(0)
 
-  const isDefault = JSON.stringify([...enabledDomains].sort()) === JSON.stringify([...DEFAULT_ENABLED_DOMAINS].sort())
+  const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    if (info.offset.y > 100 || info.velocity.y > 500) {
+      onClose()
+    }
+  }
 
   return (
     <AnimatePresence>
@@ -49,6 +54,11 @@ export function DomainConfigModal({ isOpen, onClose }: DomainConfigModalProps) {
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 400 }}
+            drag="y"
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0, bottom: 0.5 }}
+            onDragEnd={handleDragEnd}
+            style={{ y }}
             className="fixed bottom-0 left-0 right-0 z-[70] bg-card rounded-t-2xl shadow-warm-lg max-h-[80vh] overflow-y-auto"
           >
             {/* Handle bar */}
@@ -59,23 +69,12 @@ export function DomainConfigModal({ isOpen, onClose }: DomainConfigModalProps) {
             {/* Header */}
             <div className="flex items-center justify-between px-4 pb-4">
               <h2 className="text-lg font-semibold text-foreground">{t.settings.domains.title}</h2>
-              <div className="flex items-center gap-2">
-                {!isDefault && (
-                  <button
-                    onClick={resetToDefaults}
-                    className="p-2 rounded-full hover:bg-border/50 transition-colors"
-                    title={t.settings.domains.reset}
-                  >
-                    <RotateCcw className="w-5 h-5 text-muted" />
-                  </button>
-                )}
-                <button
-                  onClick={onClose}
-                  className="p-2 -mr-2 rounded-full hover:bg-border/50 transition-colors"
-                >
-                  <X className="w-5 h-5 text-muted" />
-                </button>
-              </div>
+              <button
+                onClick={onClose}
+                className="p-2 -mr-2 rounded-full hover:bg-border/50 transition-colors"
+              >
+                <X className="w-5 h-5 text-muted" />
+              </button>
             </div>
 
             {/* Content */}

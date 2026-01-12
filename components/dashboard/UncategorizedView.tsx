@@ -1,10 +1,8 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
-import { motion, Reorder } from 'framer-motion'
+import { useState, useMemo } from 'react'
 import {
   Sparkles,
-  GripVertical,
   Power,
   Pencil,
   ToggleLeft,
@@ -101,7 +99,7 @@ function ToggleButton({
         isSelected && 'ring-2 ring-accent'
       )}
     >
-      {/* Edit mode controls: checkbox, pencil, grip */}
+      {/* Edit mode controls: checkbox, pencil */}
       {isInEditMode && (
         <>
           <SelectionCheckbox isSelected={isSelected} onToggle={onToggleSelection} />
@@ -111,7 +109,6 @@ function ToggleButton({
           >
             <Pencil className="w-4 h-4 text-muted" />
           </button>
-          <GripVertical className="w-4 h-4 text-muted flex-shrink-0" />
         </>
       )}
       {/* Clickable area */}
