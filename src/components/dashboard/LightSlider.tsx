@@ -13,9 +13,10 @@ const DRAG_THRESHOLD = 10
 interface LightSliderProps {
   light: HAEntity
   disabled?: boolean
+  compact?: boolean
 }
 
-export function LightSlider({ light, disabled = false }: LightSliderProps) {
+export function LightSlider({ light, disabled = false, compact = false }: LightSliderProps) {
   const { setLightBrightness, toggleLight, getLightBrightness } = useLightControl()
   const initialBrightness = getLightBrightness(light)
   const [localBrightness, setLocalBrightness] = useState(initialBrightness)
@@ -184,7 +185,10 @@ export function LightSlider({ light, disabled = false }: LightSliderProps) {
         )}
       </AnimatePresence>
 
-      <div className="relative z-0 flex items-center gap-3 py-2 px-2">
+      <div className={clsx(
+        'relative z-0 flex items-center py-2',
+        compact ? 'gap-2 px-1.5' : 'gap-3 px-2'
+      )}>
         {/* Toggle button */}
         <button
           onClick={handleToggle}

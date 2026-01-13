@@ -209,6 +209,9 @@ export function RoomExpanded({ room, allRooms }: RoomExpandedProps) {
     [room.devices]
   )
 
+  // Use two columns for lights when there are more than 6
+  const useTwoColumnLights = lights.length > 6
+
   const [editingDevice, setEditingDevice] = useState<HAEntity | null>(null)
   const [maxHeight, setMaxHeight] = useState<number | null>(null)
   const contentRef = useRef<HTMLDivElement>(null)
@@ -368,7 +371,9 @@ export function RoomExpanded({ room, allRooms }: RoomExpandedProps) {
         {lights.length > 0 && (
           <div className="mb-4">
             <SectionHeader>{t.devices.lights}</SectionHeader>
-            <div className="space-y-1">
+            <div className={clsx(
+              useTwoColumnLights ? 'grid grid-cols-2 gap-x-2 gap-y-1' : 'space-y-1'
+            )}>
               {lights.map((light) => {
                 const lightSelected = isSelected(light.entity_id)
                 return (
@@ -397,7 +402,7 @@ export function RoomExpanded({ room, allRooms }: RoomExpandedProps) {
                       </>
                     )}
                     <div className={clsx(isInEditMode ? 'flex-1 min-w-0' : '')}>
-                      <LightSlider light={light} disabled={isInEditMode} />
+                      <LightSlider light={light} disabled={isInEditMode} compact={useTwoColumnLights} />
                     </div>
                   </div>
                 )
