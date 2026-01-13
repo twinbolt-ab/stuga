@@ -1,3 +1,4 @@
+import { useRef, useEffect } from 'react'
 import { motion, AnimatePresence, useMotionValue, PanInfo } from 'framer-motion'
 import { X } from 'lucide-react'
 import { t } from '@/lib/i18n'
@@ -26,10 +27,39 @@ const DOMAIN_INFO: Record<ConfigurableDomain, { label: string; icon: string }> =
 export function DomainConfigModal({ isOpen, onClose }: DomainConfigModalProps) {
   const { enabledDomains, toggleDomain } = useEnabledDomains()
   const y = useMotionValue(0)
+  const sheetRef = useRef<HTMLDivElement>(null)
 
-  const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+  // Reset y motion value and blur focused element when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      y.set(0)
+      // Blur the button that opened the modal to prevent stuck focus/hover state
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur()
+      }
+    }
+  }, [isOpen, y])
+
+  const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    // Release any pointer capture to prevent blocking subsequent touches
+    if (sheetRef.current && 'pointerId' in event) {
+      try {
+        sheetRef.current.releasePointerCapture((event as PointerEvent).pointerId)
+      } catch {
+        // Ignore if pointer capture wasn't held
+      }
+    }
+
+    // Blur any focused element to reset touch state
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur()
+    }
+
     if (info.offset.y > 100 || info.velocity.y > 500) {
       onClose()
+    } else {
+      // Reset y if not closing
+      y.set(0)
     }
   }
 
@@ -39,18 +69,19 @@ export function DomainConfigModal({ isOpen, onClose }: DomainConfigModalProps) {
         <>
           {/* Backdrop */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0, pointerEvents: 'none' as const }}
+            animate={{ opacity: 1, pointerEvents: 'auto' as const }}
+            exit={{ opacity: 0, pointerEvents: 'none' as const }}
             className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60]"
             onClick={onClose}
           />
 
           {/* Modal */}
           <motion.div
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
+            ref={sheetRef}
+            initial={{ y: '100%', pointerEvents: 'none' as const }}
+            animate={{ y: 0, pointerEvents: 'auto' as const }}
+            exit={{ y: '100%', pointerEvents: 'none' as const }}
             transition={{ type: 'spring', damping: 30, stiffness: 400 }}
             drag="y"
             dragConstraints={{ top: 0, bottom: 0 }}

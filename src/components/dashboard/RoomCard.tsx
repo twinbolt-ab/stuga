@@ -53,6 +53,7 @@ export function RoomCard({
     isDeviceEditMode,
     isSelected,
     toggleSelection,
+    exitEditMode,
   } = useEditMode()
 
   // Derive if this card is in an edit mode
@@ -75,24 +76,33 @@ export function RoomCard({
   const cardRef = useRef<HTMLDivElement>(null)
   const didDragRef = useRef(false)
 
-  // Scroll when expanded if bottom of card is outside viewport
+  // Scroll when expanded if card would extend below visible area
   useEffect(() => {
     if (isExpanded && cardRef.current) {
+      // Store initial card position before animation
+      const initialRect = cardRef.current.getBoundingClientRect()
+      const initialCardTop = window.scrollY + initialRect.top
+
       setTimeout(() => {
         const card = cardRef.current
         if (!card) return
 
         const rect = card.getBoundingClientRect()
-        const viewportHeight = window.innerHeight
+        // Account for bottom nav bar (~80px) when calculating visible area
+        const visibleHeight = window.innerHeight - 80
 
-        // If bottom of card is below viewport, scroll top of card to top of screen
-        if (rect.bottom > viewportHeight) {
-          card.scrollIntoView({
+        console.log('Expand scroll check:', { bottom: rect.bottom, visibleHeight, shouldScroll: rect.bottom > visibleHeight })
+
+        // If bottom of card is below visible area, scroll top of card to top of screen
+        if (rect.bottom > visibleHeight) {
+          console.log('Scrolling to:', initialCardTop - 16)
+          // Use initial card position for scroll target (before layout shift)
+          window.scrollTo({
+            top: Math.max(0, initialCardTop - 16),
             behavior: 'smooth',
-            block: 'start',
           })
         }
-      }, 250) // Wait for expand animation to complete
+      }, 300) // Wait for expand animation to complete
     }
   }, [isExpanded])
 
@@ -196,9 +206,13 @@ export function RoomCard({
     if (isInEditMode || didDragRef.current) return
     if (isExpanded) {
       e.stopPropagation()
+      // Exit device edit mode when collapsing this room
+      if (isDeviceInEditMode) {
+        exitEditMode()
+      }
       onToggleExpand()
     }
-  }, [isInEditMode, isExpanded, onToggleExpand])
+  }, [isInEditMode, isExpanded, isDeviceInEditMode, exitEditMode, onToggleExpand])
 
   const handleToggleSelection = useCallback(() => {
     toggleSelection(room.id)
@@ -343,6 +357,10 @@ export function RoomCard({
             <button
               onClick={(e) => {
                 e.stopPropagation()
+                // Exit device edit mode when collapsing this room
+                if (isExpanded && isDeviceInEditMode) {
+                  exitEditMode()
+                }
                 onToggleExpand()
               }}
               className="p-1.5 -mr-1.5 rounded-lg hover:bg-border/50 transition-colors touch-feedback"

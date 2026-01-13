@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState, useRef, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from 'framer-motion'
 import { X } from 'lucide-react'
@@ -17,15 +17,44 @@ export function EditModal({ isOpen, onClose, title, children }: EditModalProps) 
   const [mounted, setMounted] = useState(false)
   const y = useMotionValue(0)
   const backdropOpacity = useTransform(y, [0, 300], [1, 0.3])
+  const sheetRef = useRef<HTMLDivElement>(null)
 
   // Only render portal on client
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+  // Reset y motion value and blur focused element when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      y.set(0)
+      // Blur the button that opened the modal to prevent stuck focus/hover state
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur()
+      }
+    }
+  }, [isOpen, y])
+
+  const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    // Release any pointer capture to prevent blocking subsequent touches
+    if (sheetRef.current && 'pointerId' in event) {
+      try {
+        sheetRef.current.releasePointerCapture((event as PointerEvent).pointerId)
+      } catch {
+        // Ignore if pointer capture wasn't held
+      }
+    }
+
+    // Blur any focused element to reset touch state
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur()
+    }
+
     if (info.offset.y > DRAG_CLOSE_THRESHOLD || info.velocity.y > 500) {
       onClose()
+    } else {
+      // Reset y if not closing
+      y.set(0)
     }
   }
 
@@ -52,9 +81,9 @@ export function EditModal({ isOpen, onClose, title, children }: EditModalProps) 
         <>
           {/* Backdrop */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0, pointerEvents: 'none' as const }}
+            animate={{ opacity: 1, pointerEvents: 'auto' as const }}
+            exit={{ opacity: 0, pointerEvents: 'none' as const }}
             transition={{ duration: 0.2 }}
             style={{ opacity: backdropOpacity }}
             className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]"
@@ -63,9 +92,10 @@ export function EditModal({ isOpen, onClose, title, children }: EditModalProps) 
 
           {/* Bottom Sheet */}
           <motion.div
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
+            ref={sheetRef}
+            initial={{ y: '100%', pointerEvents: 'none' as const }}
+            animate={{ y: 0, pointerEvents: 'auto' as const }}
+            exit={{ y: '100%', pointerEvents: 'none' as const }}
             transition={{ type: 'spring', damping: 30, stiffness: 400 }}
             drag="y"
             dragConstraints={{ top: 0, bottom: 0 }}

@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Lightbulb, LightbulbOff } from 'lucide-react'
 import { clsx } from 'clsx'
@@ -21,8 +21,12 @@ export function LightSlider({ light, disabled = false }: LightSliderProps) {
   const [localBrightness, setLocalBrightness] = useState(initialBrightness)
   const [isDragging, setIsDragging] = useState(false)
   const [showBrightnessOverlay, setShowBrightnessOverlay] = useState(false)
+  const [useOptimisticValue, setUseOptimisticValue] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
   const dragStartRef = useRef<{ x: number; y: number; brightness: number } | null>(null)
+  const currentBrightnessRef = useRef(initialBrightness)
+  const isDraggingRef = useRef(false)
+  const optimisticTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   const isOn = light.state === 'on'
   const displayName = light.attributes.friendly_name || light.entity_id.split('.')[1]
@@ -32,13 +36,33 @@ export function LightSlider({ light, disabled = false }: LightSliderProps) {
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     if (disabled) return
 
+    // Use local brightness if dragging or in optimistic period, otherwise use HA value
+    const startBrightness = isDragging || useOptimisticValue ? localBrightness : initialBrightness
     dragStartRef.current = {
       x: e.clientX,
       y: e.clientY,
-      brightness: isDragging ? localBrightness : initialBrightness,
+      brightness: startBrightness,
     }
-    setLocalBrightness(dragStartRef.current.brightness)
-  }, [disabled, isDragging, localBrightness, initialBrightness])
+    setLocalBrightness(startBrightness)
+  }, [disabled, isDragging, useOptimisticValue, localBrightness, initialBrightness])
+
+  const calculateBrightness = useCallback((clientX: number) => {
+    // Map screen position to brightness with padding for easier mobile use
+    // 0% starts at 24px from left, 100% ends at 24px from right
+    // Dragging past these points still clamps to 0% or 100%
+    const padding = 24
+    const screenWidth = window.innerWidth
+    const effectiveWidth = screenWidth - padding * 2
+    const relativeX = clientX - padding
+    return Math.round(Math.max(0, Math.min(100, (relativeX / effectiveWidth) * 100)))
+  }, [])
+
+  const updateBrightness = useCallback((clientX: number) => {
+    const newBrightness = calculateBrightness(clientX)
+    currentBrightnessRef.current = newBrightness
+    setLocalBrightness(newBrightness)
+    setLightBrightness(light.entity_id, newBrightness)
+  }, [calculateBrightness, light.entity_id, setLightBrightness])
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!dragStartRef.current || disabled) return
@@ -47,7 +71,7 @@ export function LightSlider({ light, disabled = false }: LightSliderProps) {
     const deltaY = e.clientY - dragStartRef.current.y
 
     // If not yet dragging, check gesture direction
-    if (!isDragging) {
+    if (!isDraggingRef.current) {
       // If vertical movement exceeds threshold first, cancel tracking to allow scroll
       if (Math.abs(deltaY) > DRAG_THRESHOLD) {
         dragStartRef.current = null
@@ -61,39 +85,47 @@ export function LightSlider({ light, disabled = false }: LightSliderProps) {
           dragStartRef.current = null
           return
         }
+        isDraggingRef.current = true
         setIsDragging(true)
         setShowBrightnessOverlay(true)
         ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+        // Update brightness immediately when starting drag
+        updateBrightness(e.clientX)
       }
+    } else {
+      updateBrightness(e.clientX)
     }
-
-    if (isDragging) {
-      // Map screen position to brightness with padding for easier mobile use
-      // 0% starts at 24px from left, 100% ends at 24px from right
-      // Dragging past these points still clamps to 0% or 100%
-      const padding = 24
-      const screenWidth = window.innerWidth
-      const effectiveWidth = screenWidth - padding * 2
-      const relativeX = e.clientX - padding
-      const newBrightness = Math.max(0, Math.min(100, (relativeX / effectiveWidth) * 100))
-      setLocalBrightness(Math.round(newBrightness))
-      setLightBrightness(light.entity_id, Math.round(newBrightness))
-    }
-  }, [disabled, isDragging, light.entity_id, setLightBrightness])
+  }, [disabled, updateBrightness])
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
-    if (isDragging) {
+    if (isDraggingRef.current) {
+      // Calculate final brightness from the release position
+      const finalBrightness = calculateBrightness(e.clientX)
+      currentBrightnessRef.current = finalBrightness
+      setLocalBrightness(finalBrightness)
+
       // Commit the brightness change
-      setLightBrightness(light.entity_id, localBrightness, true)
+      setLightBrightness(light.entity_id, finalBrightness, true)
       ;(e.target as HTMLElement).releasePointerCapture(e.pointerId)
+
+      // Use optimistic value for 5 seconds, then sync with HA
+      setUseOptimisticValue(true)
+      if (optimisticTimerRef.current) {
+        clearTimeout(optimisticTimerRef.current)
+      }
+      optimisticTimerRef.current = setTimeout(() => {
+        setUseOptimisticValue(false)
+        optimisticTimerRef.current = null
+      }, 5000)
 
       // Hide overlay after a short delay
       setTimeout(() => setShowBrightnessOverlay(false), 300)
     }
 
+    isDraggingRef.current = false
     setIsDragging(false)
     dragStartRef.current = null
-  }, [isDragging, light.entity_id, localBrightness, setLightBrightness])
+  }, [calculateBrightness, light.entity_id, setLightBrightness])
 
   const handleToggle = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
@@ -101,8 +133,17 @@ export function LightSlider({ light, disabled = false }: LightSliderProps) {
     toggleLight(light.entity_id)
   }, [light.entity_id, toggleLight, disabled, isDragging])
 
-  // Sync local state with actual state when not dragging
-  const displayBrightness = isDragging ? localBrightness : initialBrightness
+  // Cleanup optimistic timer on unmount
+  useEffect(() => {
+    return () => {
+      if (optimisticTimerRef.current) {
+        clearTimeout(optimisticTimerRef.current)
+      }
+    }
+  }, [])
+
+  // Show local brightness while dragging or during optimistic period, otherwise use HA value
+  const displayBrightness = isDragging || useOptimisticValue ? localBrightness : initialBrightness
 
   return (
     <div
