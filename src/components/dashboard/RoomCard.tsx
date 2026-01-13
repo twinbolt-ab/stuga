@@ -21,21 +21,17 @@ const OPTIMISTIC_DURATION = 5000
 interface RoomCardProps {
   room: RoomWithDevices
   allRooms?: RoomWithDevices[]
-  index: number
   isExpanded: boolean
   shouldShowScenes?: boolean
   onToggleExpand: () => void
-  onEdit?: () => void
 }
 
 export function RoomCard({
   room,
   allRooms = [],
-  index,
   isExpanded,
   shouldShowScenes = false,
   onToggleExpand,
-  onEdit,
 }: RoomCardProps) {
   const { setRoomBrightness, getAverageBrightness, toggleRoomLights, getLightBrightnessMap, calculateRelativeBrightness } = useLightControl()
   const { callService } = useHAConnection()

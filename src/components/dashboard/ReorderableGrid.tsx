@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { clsx } from 'clsx'
 
 const LONG_PRESS_DURATION = 400
+const MOVE_THRESHOLD = 10
 
 interface ReorderableGridProps<T> {
   items: T[]
@@ -14,6 +15,7 @@ interface ReorderableGridProps<T> {
   gap?: number
   className?: string
 }
+
 export function ReorderableGrid<T>({
   items,
   renderItem,
@@ -31,7 +33,6 @@ export function ReorderableGrid<T>({
   const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 })
   const [orderedItems, setOrderedItems] = useState<T[]>(items)
   const [cellSize, setCellSize] = useState({ width: 0, height: 0 })
-  const [containerWidth, setContainerWidth] = useState(0)
 
   // Long-press state for drag activation
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -49,12 +50,10 @@ export function ReorderableGrid<T>({
       if (!containerRef.current) return
       const width = containerRef.current.offsetWidth
       if (width === 0) return // Skip if not laid out yet
-      setContainerWidth(width)
       const cellWidth = (width - gap * (columns - 1)) / columns
-      setCellSize(prev => ({ ...prev, width: cellWidth })) // Only set width, height measured from content
+      setCellSize(prev => ({ ...prev, width: cellWidth }))
     }
 
-    // Measure immediately and also after a frame to ensure layout is complete
     measure()
     const rafId = requestAnimationFrame(measure)
     window.addEventListener('resize', measure)
@@ -144,6 +143,18 @@ export function ReorderableGrid<T>({
     clearLongPressTimer()
   }, [clearLongPressTimer])
 
+  // Check if pointer moved beyond threshold during long-press wait
+  const checkLongPressMove = useCallback((clientX: number, clientY: number): boolean => {
+    if (pendingDragIndex === null || draggedIndex !== null) return false
+    const dx = clientX - pendingDragPosRef.current.x
+    const dy = clientY - pendingDragPosRef.current.y
+    if (Math.abs(dx) > MOVE_THRESHOLD || Math.abs(dy) > MOVE_THRESHOLD) {
+      handlePointerCancel()
+      return true
+    }
+    return false
+  }, [pendingDragIndex, draggedIndex, handlePointerCancel])
+
   // Handle drag move
   const handleDragMove = useCallback((clientX: number, clientY: number) => {
     if (draggedIndex === null) return
@@ -196,17 +207,7 @@ export function ReorderableGrid<T>({
 
     const handleTouchMove = (e: TouchEvent) => {
       const touch = e.touches[0]
-
-      // If still waiting for long-press, check if moved too far
-      if (pendingDragIndex !== null && draggedIndex === null) {
-        const dx = touch.clientX - pendingDragPosRef.current.x
-        const dy = touch.clientY - pendingDragPosRef.current.y
-        if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
-          handlePointerCancel()
-          return
-        }
-      }
-
+      if (checkLongPressMove(touch.clientX, touch.clientY)) return
       if (draggedIndex === null) return
       e.preventDefault()
       handleDragMove(touch.clientX, touch.clientY)
@@ -223,7 +224,7 @@ export function ReorderableGrid<T>({
       container.removeEventListener('touchmove', handleTouchMove)
       container.removeEventListener('touchend', handleTouchEnd)
     }
-  }, [draggedIndex, pendingDragIndex, handleDragMove, handleDragEnd, handlePointerCancel])
+  }, [draggedIndex, checkLongPressMove, handleDragMove, handleDragEnd])
 
   // Mouse handlers
   const handleMouseDown = useCallback((index: number) => (e: React.MouseEvent) => {
@@ -235,16 +236,7 @@ export function ReorderableGrid<T>({
     if (draggedIndex === null && pendingDragIndex === null) return
 
     const handleMouseMove = (e: MouseEvent) => {
-      // If still waiting for long-press, check if moved too far
-      if (pendingDragIndex !== null && draggedIndex === null) {
-        const dx = e.clientX - pendingDragPosRef.current.x
-        const dy = e.clientY - pendingDragPosRef.current.y
-        if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
-          handlePointerCancel()
-          return
-        }
-      }
-
+      if (checkLongPressMove(e.clientX, e.clientY)) return
       if (draggedIndex !== null) {
         handleDragMove(e.clientX, e.clientY)
       }
@@ -261,7 +253,7 @@ export function ReorderableGrid<T>({
       window.removeEventListener('mousemove', handleMouseMove)
       window.removeEventListener('mouseup', handleMouseUp)
     }
-  }, [draggedIndex, pendingDragIndex, handleDragMove, handleDragEnd, handlePointerCancel])
+  }, [draggedIndex, pendingDragIndex, checkLongPressMove, handleDragMove, handleDragEnd])
 
   // Click outside to save
   useEffect(() => {

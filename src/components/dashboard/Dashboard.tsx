@@ -148,10 +148,6 @@ function DashboardContent() {
     setExpandedRoomId((current) => (current === roomId ? null : roomId))
   }, [isRoomEditMode])
 
-  const handleEditRoom = useCallback((room: RoomWithDevices) => {
-    setEditingRoom(room)
-  }, [])
-
   const handleEnterEditMode = useCallback(() => {
     if (selectedFloorId === '__uncategorized__') {
       enterUncategorizedEdit()
@@ -347,25 +343,22 @@ function DashboardContent() {
               getKey={(room) => room.id}
               columns={2}
               gap={12}
-              renderItem={(room, index) => (
+              renderItem={(room) => (
                 <RoomCard
                   room={room}
-                  index={index}
                   isExpanded={false}
                   onToggleExpand={() => {}}
-                  onEdit={() => handleEditRoom(room)}
                 />
               )}
             />
           ) : (
             <LayoutGroup>
               <div ref={gridRef} className="grid grid-cols-2 gap-[12px]">
-                {displayRooms.map((room, index) => (
+                {displayRooms.map((room) => (
                   <RoomCard
                     key={room.id}
                     room={room}
                     allRooms={rooms}
-                    index={index}
                     isExpanded={expandedRoomId === room.id}
                     shouldShowScenes={shouldShowScenes}
                     onToggleExpand={() => handleToggleExpand(room.id)}
