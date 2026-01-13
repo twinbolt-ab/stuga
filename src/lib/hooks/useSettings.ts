@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useSyncExternalStore } from 'react'
 
 const SETTINGS_KEY = 'giraff-settings'
+const SETTINGS_CHANGE_EVENT = 'giraff-settings-change'
 
 export type ShowScenesOption = 'auto' | 'on' | 'off'
 
@@ -13,6 +14,10 @@ const defaultSettings: Settings = {
   groupByFloors: true,
   showScenes: 'auto',
 }
+
+// Shared settings store
+let currentSettings: Settings = defaultSettings
+let listeners: Set<() => void> = new Set()
 
 function loadSettings(): Settings {
   if (typeof window === 'undefined') return defaultSettings
@@ -38,37 +43,60 @@ function saveSettings(settings: Settings) {
   }
 }
 
+function notifyListeners() {
+  listeners.forEach(listener => listener())
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener)
+  return () => listeners.delete(listener)
+}
+
+function getSnapshot() {
+  return currentSettings
+}
+
+function getServerSnapshot() {
+  return defaultSettings
+}
+
+function updateSettingsStore(updates: Partial<Settings>) {
+  currentSettings = { ...currentSettings, ...updates }
+  saveSettings(currentSettings)
+  notifyListeners()
+}
+
+// Initialize on first load
+let initialized = false
+function initializeSettings() {
+  if (!initialized && typeof window !== 'undefined') {
+    currentSettings = loadSettings()
+    initialized = true
+  }
+}
+
 export function useSettings() {
-  const [settings, setSettings] = useState<Settings>(defaultSettings)
-  const [isLoaded, setIsLoaded] = useState(false)
-
-  // Load settings on mount (client-side only)
+  // Initialize settings store
   useEffect(() => {
-    setSettings(loadSettings())
-    setIsLoaded(true)
+    initializeSettings()
   }, [])
 
-  const updateSettings = useCallback((updates: Partial<Settings>) => {
-    setSettings(prev => {
-      const newSettings = { ...prev, ...updates }
-      saveSettings(newSettings)
-      return newSettings
-    })
-  }, [])
+  // Subscribe to settings changes
+  const settings = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
 
   const setGroupByFloors = useCallback((value: boolean) => {
-    updateSettings({ groupByFloors: value })
-  }, [updateSettings])
+    updateSettingsStore({ groupByFloors: value })
+  }, [])
 
   const setShowScenes = useCallback((value: ShowScenesOption) => {
-    updateSettings({ showScenes: value })
-  }, [updateSettings])
+    updateSettingsStore({ showScenes: value })
+  }, [])
 
   return {
     groupByFloors: settings.groupByFloors,
     setGroupByFloors,
     showScenes: settings.showScenes,
     setShowScenes,
-    isLoaded,
+    isLoaded: initialized,
   }
 }

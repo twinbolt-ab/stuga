@@ -6,11 +6,22 @@ const DRAG_THRESHOLD = 10
 // Margins for brightness slider (0% at left margin, 100% at right margin)
 const SLIDER_MARGIN = 24
 
+interface DragState {
+  x: number
+  y: number
+  brightness: number
+  brightnessMap: Map<string, number>
+}
+
 interface UseBrightnessGestureOptions {
   /** The lights to control */
   lights: HAEntity[]
   /** Whether gestures are disabled */
   disabled?: boolean
+  /** Current brightness value (for optimistic state integration) */
+  currentBrightness: number
+  /** Callback when brightness changes during drag */
+  onBrightnessChange: (brightness: number) => void
   /** Get current brightness for lights */
   getAverageBrightness: (lights: HAEntity[]) => number
   /** Get brightness map for all lights */
@@ -29,67 +40,54 @@ interface UseBrightnessGestureOptions {
   ) => void
 }
 
-interface DragState {
-  x: number
-  y: number
-  brightness: number
-  brightnessMap: Map<string, number>
-}
-
 interface UseBrightnessGestureReturn {
   /** Whether currently dragging brightness */
   isDragging: boolean
-  /** Current local brightness value (0-100) */
-  localBrightness: number
   /** Whether to show the brightness overlay */
   showOverlay: boolean
-  /** Whether a drag occurred (use to prevent click handling) */
-  didDrag: boolean
-  /** Initialize drag state on pointer down */
-  initDrag: (e: React.PointerEvent) => void
-  /** Handle pointer move for drag */
-  handleMove: (e: React.PointerEvent) => void
-  /** Finalize drag on pointer up */
-  finalizeDrag: (e: React.PointerEvent) => void
-  /** Set local brightness directly (for optimistic updates) */
-  setLocalBrightness: (value: number) => void
+  /** Ref to track if a drag occurred (for preventing click handlers) */
+  didDragRef: React.MutableRefObject<boolean>
+  /** Handler for pointer down event */
+  onPointerDown: (e: React.PointerEvent) => void
+  /** Handler for pointer move event */
+  onPointerMove: (e: React.PointerEvent) => void
+  /** Handler for pointer up event */
+  onPointerUp: (e: React.PointerEvent) => void
 }
 
 export function useBrightnessGesture({
   lights,
   disabled = false,
+  currentBrightness,
+  onBrightnessChange,
   getAverageBrightness,
   getLightBrightnessMap,
   calculateRelativeBrightness,
   setRoomBrightness,
 }: UseBrightnessGestureOptions): UseBrightnessGestureReturn {
-  const initialBrightness = getAverageBrightness(lights)
-
   const [isDragging, setIsDragging] = useState(false)
-  const [localBrightness, setLocalBrightness] = useState(initialBrightness)
   const [showOverlay, setShowOverlay] = useState(false)
 
   const dragStartRef = useRef<DragState | null>(null)
   const didDragRef = useRef(false)
 
-  const initDrag = useCallback((e: React.PointerEvent) => {
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
     didDragRef.current = false
 
     if (disabled || lights.length === 0) return
 
-    const currentBrightness = getAverageBrightness(lights)
+    const brightness = getAverageBrightness(lights)
     const brightnessMap = getLightBrightnessMap(lights)
 
     dragStartRef.current = {
       x: e.clientX,
       y: e.clientY,
-      brightness: currentBrightness,
+      brightness,
       brightnessMap,
     }
-    setLocalBrightness(currentBrightness)
   }, [disabled, lights, getAverageBrightness, getLightBrightnessMap])
 
-  const handleMove = useCallback((e: React.PointerEvent) => {
+  const onPointerMove = useCallback((e: React.PointerEvent) => {
     if (disabled || !dragStartRef.current || lights.length === 0) return
 
     const deltaX = e.clientX - dragStartRef.current.x
@@ -128,25 +126,17 @@ export function useBrightnessGesture({
     if (e.clientX <= startX) {
       // Dragging left: map [leftEdge, startX] to [0%, startBrightness%]
       const range = startX - leftEdge
-      if (range > 0) {
-        const ratio = (e.clientX - leftEdge) / range
-        newBrightness = ratio * startBrightness
-      } else {
-        newBrightness = 0
-      }
+      newBrightness = range > 0 ? ((e.clientX - leftEdge) / range) * startBrightness : 0
     } else {
       // Dragging right: map [startX, rightEdge] to [startBrightness%, 100%]
       const range = rightEdge - startX
-      if (range > 0) {
-        const ratio = (e.clientX - startX) / range
-        newBrightness = startBrightness + ratio * (100 - startBrightness)
-      } else {
-        newBrightness = 100
-      }
+      newBrightness = range > 0
+        ? startBrightness + ((e.clientX - startX) / range) * (100 - startBrightness)
+        : 100
     }
 
-    newBrightness = Math.max(0, Math.min(100, newBrightness))
-    setLocalBrightness(Math.round(newBrightness))
+    newBrightness = Math.round(Math.max(0, Math.min(100, newBrightness)))
+    onBrightnessChange(newBrightness)
 
     // Apply relative brightness to all lights
     const relativeBrightness = calculateRelativeBrightness(
@@ -155,15 +145,15 @@ export function useBrightnessGesture({
       newBrightness
     )
     setRoomBrightness(lights, relativeBrightness)
-  }, [disabled, lights, isDragging, calculateRelativeBrightness, setRoomBrightness])
+  }, [disabled, lights, isDragging, onBrightnessChange, calculateRelativeBrightness, setRoomBrightness])
 
-  const finalizeDrag = useCallback((e: React.PointerEvent) => {
+  const onPointerUp = useCallback((e: React.PointerEvent) => {
     if (isDragging && dragStartRef.current) {
       // Apply final brightness
       const relativeBrightness = calculateRelativeBrightness(
         dragStartRef.current.brightnessMap,
         dragStartRef.current.brightness,
-        localBrightness
+        currentBrightness
       )
       setRoomBrightness(lights, relativeBrightness, true)
       ;(e.target as HTMLElement).releasePointerCapture(e.pointerId)
@@ -173,16 +163,14 @@ export function useBrightnessGesture({
 
     setIsDragging(false)
     dragStartRef.current = null
-  }, [isDragging, lights, localBrightness, calculateRelativeBrightness, setRoomBrightness])
+  }, [isDragging, lights, currentBrightness, calculateRelativeBrightness, setRoomBrightness])
 
   return {
     isDragging,
-    localBrightness,
     showOverlay,
-    didDrag: didDragRef.current,
-    initDrag,
-    handleMove,
-    finalizeDrag,
-    setLocalBrightness,
+    didDragRef,
+    onPointerDown,
+    onPointerMove,
+    onPointerUp,
   }
 }

@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
+import { useRef, useCallback, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { clsx } from 'clsx'
 import { Lightbulb, LightbulbOff, Thermometer, ChevronDown, Home, Check, GripVertical, Sparkles } from 'lucide-react'
@@ -9,14 +9,13 @@ import { useLightControl } from '@/lib/hooks/useLightControl'
 import { useEditMode } from '@/lib/contexts/EditModeContext'
 import { useLongPress } from '@/lib/hooks/useLongPress'
 import { useOptimisticState } from '@/lib/hooks/useOptimisticState'
+import { useBrightnessGesture } from '@/lib/hooks/useBrightnessGesture'
 import { useHAConnection } from '@/lib/hooks/useHAConnection'
 import { haWebSocket } from '@/lib/ha-websocket'
 import { t, interpolate } from '@/lib/i18n'
 
 // Constants
 const LONG_PRESS_DURATION = 500
-const DRAG_THRESHOLD = 10
-const SLIDER_MARGIN = 24
 const OPTIMISTIC_DURATION = 5000
 
 interface RoomCardProps {
@@ -103,12 +102,6 @@ export function RoomCard({
 
   // Refs
   const cardRef = useRef<HTMLDivElement>(null)
-  const dragStartRef = useRef<{ x: number; y: number; brightness: number; brightnessMap: Map<string, number> } | null>(null)
-  const didDragRef = useRef(false)
-
-  // Brightness drag state
-  const [isBrightnessDragging, setIsBrightnessDragging] = useState(false)
-  const [showBrightnessOverlay, setShowBrightnessOverlay] = useState(false)
 
   // Optimistic states
   const brightnessState = useOptimisticState<number>({
@@ -119,6 +112,18 @@ export function RoomCard({
   const lightsOnState = useOptimisticState<boolean>({
     actualValue: hasLightsOn,
     duration: OPTIMISTIC_DURATION,
+  })
+
+  // Brightness gesture hook
+  const brightnessGesture = useBrightnessGesture({
+    lights,
+    disabled: isInEditMode || isExpanded || !hasLights,
+    currentBrightness: brightnessState.displayValue,
+    onBrightnessChange: brightnessState.setOptimistic,
+    getAverageBrightness,
+    getLightBrightnessMap,
+    calculateRelativeBrightness,
+    setRoomBrightness,
   })
 
   // Long press for entering edit mode and selecting this room
@@ -156,103 +161,27 @@ export function RoomCard({
     }
   }, [isExpanded])
 
-  // Pointer handlers for brightness gesture
+  // Combined pointer handlers (long-press + brightness gesture)
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    didDragRef.current = false
     longPress.onPointerDown(e)
-
-    if (!hasLights || isInEditMode || isExpanded) return
-
-    const currentBrightness = brightnessState.isOptimistic ? brightnessState.displayValue : getAverageBrightness(lights)
-    const brightnessMap = getLightBrightnessMap(lights)
-    dragStartRef.current = {
-      x: e.clientX,
-      y: e.clientY,
-      brightness: currentBrightness,
-      brightnessMap,
-    }
-  }, [hasLights, isInEditMode, isExpanded, brightnessState, getAverageBrightness, getLightBrightnessMap, lights, longPress])
+    brightnessGesture.onPointerDown(e)
+  }, [longPress, brightnessGesture])
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     longPress.onPointerMove(e)
-
-    if (isInEditMode || !dragStartRef.current || !hasLights) return
-
-    const deltaX = e.clientX - dragStartRef.current.x
-    const deltaY = e.clientY - dragStartRef.current.y
-
-    if (!isBrightnessDragging) {
-      if (Math.abs(deltaY) > DRAG_THRESHOLD) {
-        dragStartRef.current = null
-        return
-      }
-
-      if (Math.abs(deltaX) > DRAG_THRESHOLD) {
-        if (Math.abs(deltaY) > Math.abs(deltaX)) {
-          dragStartRef.current = null
-          return
-        }
-        didDragRef.current = true
-        setIsBrightnessDragging(true)
-        setShowBrightnessOverlay(true)
-        ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
-      }
-    }
-
-    if (isBrightnessDragging && dragStartRef.current) {
-      const leftEdge = SLIDER_MARGIN
-      const rightEdge = window.innerWidth - SLIDER_MARGIN
-      const startX = dragStartRef.current.x
-      const startBrightness = dragStartRef.current.brightness
-
-      let newBrightness: number
-
-      if (e.clientX <= startX) {
-        const range = startX - leftEdge
-        newBrightness = range > 0 ? ((e.clientX - leftEdge) / range) * startBrightness : 0
-      } else {
-        const range = rightEdge - startX
-        newBrightness = range > 0
-          ? startBrightness + ((e.clientX - startX) / range) * (100 - startBrightness)
-          : 100
-      }
-
-      newBrightness = Math.round(Math.max(0, Math.min(100, newBrightness)))
-      brightnessState.setOptimistic(newBrightness)
-
-      const relativeBrightness = calculateRelativeBrightness(
-        dragStartRef.current.brightnessMap,
-        startBrightness,
-        newBrightness
-      )
-      setRoomBrightness(lights, relativeBrightness)
-    }
-  }, [hasLights, isBrightnessDragging, lights, isInEditMode, brightnessState, calculateRelativeBrightness, setRoomBrightness, longPress])
+    brightnessGesture.onPointerMove(e)
+  }, [longPress, brightnessGesture])
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
     longPress.onPointerUp()
-
-    if (longPress.didLongPress) return
-
-    if (isBrightnessDragging && dragStartRef.current) {
-      const relativeBrightness = calculateRelativeBrightness(
-        dragStartRef.current.brightnessMap,
-        dragStartRef.current.brightness,
-        brightnessState.displayValue
-      )
-      setRoomBrightness(lights, relativeBrightness, true)
-      ;(e.target as HTMLElement).releasePointerCapture(e.pointerId)
-
-      setTimeout(() => setShowBrightnessOverlay(false), 300)
+    if (!longPress.didLongPress) {
+      brightnessGesture.onPointerUp(e)
     }
-
-    setIsBrightnessDragging(false)
-    dragStartRef.current = null
-  }, [isBrightnessDragging, lights, brightnessState.displayValue, calculateRelativeBrightness, setRoomBrightness, longPress])
+  }, [longPress, brightnessGesture])
 
   // Card click - toggle lights
   const handleCardClick = useCallback(() => {
-    if (isInEditMode || didDragRef.current || isExpanded || !hasLights) return
+    if (isInEditMode || brightnessGesture.didDragRef.current || isExpanded || !hasLights) return
 
     const willTurnOn = !lightsOnState.displayValue
     lightsOnState.setOptimistic(willTurnOn)
@@ -262,7 +191,7 @@ export function RoomCard({
 
   // Header click - collapse when expanded
   const handleHeaderClick = useCallback((e: React.MouseEvent) => {
-    if (isInEditMode || didDragRef.current) return
+    if (isInEditMode || brightnessGesture.didDragRef.current) return
     if (isExpanded) {
       e.stopPropagation()
       if (isDeviceInEditMode) exitEditMode()
@@ -297,13 +226,13 @@ export function RoomCard({
           style={{ backgroundColor: 'var(--brightness-fill)' }}
           initial={false}
           animate={{ scaleX: displayBrightness / 100 }}
-          transition={{ duration: isBrightnessDragging ? 0 : 0.3 }}
+          transition={{ duration: brightnessGesture.isDragging ? 0 : 0.3 }}
         />
       )}
 
       {/* Brightness percentage overlay */}
       <AnimatePresence>
-        {showBrightnessOverlay && !isExpanded && (
+        {brightnessGesture.showOverlay && !isExpanded && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
