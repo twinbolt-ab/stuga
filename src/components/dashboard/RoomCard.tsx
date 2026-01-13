@@ -98,10 +98,22 @@ export function RoomCard({
     duration: OPTIMISTIC_DURATION,
   })
 
-  // Brightness gesture hook
+  // Brightness gesture hook for collapsed card
   const brightnessGesture = useBrightnessGesture({
     lights,
     disabled: isInEditMode || isExpanded || !hasLights,
+    currentBrightness: brightnessState.displayValue,
+    onBrightnessChange: brightnessState.setOptimistic,
+    getAverageBrightness,
+    getLightBrightnessMap,
+    calculateRelativeBrightness,
+    setRoomBrightness,
+  })
+
+  // Brightness gesture hook for expanded card slider
+  const expandedBrightnessGesture = useBrightnessGesture({
+    lights,
+    disabled: isInEditMode || !isExpanded || !hasLights,
     currentBrightness: brightnessState.displayValue,
     onBrightnessChange: brightnessState.setOptimistic,
     getAverageBrightness,
@@ -229,9 +241,40 @@ export function RoomCard({
       <div className="relative z-0">
         {/* Header row */}
         <div
-          className={clsx('flex items-center -ml-2', isExpanded ? 'mb-2 cursor-pointer' : 'mb-1')}
+          className={clsx(
+            'flex items-center relative',
+            isExpanded ? '-mx-4 px-2 mb-2 py-1.5 -mt-4 pt-3 cursor-ew-resize' : '-ml-2 mb-1'
+          )}
           onClick={handleHeaderClick}
+          onPointerDown={isExpanded && hasLights && !isInEditMode ? expandedBrightnessGesture.onPointerDown : undefined}
+          onPointerMove={isExpanded && hasLights && !isInEditMode ? expandedBrightnessGesture.onPointerMove : undefined}
+          onPointerUp={isExpanded && hasLights && !isInEditMode ? expandedBrightnessGesture.onPointerUp : undefined}
+          onPointerCancel={isExpanded && hasLights && !isInEditMode ? expandedBrightnessGesture.onPointerUp : undefined}
+          style={isExpanded && hasLights ? { touchAction: 'pan-y' } : undefined}
         >
+          {/* Brightness fill background for expanded card */}
+          {isExpanded && hasLights && displayLightsOn && (
+            <motion.div
+              className="absolute inset-0 origin-left pointer-events-none rounded-t-card"
+              style={{ backgroundColor: 'var(--brightness-fill)' }}
+              initial={false}
+              animate={{ scaleX: displayBrightness / 100 }}
+              transition={{ duration: expandedBrightnessGesture.isDragging ? 0 : 0.3 }}
+            />
+          )}
+          {/* Brightness percentage overlay when dragging */}
+          <AnimatePresence>
+            {isExpanded && expandedBrightnessGesture.showOverlay && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="absolute inset-0 flex items-center justify-center bg-card/80 backdrop-blur-sm pointer-events-none z-20 rounded-t-card"
+              >
+                <span className="text-3xl font-bold text-accent">{displayBrightness}%</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
           {/* Edit mode controls */}
           {isInEditMode && (
             <div className="flex items-center gap-1 mr-1">
@@ -266,15 +309,15 @@ export function RoomCard({
           </div>
 
           {/* Room name */}
-          <h3 className="font-semibold text-foreground truncate flex-1 text-center pl-2 pr-1">
+          <h3 className="font-semibold text-foreground truncate flex-1 text-center pl-2 pr-1 relative z-10">
             {room.name}
           </h3>
         </div>
 
         {/* Scenes row - shows for all cards when enabled to maintain consistent height */}
         {showScenesRow && (
-          <div className={clsx('flex gap-1.5 mb-1 min-h-[32px] items-center', isInEditMode && 'pointer-events-none')}>
-            {hasScenes && scenes.map((scene) => {
+          <div className={clsx('flex gap-1.5 mb-1 min-h-[32px] items-center justify-center', isInEditMode && 'pointer-events-none')}>
+            {hasScenes && scenes.slice(0, 4).map((scene) => {
               const sceneIcon = haWebSocket.getEntityIcon(scene.entity_id)
               return (
                 <button

@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence, useMotionValue, PanInfo } from 'framer-motion'
-import { X, Check, Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react'
+import { X, Check, Loader2, AlertCircle, Eye, EyeOff, LogOut } from 'lucide-react'
 import { t } from '@/lib/i18n'
-import { getStoredCredentialsSync, updateUrl, updateToken } from '@/lib/config'
+import { getStoredCredentialsSync, updateUrl, updateToken, clearCredentials } from '@/lib/config'
 import { useHAConnection } from '@/lib/hooks/useHAConnection'
 
 interface ConnectionSettingsModalProps {
@@ -18,6 +18,7 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   const y = useMotionValue(0)
   const sheetRef = useRef<HTMLDivElement>(null)
@@ -66,6 +67,7 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
       }
       setError(null)
       setSuccess(false)
+      setShowLogoutConfirm(false)
     }
   }, [isOpen])
 
@@ -154,6 +156,11 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
     }
 
     setIsLoading(false)
+  }
+
+  const handleLogout = async () => {
+    await clearCredentials()
+    window.location.reload()
   }
 
   return (
@@ -283,6 +290,40 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
                   t.settings.connection.save
                 )}
               </button>
+
+              {/* Logout Section */}
+              <div className="pt-4 border-t border-border mt-4">
+                {showLogoutConfirm ? (
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted text-center">
+                      {t.settings.connection.logoutConfirm}
+                    </p>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => setShowLogoutConfirm(false)}
+                        className="flex-1 py-3 px-4 bg-border/50 text-foreground rounded-xl font-medium hover:bg-border transition-colors"
+                      >
+                        {t.common.cancel}
+                      </button>
+                      <button
+                        onClick={handleLogout}
+                        className="flex-1 py-3 px-4 bg-red-500 text-white rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-red-600 transition-colors"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        {t.settings.connection.logout}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowLogoutConfirm(true)}
+                    className="w-full py-3 px-4 text-red-500 rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-red-500/10 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    {t.settings.connection.logout}
+                  </button>
+                )}
+              </div>
 
               <div className="h-4" />
             </div>

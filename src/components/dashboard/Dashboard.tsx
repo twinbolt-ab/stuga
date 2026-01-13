@@ -85,13 +85,18 @@ function DashboardContent() {
   // Display rooms
   const displayRooms = isRoomEditMode ? orderedRooms : filteredRooms
 
-  // Compute shouldShowScenes based on setting and room count
+  // Compute shouldShowScenes based on setting, room count, and whether any room has scenes
   const shouldShowScenes = useMemo(() => {
     if (showScenes === 'off') return false
+    // Check if any room on this floor has scenes
+    const floorHasScenes = displayRooms.some(room =>
+      room.devices.some(d => d.entity_id.startsWith('scene.'))
+    )
+    if (!floorHasScenes) return false
     if (showScenes === 'on') return true
     // Auto: show if fewer than threshold rooms
     return displayRooms.length < AUTO_SCENES_ROOM_THRESHOLD
-  }, [showScenes, displayRooms.length])
+  }, [showScenes, displayRooms])
 
   const handleToggleExpand = useCallback((roomId: string) => {
     if (isRoomEditMode) return

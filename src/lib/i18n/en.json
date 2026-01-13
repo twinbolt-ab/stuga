@@ -75,7 +75,8 @@
     "connectingToHA": "Connecting to Home Assistant...",
     "reorderHint": "Drag to reorder, tap to edit",
     "noDevices": "No controllable devices in this room",
-    "noRoomsOnFloor": "No rooms on this floor"
+    "noRoomsOnFloor": "No rooms on this floor",
+    "brightness": "Brightness"
   },
   "settings": {
     "title": "Settings",
@@ -120,7 +121,9 @@
       "saved": "Saved!",
       "testing": "Testing...",
       "success": "Connection updated",
-      "error": "Connection failed. Check your settings."
+      "error": "Connection failed. Check your settings.",
+      "logout": "Log Out",
+      "logoutConfirm": "Are you sure you want to log out? You will need to reconnect to Home Assistant."
     }
   },
   "domains": {
