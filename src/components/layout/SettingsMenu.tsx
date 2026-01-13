@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { motion, AnimatePresence, useMotionValue, PanInfo } from 'framer-motion'
-import { useTheme } from 'next-themes'
+import { useTheme } from '@/providers/ThemeProvider'
 import { Moon, Sun, Pencil, X, Wifi, Layers, Package, Eye, EyeOff } from 'lucide-react'
 import { t } from '@/lib/i18n'
 import { ConnectionSettingsModal } from '@/components/settings/ConnectionSettingsModal'
@@ -52,10 +52,14 @@ export function SettingsMenu({
     }
   }
 
-  // Reset y motion value when modal opens/closes
+  // Reset y motion value and blur focused element when modal state changes
   useEffect(() => {
     if (isOpen) {
       y.set(0)
+      // Blur the button that opened the menu to prevent stuck focus/hover state
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur()
+      }
     }
   }, [isOpen, y])
 
