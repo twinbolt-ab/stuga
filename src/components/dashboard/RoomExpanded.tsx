@@ -1,5 +1,4 @@
-import { useMemo } from 'react'
-import { useState } from 'react'
+import { useMemo, useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Thermometer, Droplets, Sparkles, Power, Pencil, ToggleLeft, SlidersHorizontal, Check, Fan, Blinds, ChevronUp, ChevronDown, Square } from 'lucide-react'
 import { clsx } from 'clsx'
@@ -211,6 +210,27 @@ export function RoomExpanded({ room, allRooms }: RoomExpandedProps) {
   )
 
   const [editingDevice, setEditingDevice] = useState<HAEntity | null>(null)
+  const [maxHeight, setMaxHeight] = useState<number | null>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
+
+  // Calculate available height based on position
+  useEffect(() => {
+    if (contentRef.current) {
+      const calculateHeight = () => {
+        const rect = contentRef.current?.getBoundingClientRect()
+        if (!rect) return
+
+        // Available height = viewport height - top of content - bottom padding (nav bar ~80px)
+        const bottomPadding = 80
+        const available = window.innerHeight - rect.top - bottomPadding
+        setMaxHeight(Math.max(200, available)) // Minimum 200px
+      }
+
+      // Calculate after animation settles
+      const timer = setTimeout(calculateHeight, 50)
+      return () => clearTimeout(timer)
+    }
+  }, [])
 
   const handleDeviceEdit = (device: HAEntity) => {
     if (isInEditMode) {
@@ -278,8 +298,13 @@ export function RoomExpanded({ room, allRooms }: RoomExpandedProps) {
       transition={{ duration: 0.2, ease: 'easeOut' }}
     >
       <div
-        className="pt-3 mt-3 border-t border-border max-h-[60vh] overflow-y-auto scroll-smooth pb-1 px-0.5 -mx-0.5 overscroll-contain"
-        style={{ touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}
+        ref={contentRef}
+        className="pt-3 mt-3 border-t border-border overflow-y-auto scroll-smooth pb-1 px-0.5 -mx-0.5 overscroll-contain"
+        style={{
+          touchAction: 'pan-y',
+          WebkitOverflowScrolling: 'touch',
+          maxHeight: maxHeight ? `${maxHeight}px` : '60vh',
+        }}
         onPointerDown={(e) => e.stopPropagation()}
         onPointerMove={(e) => e.stopPropagation()}
         onTouchStart={(e) => e.stopPropagation()}
