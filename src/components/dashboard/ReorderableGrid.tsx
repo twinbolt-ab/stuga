@@ -63,7 +63,7 @@ export function ReorderableGrid<T>({
     }
   }, [columns, gap])
 
-  // Measure cell height from first rendered item
+  // Measure cell height from first rendered item using ResizeObserver
   useLayoutEffect(() => {
     if (!measureRef.current || cellSize.width === 0) return
 
@@ -75,10 +75,18 @@ export function ReorderableGrid<T>({
       }
     }
 
-    // Measure after a frame to ensure content is rendered
+    // Measure immediately
     measureHeight()
-    const rafId = requestAnimationFrame(measureHeight)
-    return () => cancelAnimationFrame(rafId)
+
+    // Use ResizeObserver to catch async content loading (e.g., icons)
+    const resizeObserver = new ResizeObserver(() => {
+      measureHeight()
+    })
+    resizeObserver.observe(measureRef.current)
+
+    return () => {
+      resizeObserver.disconnect()
+    }
   }, [cellSize.width, cellSize.height, orderedItems])
 
   // Calculate pixel position from index
@@ -311,6 +319,8 @@ export function ReorderableGrid<T>({
               isDragging && 'z-50',
             )}
             style={{
+              top: 0,
+              left: 0,
               width: cellSize.width > 0 ? cellSize.width : `calc((100% - ${gap * (columns - 1)}px) / ${columns})`,
               visibility: isReady ? 'visible' : 'hidden',
             }}
