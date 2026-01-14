@@ -196,10 +196,16 @@ class HAWebSocket {
     // If using OAuth, get a fresh token (handles refresh automatically)
     if (this.useOAuth) {
       const result = await getValidAccessToken()
-      if (result) {
+      if (result.status === 'valid') {
         this.token = result.token
+      } else if (result.status === 'network-error') {
+        // Network error - keep trying to reconnect, credentials are still valid
+        console.warn('[HA WS] Network error getting token, will retry on reconnect')
+        this.disconnect()
+        return
       } else {
-        console.error('[HA WS] OAuth token refresh failed')
+        // Auth error or no credentials - stop trying
+        console.error('[HA WS] OAuth token unavailable:', result.status)
         this.disconnect()
         return
       }

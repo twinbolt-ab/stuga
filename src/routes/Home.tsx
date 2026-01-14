@@ -1,43 +1,57 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { LogIn, AlertCircle } from 'lucide-react'
+import { LogIn, AlertCircle, WifiOff, RefreshCw } from 'lucide-react'
 import { Dashboard } from '@/components/dashboard/Dashboard'
 import { isSetupComplete, getStoredCredentials, clearCredentials } from '@/lib/config'
 import { t } from '@/lib/i18n'
 
-type HomeState = 'loading' | 'ready' | 'session-expired' | 'needs-setup'
+type HomeState = 'loading' | 'ready' | 'session-expired' | 'connection-lost' | 'needs-setup'
 
 export default function Home() {
   const navigate = useNavigate()
   const [state, setState] = useState<HomeState>('loading')
+  const [retrying, setRetrying] = useState(false)
+
+  const checkSetup = useCallback(async () => {
+    const setupComplete = await isSetupComplete()
+    if (!setupComplete) {
+      navigate('/setup', { replace: true })
+      return
+    }
+
+    // Check if we actually have valid credentials
+    // (setup might be marked complete but credentials could have been cleared)
+    const result = await getStoredCredentials()
+
+    if (result.status === 'valid') {
+      setState('ready')
+    } else if (result.status === 'network-error') {
+      // Credentials exist but network is down - show reconnect UI, not setup
+      console.log('[Home] Network error - showing connection lost UI')
+      setState('connection-lost')
+    } else {
+      // No credentials at all
+      console.log('[Home] No credentials - session expired')
+      setState('session-expired')
+    }
+  }, [navigate])
 
   useEffect(() => {
-    async function checkSetup() {
-      const setupComplete = await isSetupComplete()
-      if (!setupComplete) {
-        navigate('/setup', { replace: true })
-        return
-      }
-
-      // Check if we actually have valid credentials
-      // (setup might be marked complete but credentials could have been cleared)
-      const credentials = await getStoredCredentials()
-      if (!credentials) {
-        console.log('[Home] Setup complete but no credentials - session expired')
-        setState('session-expired')
-        return
-      }
-
-      setState('ready')
-    }
     checkSetup()
-  }, [navigate])
+  }, [checkSetup])
 
   const handleSignIn = async () => {
     // Clear credentials and redirect to setup
     await clearCredentials()
     navigate('/setup', { replace: true })
+  }
+
+  const handleRetry = async () => {
+    setRetrying(true)
+    setState('loading')
+    await checkSetup()
+    setRetrying(false)
   }
 
   // Loading state - minimal blank screen
@@ -77,6 +91,45 @@ export default function Home() {
           >
             <LogIn className="w-5 h-5" />
             {t.sessionExpired?.signIn || 'Sign In'}
+          </button>
+        </motion.div>
+      </div>
+    )
+  }
+
+  // Connection lost - temporary network issue, just need to reconnect WiFi
+  if (state === 'connection-lost') {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="w-full max-w-sm text-center"
+        >
+          {/* Icon */}
+          <div className="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <WifiOff className="w-10 h-10 text-blue-500" />
+          </div>
+
+          {/* Title */}
+          <h1 className="text-2xl font-bold text-foreground mb-3">
+            {t.connectionLost?.title || 'Connection Lost'}
+          </h1>
+
+          {/* Message */}
+          <p className="text-muted mb-8 leading-relaxed">
+            {t.connectionLost?.message || 'Unable to connect to Home Assistant. Check your WiFi connection and try again.'}
+          </p>
+
+          {/* Retry button */}
+          <button
+            onClick={handleRetry}
+            disabled={retrying}
+            className="w-full py-4 px-6 bg-accent text-white rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-accent/90 transition-colors touch-feedback disabled:opacity-50"
+          >
+            <RefreshCw className={`w-5 h-5 ${retrying ? 'animate-spin' : ''}`} />
+            {retrying ? 'Retrying...' : (t.connectionLost?.retry || 'Retry Connection')}
           </button>
         </motion.div>
       </div>

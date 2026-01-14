@@ -4,6 +4,21 @@
 import { STORAGE_KEYS } from './constants'
 import { getStorage } from './storage'
 
+// Custom error types to distinguish between network and auth failures
+export class NetworkError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'NetworkError'
+  }
+}
+
+export class AuthError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'AuthError'
+  }
+}
+
 // OAuth tokens from HA
 export interface OAuthTokens {
   access_token: string
@@ -106,18 +121,33 @@ export async function refreshAccessToken(
     client_id: effectiveClientId,
   })
 
-  const response = await fetch(`${haUrl}/auth/token`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: body.toString(),
-  })
+  let response: Response
+  try {
+    response = await fetch(`${haUrl}/auth/token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: body.toString(),
+    })
+  } catch (error) {
+    // Network error (offline, DNS failure, timeout, etc.)
+    console.error('[OAuth] Network error during refresh:', error)
+    throw new NetworkError(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+  }
 
   if (!response.ok) {
     const errorText = await response.text()
     console.error('[OAuth] Refresh failed:', response.status, errorText)
-    throw new Error(`Token refresh failed: ${response.status} ${errorText}`)
+
+    // 400/401/403 = auth errors (invalid token, revoked, etc.) - need to re-authenticate
+    // 5xx = server errors - might be temporary
+    if (response.status === 400 || response.status === 401 || response.status === 403) {
+      throw new AuthError(`Token refresh failed: ${response.status} ${errorText}`)
+    }
+
+    // Server errors or other issues - treat as network/temporary
+    throw new NetworkError(`Server error: ${response.status} ${errorText}`)
   }
 
   return response.json()
@@ -236,19 +266,23 @@ export async function clearPendingOAuth(): Promise<void> {
   await storage.removeItem(OAUTH_STORAGE_KEYS.PENDING_URL)
 }
 
+// Result type for getValidAccessToken
+export type TokenResult =
+  | { status: 'valid'; token: string; haUrl: string }
+  | { status: 'network-error'; haUrl: string }  // Temporary - keep credentials, can retry
+  | { status: 'auth-error' }  // Permanent - credentials cleared, need re-auth
+  | { status: 'no-credentials' }  // Never had credentials
+
 // Get a valid access token, refreshing if needed
-export async function getValidAccessToken(): Promise<{
-  token: string
-  haUrl: string
-} | null> {
+export async function getValidAccessToken(): Promise<TokenResult> {
   const creds = await getOAuthCredentials()
-  if (!creds) return null
+  if (!creds) return { status: 'no-credentials' }
 
   // Check if token is expired (with 60s buffer)
   const isExpired = Date.now() >= creds.expires_at - 60000
 
   if (!isExpired) {
-    return { token: creds.access_token, haUrl: creds.ha_url }
+    return { status: 'valid', token: creds.access_token, haUrl: creds.ha_url }
   }
 
   // Token is expired, try to refresh
@@ -256,15 +290,22 @@ export async function getValidAccessToken(): Promise<{
     // Use stored client_id to ensure refresh works even if accessed from different URL
     const newTokens = await refreshAccessToken(creds.ha_url, creds.refresh_token, creds.client_id)
     await storeOAuthCredentials(creds.ha_url, newTokens, creds.client_id)
-    return { token: newTokens.access_token, haUrl: creds.ha_url }
+    return { status: 'valid', token: newTokens.access_token, haUrl: creds.ha_url }
   } catch (error) {
     console.error('[OAuth] Token refresh failed:', error)
-    // Clear invalid credentials AND setup complete flag so user gets redirected to setup
-    const storage = getStorage()
-    await clearOAuthCredentials()
-    await storage.removeItem(STORAGE_KEYS.SETUP_COMPLETE)
-    console.log('[OAuth] Cleared credentials and setup flag due to refresh failure')
-    return null
+
+    if (error instanceof AuthError) {
+      // Permanent auth failure - credentials are invalid, need to re-authenticate
+      console.log('[OAuth] Auth error - clearing credentials')
+      const storage = getStorage()
+      await clearOAuthCredentials()
+      await storage.removeItem(STORAGE_KEYS.SETUP_COMPLETE)
+      return { status: 'auth-error' }
+    }
+
+    // Network error - keep credentials, user might just need to reconnect WiFi
+    console.log('[OAuth] Network error - keeping credentials for retry')
+    return { status: 'network-error', haUrl: creds.ha_url }
   }
 }
 

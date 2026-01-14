@@ -212,9 +212,11 @@ export function LightSlider({ light, disabled = false, compact = false }: LightS
         {/* Light name and brightness */}
         <div className="flex-1 min-w-0 flex items-center justify-between">
           <span className="text-sm font-medium truncate">{displayName}</span>
-          <span className="text-xs text-muted ml-2">
-            {isOn ? `${displayBrightness}%` : 'Off'}
-          </span>
+          {!compact && (
+            <span className="text-xs text-muted ml-2">
+              {isOn ? `${displayBrightness}%` : 'Off'}
+            </span>
+          )}
         </div>
       </div>
     </div>

@@ -4,7 +4,7 @@
 import { STORAGE_KEYS } from './constants'
 import { getStorage } from './storage'
 import { DEFAULT_ENABLED_DOMAINS, type ConfigurableDomain } from '@/types/ha'
-import { getValidAccessToken, getOAuthCredentials, clearOAuthCredentials } from './ha-oauth'
+import { getValidAccessToken, getOAuthCredentials, clearOAuthCredentials, type TokenResult } from './ha-oauth'
 
 export interface StoredCredentials {
   url: string
@@ -68,30 +68,40 @@ export function isSetupCompleteSync(): boolean {
   return localStorage.getItem(STORAGE_KEYS.SETUP_COMPLETE) === 'true'
 }
 
+// Result type for getStoredCredentials - distinguishes temporary vs permanent failures
+export type CredentialsResult =
+  | { status: 'valid'; credentials: StoredCredentials }
+  | { status: 'network-error'; haUrl: string }  // Temporary - credentials exist but can't refresh
+  | { status: 'no-credentials' }  // No credentials stored
+
 /**
  * Get stored Home Assistant credentials
  * Returns add-on credentials if in add-on mode, then OAuth, then manual token
  */
-export async function getStoredCredentials(): Promise<StoredCredentials | null> {
-  if (typeof window === 'undefined') return null
+export async function getStoredCredentials(): Promise<CredentialsResult> {
+  if (typeof window === 'undefined') return { status: 'no-credentials' }
 
   // Check add-on credentials first
   const addonCreds = getAddonCredentials()
-  if (addonCreds) return addonCreds
+  if (addonCreds) return { status: 'valid', credentials: addonCreds }
 
   // Check OAuth credentials
   const oauthResult = await getValidAccessToken()
-  if (oauthResult) {
-    return { url: oauthResult.haUrl, token: oauthResult.token }
+  if (oauthResult.status === 'valid') {
+    return { status: 'valid', credentials: { url: oauthResult.haUrl, token: oauthResult.token } }
+  }
+  if (oauthResult.status === 'network-error') {
+    // Credentials exist but we can't refresh due to network - preserve this info
+    return { status: 'network-error', haUrl: oauthResult.haUrl }
   }
 
-  // Fall back to manual token
+  // Fall back to manual token (auth-error or no-credentials from OAuth)
   const storage = getStorage()
   const url = await storage.getItem(STORAGE_KEYS.HA_URL)
   const token = await storage.getItem(STORAGE_KEYS.HA_TOKEN)
 
-  if (!url || !token) return null
-  return { url, token }
+  if (!url || !token) return { status: 'no-credentials' }
+  return { status: 'valid', credentials: { url, token } }
 }
 
 /**

@@ -13,19 +13,19 @@ export function useHAConnection() {
 
     // Get credentials from storage (async for native platform support)
     async function initConnection() {
-      const credentials = await getStoredCredentials()
+      const result = await getStoredCredentials()
       const authMethod = await getAuthMethod()
 
       if (cancelled) return
 
-      if (!credentials) {
-        console.log('[useHAConnection] No stored credentials')
+      if (result.status !== 'valid') {
+        console.log('[useHAConnection] No valid credentials:', result.status)
         setIsConfigured(false)
         return
       }
 
       setIsConfigured(true)
-      haWebSocket.configure(credentials.url, credentials.token, authMethod === 'oauth')
+      haWebSocket.configure(result.credentials.url, result.credentials.token, authMethod === 'oauth')
       haWebSocket.connect()
     }
 
@@ -71,16 +71,16 @@ export function useHAConnection() {
 
   // Reconnect with new credentials
   const reconnect = useCallback(async () => {
-    const credentials = await getStoredCredentials()
+    const result = await getStoredCredentials()
     const authMethod = await getAuthMethod()
-    if (!credentials) {
+    if (result.status !== 'valid') {
       setIsConfigured(false)
       return
     }
 
     setIsConfigured(true)
     haWebSocket.disconnect()
-    haWebSocket.configure(credentials.url, credentials.token, authMethod === 'oauth')
+    haWebSocket.configure(result.credentials.url, result.credentials.token, authMethod === 'oauth')
     haWebSocket.connect()
   }, [])
 

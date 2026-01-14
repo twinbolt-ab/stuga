@@ -236,5 +236,10 @@
     "title": "Session Expired",
     "message": "Your Home Assistant session has expired. Please sign in again to continue.",
     "signIn": "Sign In"
+  },
+  "connectionLost": {
+    "title": "Connection Lost",
+    "message": "Unable to connect to Home Assistant. Check your WiFi connection and try again.",
+    "retry": "Retry Connection"
   }
 }
