@@ -53,6 +53,10 @@ export function RoomCard({
   const isThisRoomSelected = isSelected(room.id)
   const isDeviceInEditMode = isDeviceEditMode && mode.type === 'edit-devices' && mode.roomId === room.id
 
+  // Check if this room should be blurred (another room is being edited)
+  const isOtherRoomInDeviceEdit = isDeviceEditMode && mode.type === 'edit-devices' && mode.roomId !== room.id
+  const shouldBlur = isOtherRoomInDeviceEdit
+
   // Room data
   const lights = room.devices.filter((d) => d.entity_id.startsWith('light.'))
   const hasLights = lights.length > 0
@@ -175,15 +179,23 @@ export function RoomCard({
     }
   }, [longPress, brightnessGesture])
 
-  // Card click - toggle lights
+  // Card click - toggle lights (or exit edit mode if blurred)
   const handleCardClick = useCallback(() => {
-    if (isInEditMode || brightnessGesture.didDragRef.current || isExpanded || !hasLights) return
+    if (brightnessGesture.didDragRef.current) return
+
+    // If this room is blurred (another room in device edit mode), exit edit mode
+    if (shouldBlur) {
+      exitEditMode()
+      return
+    }
+
+    if (isInEditMode || isExpanded || !hasLights) return
 
     const willTurnOn = !lightsOnState.displayValue
     lightsOnState.setOptimistic(willTurnOn)
     brightnessState.setOptimistic(willTurnOn ? 100 : 0)
     toggleRoomLights(lights)
-  }, [hasLights, isInEditMode, isExpanded, lightsOnState, brightnessState, toggleRoomLights, lights])
+  }, [hasLights, isInEditMode, isExpanded, shouldBlur, exitEditMode, lightsOnState, brightnessState, toggleRoomLights, lights])
 
   // Header click - collapse when expanded
   const handleHeaderClick = useCallback((e: React.MouseEvent) => {
@@ -207,7 +219,8 @@ export function RoomCard({
     'card w-full text-left relative overflow-hidden',
     !isInEditMode && 'transition-all duration-200',
     isExpanded ? 'p-4 col-span-2' : 'px-4 py-1.5',
-    isThisRoomSelected && 'ring-2 ring-accent'
+    isThisRoomSelected && 'ring-2 ring-accent',
+    shouldBlur && 'opacity-40 blur-[1px]'
   )
 
   const cardContent = (

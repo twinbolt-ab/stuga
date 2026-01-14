@@ -5,8 +5,9 @@ import type { HAFloor } from '@/types/ha'
 // Spring animation config for floor transitions
 const SPRING_CONFIG = { type: 'spring', stiffness: 300, damping: 30 } as const
 
-// Minimum height for swipeable area (viewport minus header/nav space)
-const MIN_HEIGHT = 'calc(100vh - 180px)'
+// Minimum height for swipeable area
+// Account for: safe-area-top + py-4 padding (16px) at top, pb-nav (5rem + safe-area-bottom) at bottom
+const MIN_HEIGHT = 'calc(100vh - env(safe-area-inset-top, 0px) - 16px - 5rem - env(safe-area-inset-bottom, 0px))'
 
 interface FloorSwipeContainerProps {
   /** All floors in order */

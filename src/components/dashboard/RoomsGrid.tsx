@@ -36,7 +36,7 @@ export function RoomsGrid({
 }: RoomsGridProps) {
   // Uncategorized view
   if (selectedFloorId === '__uncategorized__') {
-    return <UncategorizedView allRooms={allRooms} />
+    return <UncategorizedView />
   }
 
   // Empty state

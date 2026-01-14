@@ -3,24 +3,19 @@ import { clsx } from 'clsx'
 
 interface SelectionCheckboxProps {
   isSelected: boolean
-  onToggle: () => void
 }
 
-export function SelectionCheckbox({ isSelected, onToggle }: SelectionCheckboxProps) {
+export function SelectionCheckbox({ isSelected }: SelectionCheckboxProps) {
   return (
-    <button
-      onClick={(e) => {
-        e.stopPropagation()
-        onToggle()
-      }}
+    <div
       className={clsx(
-        'w-5 h-5 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors',
+        'w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 transition-colors border',
         isSelected
-          ? 'bg-accent text-white'
-          : 'bg-accent/20 ring-1 ring-inset ring-accent/40'
+          ? 'bg-accent text-white border-accent'
+          : 'bg-background border-border'
       )}
     >
       {isSelected && <Check className="w-3 h-3" />}
-    </button>
+    </div>
   )
 }

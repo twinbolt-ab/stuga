@@ -5,6 +5,7 @@ import { FormField } from '@/components/ui/FormField'
 import { TextInput } from '@/components/ui/TextInput'
 import { ComboBox } from '@/components/ui/ComboBox'
 import { Toggle } from '@/components/ui/Toggle'
+import { IconPickerField } from '@/components/ui/IconPickerField'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { t, interpolate } from '@/lib/i18n'
 import { haWebSocket } from '@/lib/ha-websocket'
@@ -18,6 +19,7 @@ interface DeviceEditModalProps {
 
 export function DeviceEditModal({ device, rooms, onClose }: DeviceEditModalProps) {
   const [name, setName] = useState('')
+  const [icon, setIcon] = useState('')
   const [roomId, setRoomId] = useState('')
   const [hidden, setHidden] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -37,10 +39,11 @@ export function DeviceEditModal({ device, rooms, onClose }: DeviceEditModalProps
   const deviceId = device?.entity_id
   useEffect(() => {
     if (device && deviceId) {
-      // Get current name from entity registry
+      // Get current name and icon from entity registry
       const entityRegistry = haWebSocket.getEntityRegistry()
       const entry = entityRegistry.get(deviceId)
       setName(entry?.name || '')
+      setIcon(entry?.icon || '')
 
       // Get current area
       const currentArea = device.attributes.area as string | undefined
@@ -63,9 +66,10 @@ export function DeviceEditModal({ device, rooms, onClose }: DeviceEditModalProps
 
     setIsSaving(true)
     try {
-      // Update name and area
+      // Update name, icon, and area
       await haWebSocket.updateEntity(device.entity_id, {
         name: name.trim() || null,
+        icon: icon.trim() || null,
         area_id: roomId || null,
       })
 
@@ -109,6 +113,13 @@ export function DeviceEditModal({ device, rooms, onClose }: DeviceEditModalProps
               value={name}
               onChange={setName}
               placeholder={deviceName}
+            />
+          </FormField>
+
+          <FormField label={labels.icon}>
+            <IconPickerField
+              value={icon}
+              onChange={setIcon}
             />
           </FormField>
 

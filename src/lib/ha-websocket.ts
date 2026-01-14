@@ -800,8 +800,8 @@ class HAWebSocket {
     })
   }
 
-  // Update entity properties (name, area)
-  async updateEntity(entityId: string, updates: { name?: string | null; area_id?: string | null }): Promise<void> {
+  // Update entity properties (name, area, icon)
+  async updateEntity(entityId: string, updates: { name?: string | null; area_id?: string | null; icon?: string | null }): Promise<void> {
     const entity = this.entityRegistry.get(entityId)
     // Entity might not be in registry (e.g., YAML-defined scenes), but we can still try to update it
 
@@ -818,6 +818,7 @@ class HAWebSocket {
           // Explicitly apply our updates in case they're not in the result
           if (updates.name !== undefined) updatedEntity.name = updates.name || undefined
           if (updates.area_id !== undefined) updatedEntity.area_id = updates.area_id || undefined
+          if (updates.icon !== undefined) updatedEntity.icon = updates.icon || undefined
 
           this.entityRegistry.set(entityId, updatedEntity)
 
@@ -857,6 +858,7 @@ class HAWebSocket {
 
       if (updates.name !== undefined) payload.name = updates.name
       if (updates.area_id !== undefined) payload.area_id = updates.area_id
+      if (updates.icon !== undefined) payload.icon = updates.icon
 
       this.send(payload)
     })

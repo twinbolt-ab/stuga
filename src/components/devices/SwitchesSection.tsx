@@ -9,8 +9,8 @@ interface SwitchesSectionProps {
   isInEditMode: boolean
   isSelected: (id: string) => boolean
   onToggle: (device: HAEntity) => void
-  onEdit: (device: HAEntity) => void
   onToggleSelection: (id: string) => void
+  onEnterEditModeWithSelection?: (deviceId: string) => void
 }
 
 export function SwitchesSection({
@@ -18,8 +18,8 @@ export function SwitchesSection({
   isInEditMode,
   isSelected,
   onToggle,
-  onEdit,
   onToggleSelection,
+  onEnterEditModeWithSelection,
 }: SwitchesSectionProps) {
   if (switches.length === 0) return null
 
@@ -34,8 +34,8 @@ export function SwitchesSection({
             isInEditMode={isInEditMode}
             isSelected={isSelected(sw.entity_id)}
             onToggle={() => onToggle(sw)}
-            onEdit={() => onEdit(sw)}
             onToggleSelection={() => onToggleSelection(sw.entity_id)}
+            onEnterEditModeWithSelection={() => onEnterEditModeWithSelection?.(sw.entity_id)}
             fallbackIcon={<Power className="w-5 h-5" />}
           />
         ))}

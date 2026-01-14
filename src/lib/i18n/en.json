@@ -167,6 +167,7 @@
     "device": {
       "title": "Edit Device",
       "name": "Name",
+      "icon": "Icon",
       "room": "Room",
       "hidden": "Hidden",
       "hiddenHint": "Hide this device"
@@ -174,6 +175,7 @@
     "scene": {
       "title": "Edit Scene",
       "name": "Name",
+      "icon": "Icon",
       "room": "Room",
       "hidden": "Hidden",
       "hiddenHint": "Hide this scene"

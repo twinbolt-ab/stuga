@@ -1,7 +1,6 @@
-import { useMemo, useState, useRef, useEffect, useCallback } from 'react'
+import { useMemo, useRef, useEffect, useCallback, useState } from 'react'
 import { motion } from 'framer-motion'
 import type { RoomWithDevices, HAEntity } from '@/types/ha'
-import { DeviceEditModal } from './DeviceEditModal'
 import { useEditMode } from '@/lib/contexts/EditModeContext'
 import { useEnabledDomains } from '@/lib/hooks/useEnabledDomains'
 import { useDeviceHandlers } from '@/lib/hooks/useDeviceHandlers'
@@ -32,8 +31,15 @@ export function RoomExpanded({ room, allRooms }: RoomExpandedProps) {
   const handlers = useDeviceHandlers()
 
   // Get edit mode state from context
-  const { isDeviceEditMode, isSelected, toggleSelection } = useEditMode()
+  const { isDeviceEditMode, isSelected, toggleSelection, enterDeviceEdit } = useEditMode()
   const isInEditMode = isDeviceEditMode
+
+  // Enter device edit mode and select the device
+  const handleEnterEditModeWithSelection = useCallback((deviceId: string) => {
+    enterDeviceEdit(room.id)
+    // Use setTimeout to ensure edit mode is active before selecting
+    setTimeout(() => toggleSelection(deviceId), 0)
+  }, [enterDeviceEdit, room.id, toggleSelection])
 
   // Filter devices by type (only show enabled domains)
   const lights = useMemo(
@@ -117,7 +123,6 @@ export function RoomExpanded({ room, allRooms }: RoomExpandedProps) {
     [room.devices]
   )
 
-  const [editingDevice, setEditingDevice] = useState<HAEntity | null>(null)
   const [maxHeight, setMaxHeight] = useState<number | null>(null)
   const contentRef = useRef<HTMLDivElement>(null)
 
@@ -139,12 +144,6 @@ export function RoomExpanded({ room, allRooms }: RoomExpandedProps) {
       return () => clearTimeout(timer)
     }
   }, [])
-
-  const handleDeviceEdit = (device: HAEntity) => {
-    if (isInEditMode) {
-      setEditingDevice(device)
-    }
-  }
 
   // Remove room name from scene name if present
   const getSceneDisplayName = useCallback(
@@ -196,8 +195,8 @@ export function RoomExpanded({ room, allRooms }: RoomExpandedProps) {
           isInEditMode={isInEditMode}
           isSelected={isSelected}
           onActivate={handlers.handleSceneActivate}
-          onEdit={handleDeviceEdit}
           onToggleSelection={toggleSelection}
+          onEnterEditModeWithSelection={handleEnterEditModeWithSelection}
           getDisplayName={getSceneDisplayName}
         />
 
@@ -205,8 +204,8 @@ export function RoomExpanded({ room, allRooms }: RoomExpandedProps) {
           lights={lights}
           isInEditMode={isInEditMode}
           isSelected={isSelected}
-          onEdit={handleDeviceEdit}
           onToggleSelection={toggleSelection}
+          onEnterEditModeWithSelection={handleEnterEditModeWithSelection}
         />
 
         <SwitchesSection
@@ -214,8 +213,8 @@ export function RoomExpanded({ room, allRooms }: RoomExpandedProps) {
           isInEditMode={isInEditMode}
           isSelected={isSelected}
           onToggle={handlers.handleSwitchToggle}
-          onEdit={handleDeviceEdit}
           onToggleSelection={toggleSelection}
+          onEnterEditModeWithSelection={handleEnterEditModeWithSelection}
         />
 
         <InputsSection
@@ -225,8 +224,8 @@ export function RoomExpanded({ room, allRooms }: RoomExpandedProps) {
           isSelected={isSelected}
           onBooleanToggle={handlers.handleInputBooleanToggle}
           onNumberChange={handlers.handleInputNumberChange}
-          onEdit={handleDeviceEdit}
           onToggleSelection={toggleSelection}
+          onEnterEditModeWithSelection={handleEnterEditModeWithSelection}
         />
 
         <ClimateSection
@@ -234,8 +233,8 @@ export function RoomExpanded({ room, allRooms }: RoomExpandedProps) {
           isInEditMode={isInEditMode}
           isSelected={isSelected}
           onToggle={handlers.handleClimateToggle}
-          onEdit={handleDeviceEdit}
           onToggleSelection={toggleSelection}
+          onEnterEditModeWithSelection={handleEnterEditModeWithSelection}
         />
 
         <CoversSection
@@ -245,8 +244,8 @@ export function RoomExpanded({ room, allRooms }: RoomExpandedProps) {
           onOpen={handlers.handleCoverOpen}
           onClose={handlers.handleCoverClose}
           onStop={handlers.handleCoverStop}
-          onEdit={handleDeviceEdit}
           onToggleSelection={toggleSelection}
+          onEnterEditModeWithSelection={handleEnterEditModeWithSelection}
         />
 
         <FansSection
@@ -254,8 +253,8 @@ export function RoomExpanded({ room, allRooms }: RoomExpandedProps) {
           isInEditMode={isInEditMode}
           isSelected={isSelected}
           onToggle={handlers.handleFanToggle}
-          onEdit={handleDeviceEdit}
           onToggleSelection={toggleSelection}
+          onEnterEditModeWithSelection={handleEnterEditModeWithSelection}
         />
 
         <SensorsDisplay
@@ -268,12 +267,6 @@ export function RoomExpanded({ room, allRooms }: RoomExpandedProps) {
           <p className="text-sm text-muted py-2">{t.rooms.noDevices}</p>
         )}
       </div>
-
-      <DeviceEditModal
-        device={editingDevice}
-        rooms={allRooms}
-        onClose={() => setEditingDevice(null)}
-      />
     </motion.div>
   )
 }

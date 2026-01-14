@@ -1,7 +1,5 @@
-import { useState, useMemo } from 'react'
+import { useMemo } from 'react'
 import { Package } from 'lucide-react'
-import type { HAEntity, RoomWithDevices } from '@/types/ha'
-import { DeviceEditModal } from './DeviceEditModal'
 import { useUncategorizedEntities } from '@/lib/hooks/useUncategorizedEntities'
 import { useEditMode } from '@/lib/contexts/EditModeContext'
 import { useDeviceHandlers } from '@/lib/hooks/useDeviceHandlers'
@@ -17,19 +15,13 @@ import {
   FansSection,
 } from '@/components/devices'
 
-interface UncategorizedViewProps {
-  allRooms: RoomWithDevices[]
-}
-
-export function UncategorizedView({ allRooms }: UncategorizedViewProps) {
+export function UncategorizedView() {
   const { uncategorizedByDomain, totalCount } = useUncategorizedEntities()
   const handlers = useDeviceHandlers()
 
   // Get edit mode state from context
   const { isUncategorizedEditMode, isSelected, toggleSelection } = useEditMode()
   const isInEditMode = isUncategorizedEditMode
-
-  const [editingDevice, setEditingDevice] = useState<HAEntity | null>(null)
 
   // Get entities by domain
   const lights = useMemo(
@@ -64,12 +56,6 @@ export function UncategorizedView({ allRooms }: UncategorizedViewProps) {
     () => uncategorizedByDomain.get('fan') || [],
     [uncategorizedByDomain]
   )
-
-  const handleDeviceEdit = (device: HAEntity) => {
-    if (isInEditMode) {
-      setEditingDevice(device)
-    }
-  }
 
   const isEmpty =
     lights.length === 0 &&
@@ -110,7 +96,6 @@ export function UncategorizedView({ allRooms }: UncategorizedViewProps) {
         isInEditMode={isInEditMode}
         isSelected={isSelected}
         onActivate={handlers.handleSceneActivate}
-        onEdit={handleDeviceEdit}
         onToggleSelection={toggleSelection}
       />
 
@@ -118,7 +103,6 @@ export function UncategorizedView({ allRooms }: UncategorizedViewProps) {
         lights={lights}
         isInEditMode={isInEditMode}
         isSelected={isSelected}
-        onEdit={handleDeviceEdit}
         onToggleSelection={toggleSelection}
       />
 
@@ -127,7 +111,6 @@ export function UncategorizedView({ allRooms }: UncategorizedViewProps) {
         isInEditMode={isInEditMode}
         isSelected={isSelected}
         onToggle={handlers.handleSwitchToggle}
-        onEdit={handleDeviceEdit}
         onToggleSelection={toggleSelection}
       />
 
@@ -138,7 +121,6 @@ export function UncategorizedView({ allRooms }: UncategorizedViewProps) {
         isSelected={isSelected}
         onBooleanToggle={handlers.handleInputBooleanToggle}
         onNumberChange={handlers.handleInputNumberChange}
-        onEdit={handleDeviceEdit}
         onToggleSelection={toggleSelection}
       />
 
@@ -147,7 +129,6 @@ export function UncategorizedView({ allRooms }: UncategorizedViewProps) {
         isInEditMode={isInEditMode}
         isSelected={isSelected}
         onToggle={handlers.handleClimateToggle}
-        onEdit={handleDeviceEdit}
         onToggleSelection={toggleSelection}
       />
 
@@ -158,7 +139,6 @@ export function UncategorizedView({ allRooms }: UncategorizedViewProps) {
         onOpen={handlers.handleCoverOpen}
         onClose={handlers.handleCoverClose}
         onStop={handlers.handleCoverStop}
-        onEdit={handleDeviceEdit}
         onToggleSelection={toggleSelection}
       />
 
@@ -167,14 +147,7 @@ export function UncategorizedView({ allRooms }: UncategorizedViewProps) {
         isInEditMode={isInEditMode}
         isSelected={isSelected}
         onToggle={handlers.handleFanToggle}
-        onEdit={handleDeviceEdit}
         onToggleSelection={toggleSelection}
-      />
-
-      <DeviceEditModal
-        device={editingDevice}
-        rooms={allRooms}
-        onClose={() => setEditingDevice(null)}
       />
     </div>
   )
