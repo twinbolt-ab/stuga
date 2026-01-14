@@ -43,10 +43,12 @@ export function ReorderableGrid<T>({
   const [pendingDragIndex, setPendingDragIndex] = useState<number | null>(null)
   const pendingDragPosRef = useRef({ x: 0, y: 0 })
 
-  // Sync items when they change externally
+  // Sync items when they change externally (but not while dragging)
   useEffect(() => {
-    setOrderedItems(items)
-  }, [items])
+    if (draggedIndex === null && pendingDragIndex === null) {
+      setOrderedItems(items)
+    }
+  }, [items, draggedIndex, pendingDragIndex])
 
   // Measure cell width
   useLayoutEffect(() => {

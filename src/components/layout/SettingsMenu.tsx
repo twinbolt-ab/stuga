@@ -6,6 +6,7 @@ import { t } from '@/lib/i18n'
 import { ConnectionSettingsModal } from '@/components/settings/ConnectionSettingsModal'
 import { DomainConfigModal } from '@/components/settings/DomainConfigModal'
 import { DeveloperMenuModal } from '@/components/settings/DeveloperMenuModal'
+import { EditModeInfoModal } from '@/components/settings/EditModeInfoModal'
 import { useEnabledDomains } from '@/lib/hooks/useEnabledDomains'
 import { useSettings, type ShowScenesOption } from '@/lib/hooks/useSettings'
 import { useDevMode } from '@/lib/hooks/useDevMode'
@@ -30,6 +31,7 @@ export function SettingsMenu({
   const [showConnectionSettings, setShowConnectionSettings] = useState(false)
   const [showDomainConfig, setShowDomainConfig] = useState(false)
   const [showDeveloperMenu, setShowDeveloperMenu] = useState(false)
+  const [showEditModeInfo, setShowEditModeInfo] = useState(false)
   const { showHiddenItems, setShowHiddenItems } = useEnabledDomains()
   const { showScenes, setShowScenes } = useSettings()
   const { isDevMode, enableDevMode } = useDevMode()
@@ -119,7 +121,12 @@ export function SettingsMenu({
     }
   }, [isOpen, onClose])
 
-  const handleEdit = () => {
+  const handleEditClick = () => {
+    setShowEditModeInfo(true)
+  }
+
+  const handleEditConfirm = () => {
+    setShowEditModeInfo(false)
     onClose()
     onEnterEditMode()
   }
@@ -315,13 +322,18 @@ export function SettingsMenu({
                 </button>
               )}
 
-              {/* Edit Mode - prominent at bottom */}
+              {/* Edit Mode */}
               <button
-                onClick={handleEdit}
-                className="w-full flex items-center justify-center gap-3 px-4 py-4 mt-2 rounded-xl bg-accent hover:bg-accent-hover transition-colors touch-feedback"
+                onClick={handleEditClick}
+                className="w-full flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-border/30 transition-colors touch-feedback"
               >
-                <Pencil className="w-5 h-5 text-white" />
-                <p className="font-medium text-white">{t.settings.editMode.title}</p>
+                <div className="p-2.5 rounded-xl bg-border/50">
+                  <Pencil className="w-5 h-5 text-foreground" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="font-medium text-foreground">{t.settings.editMode.title}</p>
+                  <p className="text-sm text-muted">{t.settings.editMode.description}</p>
+                </div>
               </button>
 
               {/* Bottom padding for safe area */}
@@ -345,6 +357,13 @@ export function SettingsMenu({
           <DeveloperMenuModal
             isOpen={showDeveloperMenu}
             onClose={() => setShowDeveloperMenu(false)}
+          />
+
+          {/* Edit Mode Info Modal */}
+          <EditModeInfoModal
+            isOpen={showEditModeInfo}
+            onClose={() => setShowEditModeInfo(false)}
+            onConfirm={handleEditConfirm}
           />
 
           {/* Dev Mode Activation Toast */}

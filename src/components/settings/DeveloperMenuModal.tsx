@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react'
 import { motion, AnimatePresence, useMotionValue, PanInfo } from 'framer-motion'
-import { X, Wifi, Home, Building, Layers, AlertTriangle, XCircle, LogOut } from 'lucide-react'
+import { X, Wifi, Home, Building, AlertTriangle, XCircle, LogOut, HelpCircle } from 'lucide-react'
 import { useDevMode, type MockScenario } from '@/lib/hooks/useDevMode'
 import { t } from '@/lib/i18n'
 import { clsx } from 'clsx'
@@ -47,6 +47,12 @@ const SCENARIOS: ScenarioOption[] = [
     label: 'Edge Cases',
     description: 'Rooms without floors, orphan devices',
     icon: <AlertTriangle className="w-5 h-5" />,
+  },
+  {
+    id: 'unassigned',
+    label: 'Unassigned Devices',
+    description: 'Devices with no room or floor',
+    icon: <HelpCircle className="w-5 h-5" />,
   },
 ]
 

@@ -12,6 +12,7 @@ import { useRooms } from '@/lib/hooks/useRooms'
 import { useRoomOrder } from '@/lib/hooks/useRoomOrder'
 import { useEnabledDomains } from '@/lib/hooks/useEnabledDomains'
 import { useSettings } from '@/lib/hooks/useSettings'
+import { useDevMode } from '@/lib/hooks/useDevMode'
 import { ORDER_GAP } from '@/lib/constants'
 import type { RoomWithDevices, HAEntity } from '@/types/ha'
 
@@ -24,6 +25,7 @@ function DashboardContent() {
   const { isEntityVisible } = useEnabledDomains()
   const { showScenes } = useSettings()
   const { setAreaOrder } = useRoomOrder()
+  const { activeMockScenario } = useDevMode()
 
   // Edit mode from context
   const {
@@ -45,8 +47,7 @@ function DashboardContent() {
 
   // Local UI state
   const [expandedRoomId, setExpandedRoomId] = useState<string | null>(null)
-  const [selectedFloorId, setSelectedFloorId] = useState<string | null>(null)
-  const [hasInitializedFloor, setHasInitializedFloor] = useState(false)
+  const [userSelectedFloorId, setUserSelectedFloorId] = useState<string | null | undefined>(undefined)
   const [editingRoom, setEditingRoom] = useState<RoomWithDevices | null>(null)
   const [editingDevice, setEditingDevice] = useState<HAEntity | null>(null)
   const [showBulkEditRooms, setShowBulkEditRooms] = useState(false)
@@ -61,19 +62,31 @@ function DashboardContent() {
     })
   }, [rooms, isEntityVisible])
 
-  // Auto-select first floor when floors load, or show uncategorized if no rooms
-  useEffect(() => {
-    if (!hasInitializedFloor) {
-      if (floors.length > 0) {
-        setSelectedFloorId(floors[0].floor_id)
-        setHasInitializedFloor(true)
-      } else if (hasReceivedData && rooms.length === 0) {
-        // Data has loaded but no floors and no rooms - show uncategorized
-        setSelectedFloorId('__uncategorized__')
-        setHasInitializedFloor(true)
-      }
+  // Derive selected floor from data - user selection takes precedence, otherwise auto-select
+  const selectedFloorId = useMemo(() => {
+    // If user has made an explicit selection, use it (unless it's stale)
+    if (userSelectedFloorId !== undefined) {
+      // Validate the selection still exists
+      if (userSelectedFloorId === '__uncategorized__') return '__uncategorized__'
+      if (userSelectedFloorId === null) return null // "Other" tab
+      if (floors.some(f => f.floor_id === userSelectedFloorId)) return userSelectedFloorId
+      // Selection is stale, fall through to auto-select
     }
-  }, [floors, hasInitializedFloor, hasReceivedData, rooms.length])
+
+    // Auto-select based on data
+    if (floors.length > 0) {
+      return floors[0].floor_id
+    }
+    if (hasReceivedData && rooms.length === 0) {
+      return '__uncategorized__'
+    }
+    return null
+  }, [userSelectedFloorId, floors, hasReceivedData, rooms.length])
+
+  // Reset user selection when mock scenario changes
+  useEffect(() => {
+    setUserSelectedFloorId(undefined)
+  }, [activeMockScenario])
 
   // Filter rooms by selected floor
   const filteredRooms = useMemo(() => {
@@ -182,7 +195,7 @@ function DashboardContent() {
 
   const handleViewUncategorized = useCallback(() => {
     setExpandedRoomId(null) // Close any expanded room
-    setSelectedFloorId('__uncategorized__') // Special ID for uncategorized devices view
+    setUserSelectedFloorId('__uncategorized__') // Special ID for uncategorized devices view
   }, [])
 
   // Handle floor selection (from swipe or tab click) - auto-close expanded rooms
@@ -190,7 +203,7 @@ function DashboardContent() {
     if (floorId !== selectedFloorId) {
       setExpandedRoomId(null) // Close any expanded room when changing floors
     }
-    setSelectedFloorId(floorId)
+    setUserSelectedFloorId(floorId)
   }, [selectedFloorId])
 
   // Get selected rooms for bulk edit modal

@@ -70,6 +70,7 @@
     "infoTitle": "How to edit",
     "infoHoldToEdit": "Hold a room, floor or device to edit it",
     "infoHoldToMove": "Hold again to reorder while in edit mode",
+    "infoSelectMultiple": "Tap multiple items to select them for bulk editing",
     "infoSavesDirectly": "All changes are saved directly to Home Assistant"
   },
   "connection": {

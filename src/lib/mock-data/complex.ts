@@ -1,12 +1,14 @@
 import type { HAEntity, HAFloor, RoomWithDevices } from '@/types/ha'
 import type { MockData } from './index'
 
+// Fixed timestamp for stable mock data
+const MOCK_TIMESTAMP = '2024-01-01T12:00:00.000Z'
+
 function createEntity(
   entityId: string,
   state: string,
   attributes: Record<string, unknown> = {}
 ): HAEntity {
-  const now = new Date().toISOString()
   return {
     entity_id: entityId,
     state,
@@ -14,8 +16,8 @@ function createEntity(
       friendly_name: attributes.friendly_name as string || entityId.split('.')[1].replace(/_/g, ' '),
       ...attributes,
     },
-    last_changed: now,
-    last_updated: now,
+    last_changed: MOCK_TIMESTAMP,
+    last_updated: MOCK_TIMESTAMP,
   }
 }
 
@@ -37,15 +39,15 @@ function createRoomDevices(roomName: string, prefix: string, config: {
     const isOn = i < (config.lightsOn || 0)
     devices.push(createEntity(`light.${prefix}_${i}`, isOn ? 'on' : 'off', {
       friendly_name: lightNames[i] || `Light ${i + 1}`,
-      brightness: isOn ? 200 + Math.floor(Math.random() * 55) : 0,
+      brightness: isOn ? 200 + (i * 10) : 0,
       area: roomName,
     }))
   }
 
-  // Switches
+  // Switches - alternate on/off based on index
   const switchNames = ['TV', 'Fan', 'Heater', 'Humidifier', 'Air Purifier']
   for (let i = 0; i < (config.switches || 0); i++) {
-    devices.push(createEntity(`switch.${prefix}_${i}`, Math.random() > 0.5 ? 'on' : 'off', {
+    devices.push(createEntity(`switch.${prefix}_${i}`, i % 2 === 0 ? 'on' : 'off', {
       friendly_name: switchNames[i] || `Switch ${i + 1}`,
       area: roomName,
     }))

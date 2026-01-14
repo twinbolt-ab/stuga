@@ -1,7 +1,9 @@
 import { useMemo } from 'react'
 import { useHAConnection } from './useHAConnection'
 import { useEnabledDomains } from './useEnabledDomains'
+import { useDevMode } from './useDevMode'
 import { haWebSocket } from '../ha-websocket'
+import { generateMockData } from '../mock-data'
 import type { HAEntity, ConfigurableDomain } from '@/types/ha'
 import { ALL_CONFIGURABLE_DOMAINS } from '@/types/ha'
 
@@ -12,8 +14,25 @@ import { ALL_CONFIGURABLE_DOMAINS } from '@/types/ha'
 export function useUncategorizedEntities() {
   const { entities, isConnected } = useHAConnection()
   const { enabledDomains, showHiddenItems } = useEnabledDomains()
+  const { activeMockScenario } = useDevMode()
 
   const uncategorizedEntities = useMemo(() => {
+    // Check for mock data first
+    if (activeMockScenario !== 'none') {
+      const mockData = generateMockData(activeMockScenario)
+      if (mockData?.uncategorizedEntities) {
+        // Filter mock entities by enabled domains
+        return mockData.uncategorizedEntities.filter(entity => {
+          const domain = entity.entity_id.split('.')[0] as ConfigurableDomain
+          if (!ALL_CONFIGURABLE_DOMAINS.includes(domain)) return false
+          if (!enabledDomains.includes(domain)) return false
+          return true
+        })
+      }
+      // Mock scenario with no uncategorized entities
+      return []
+    }
+
     const result: HAEntity[] = []
 
     for (const entity of entities.values()) {
@@ -36,7 +55,7 @@ export function useUncategorizedEntities() {
     }
 
     return result
-  }, [entities, enabledDomains, showHiddenItems])
+  }, [entities, enabledDomains, showHiddenItems, activeMockScenario])
 
   // Group by domain
   const uncategorizedByDomain = useMemo(() => {

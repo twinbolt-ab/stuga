@@ -12,7 +12,7 @@ interface Settings {
 
 const defaultSettings: Settings = {
   groupByFloors: true,
-  showScenes: 'auto',
+  showScenes: 'off',
 }
 
 // Shared settings store

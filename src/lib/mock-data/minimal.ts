@@ -1,12 +1,14 @@
 import type { HAEntity, HAFloor, RoomWithDevices } from '@/types/ha'
 import type { MockData } from './index'
 
+// Fixed timestamp for stable mock data
+const MOCK_TIMESTAMP = '2024-01-01T12:00:00.000Z'
+
 function createEntity(
   entityId: string,
   state: string,
   attributes: Record<string, unknown> = {}
 ): HAEntity {
-  const now = new Date().toISOString()
   return {
     entity_id: entityId,
     state,
@@ -14,8 +16,8 @@ function createEntity(
       friendly_name: attributes.friendly_name as string || entityId.split('.')[1].replace(/_/g, ' '),
       ...attributes,
     },
-    last_changed: now,
-    last_updated: now,
+    last_changed: MOCK_TIMESTAMP,
+    last_updated: MOCK_TIMESTAMP,
   }
 }
 

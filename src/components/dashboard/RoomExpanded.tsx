@@ -1,4 +1,4 @@
-import { useMemo, useRef, useEffect, useCallback, useState } from 'react'
+import { useMemo, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import type { RoomWithDevices, HAEntity } from '@/types/ha'
 import { useEditMode } from '@/lib/contexts/EditModeContext'
@@ -123,27 +123,6 @@ export function RoomExpanded({ room, allRooms }: RoomExpandedProps) {
     [room.devices]
   )
 
-  const [maxHeight, setMaxHeight] = useState<number | null>(null)
-  const contentRef = useRef<HTMLDivElement>(null)
-
-  // Calculate available height based on position
-  useEffect(() => {
-    if (contentRef.current) {
-      const calculateHeight = () => {
-        const rect = contentRef.current?.getBoundingClientRect()
-        if (!rect) return
-
-        // Available height = viewport height - top of content - bottom padding (nav bar ~80px)
-        const bottomPadding = 80
-        const available = window.innerHeight - rect.top - bottomPadding
-        setMaxHeight(Math.max(200, available)) // Minimum 200px
-      }
-
-      // Calculate after animation settles
-      const timer = setTimeout(calculateHeight, 50)
-      return () => clearTimeout(timer)
-    }
-  }, [])
 
   // Remove room name from scene name if present
   const getSceneDisplayName = useCallback(
@@ -178,13 +157,7 @@ export function RoomExpanded({ room, allRooms }: RoomExpandedProps) {
       transition={{ duration: 0.2, ease: 'easeOut' }}
     >
       <div
-        ref={contentRef}
-        className="pt-3 mt-3 border-t border-border overflow-y-auto scroll-smooth pb-1 px-0.5 -mx-0.5 overscroll-contain"
-        style={{
-          touchAction: 'pan-y',
-          WebkitOverflowScrolling: 'touch',
-          maxHeight: maxHeight ? `${maxHeight}px` : '60vh',
-        }}
+        className="pt-3 mt-3 border-t border-border pb-1 px-0.5 -mx-0.5"
         onPointerDown={(e) => e.stopPropagation()}
         onPointerMove={(e) => e.stopPropagation()}
         onTouchStart={(e) => e.stopPropagation()}

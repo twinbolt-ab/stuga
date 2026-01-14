@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { haWebSocket } from '@/lib/ha-websocket'
 import { getStoredCredentials, getAuthMethod } from '@/lib/config'
+import { getValidAccessToken, isUsingOAuth } from '@/lib/ha-oauth'
 import type { HAEntity } from '@/types/ha'
 
 export function useHAConnection() {
@@ -41,10 +42,31 @@ export function useHAConnection() {
       setIsConnected(connected)
     })
 
+    // Handle visibility change (for web - proactively refresh OAuth token on tab focus)
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState !== 'visible') return
+
+      // Only handle OAuth
+      const usingOAuth = await isUsingOAuth()
+      if (!usingOAuth) return
+
+      console.log('[useHAConnection] Tab became visible, checking token')
+      const result = await getValidAccessToken()
+
+      if (result.status === 'valid' && !haWebSocket.isConnected()) {
+        console.log('[useHAConnection] Reconnecting with refreshed token')
+        haWebSocket.configure(result.haUrl, result.token, true)
+        haWebSocket.connect()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
     return () => {
       cancelled = true
       unsubMessage()
       unsubConnection()
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }, [])
 
