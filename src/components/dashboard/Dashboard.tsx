@@ -27,7 +27,6 @@ function DashboardContent() {
 
   // Edit mode from context
   const {
-    mode,
     isEditMode,
     isRoomEditMode,
     isDeviceEditMode,

@@ -1,6 +1,12 @@
-import { useLayoutEffect, useRef, useState, useCallback, useMemo, useEffect } from 'react'
+import { useLayoutEffect, useState, useCallback, useMemo, useEffect } from 'react'
 import { motion, useMotionValue, animate, useDragControls, useReducedMotion, PanInfo } from 'framer-motion'
 import type { HAFloor } from '@/types/ha'
+
+// Spring animation config for floor transitions
+const SPRING_CONFIG = { type: 'spring', stiffness: 300, damping: 30 } as const
+
+// Minimum height for swipeable area (viewport minus header/nav space)
+const MIN_HEIGHT = 'calc(100vh - 180px)'
 
 interface FloorSwipeContainerProps {
   /** All floors in order */
@@ -26,7 +32,6 @@ export function FloorSwipeContainer({
   disabled = false,
 }: FloorSwipeContainerProps) {
   const prefersReducedMotion = useReducedMotion()
-  const containerRef = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(0)
   const x = useMotionValue(0)
   const dragControls = useDragControls()
@@ -65,7 +70,7 @@ export function FloorSwipeContainer({
       if (prefersReducedMotion) {
         x.set(targetX)
       } else {
-        animate(x, targetX, { type: 'spring', stiffness: 300, damping: 30 })
+        animate(x, targetX, SPRING_CONFIG)
       }
     }
   }, [currentIndex, width, x, prefersReducedMotion])
@@ -101,7 +106,7 @@ export function FloorSwipeContainer({
       if (prefersReducedMotion) {
         x.set(targetX)
       } else {
-        animate(x, targetX, { type: 'spring', stiffness: 300, damping: 30 })
+        animate(x, targetX, SPRING_CONFIG)
       }
     }
   }, [width, currentIndex, floorIds, onSelectFloor, x, prefersReducedMotion])
@@ -138,13 +143,12 @@ export function FloorSwipeContainer({
 
   return (
     <div
-      ref={containerRef}
       className="overflow-hidden"
-      style={{ touchAction: 'pan-y', minHeight: 'calc(100vh - 180px)' }}
+      style={{ touchAction: 'pan-y', minHeight: MIN_HEIGHT }}
     >
       <motion.div
         className="flex h-full"
-        style={{ x, minHeight: 'calc(100vh - 180px)' }}
+        style={{ x, minHeight: MIN_HEIGHT }}
         drag={disabled ? false : 'x'}
         dragControls={dragControls}
         dragListener={false}
@@ -159,7 +163,7 @@ export function FloorSwipeContainer({
             style={{
               width: width > 0 ? width : '100vw',
               flexShrink: 0,
-              minHeight: 'calc(100vh - 180px)',
+              minHeight: MIN_HEIGHT,
             }}
           >
             {children(floorId, index)}
