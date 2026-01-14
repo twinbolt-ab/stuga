@@ -41,9 +41,14 @@ export function BottomNav({
     if (isEditMode && floor) {
       setEditingFloor(floor)
     } else {
-      onSelectFloor(floorId === '__other__' ? null : floorId)
+      const newFloorId = floorId === '__other__' ? null : floorId
+      if (newFloorId !== selectedFloorId) {
+        onSelectFloor(newFloorId)
+        // Scroll to top when changing floors
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
     }
-  }, [isEditMode, onSelectFloor])
+  }, [isEditMode, onSelectFloor, selectedFloorId])
 
   // Handle reorder
   const handleReorder = useCallback(async (newOrder: HAFloor[]) => {

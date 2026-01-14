@@ -101,6 +101,8 @@ export function FloorSwipeContainer({
       // Navigate to new floor
       const newFloorId = floorIds[targetIndex]
       onSelectFloor(newFloorId)
+      // Scroll to top when changing floors
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     } else {
       // Snap back to current floor
       const targetX = -currentIndex * width

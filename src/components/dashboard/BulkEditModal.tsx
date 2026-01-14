@@ -3,6 +3,7 @@ import { EditModal } from '@/components/ui/EditModal'
 import { FormField } from '@/components/ui/FormField'
 import { Select } from '@/components/ui/Select'
 import { ComboBox } from '@/components/ui/ComboBox'
+import { IconPickerField } from '@/components/ui/IconPickerField'
 import { t, interpolate } from '@/lib/i18n'
 import { haWebSocket } from '@/lib/ha-websocket'
 import type { RoomWithDevices, HAFloor, HAEntity } from '@/types/ha'
@@ -94,6 +95,7 @@ interface BulkEditDevicesModalProps {
 
 export function BulkEditDevicesModal({ devices, rooms, onClose, onComplete }: BulkEditDevicesModalProps) {
   const [roomId, setRoomId] = useState<string>('')
+  const [icon, setIcon] = useState<string>('')
   const [hidden, setHidden] = useState<string>('')
   const [isSaving, setIsSaving] = useState(false)
 
@@ -110,7 +112,7 @@ export function BulkEditDevicesModal({ devices, rooms, onClose, onComplete }: Bu
   ]
 
   const handleSave = async () => {
-    if (!roomId && !hidden) {
+    if (!roomId && !icon && !hidden) {
       onClose()
       return
     }
@@ -119,10 +121,13 @@ export function BulkEditDevicesModal({ devices, rooms, onClose, onComplete }: Bu
     try {
       await Promise.all(
         devices.map(device => {
-          const updates: { area_id?: string | null; hidden_by?: string | null } = {}
+          const updates: { area_id?: string | null; icon?: string | null; hidden_by?: string | null } = {}
 
           if (roomId) {
             updates.area_id = roomId === '__none__' ? null : roomId
+          }
+          if (icon) {
+            updates.icon = icon
           }
           if (hidden) {
             updates.hidden_by = hidden === 'hide' ? 'user' : null
@@ -156,6 +161,10 @@ export function BulkEditDevicesModal({ devices, rooms, onClose, onComplete }: Bu
             onCreate={(name) => haWebSocket.createArea(name)}
             createLabel={t.edit.createRoom}
           />
+        </FormField>
+
+        <FormField label={t.bulkEdit.devices.setIcon}>
+          <IconPickerField value={icon} onChange={setIcon} />
         </FormField>
 
         <FormField label={t.edit.device.hidden}>

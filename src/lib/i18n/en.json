@@ -63,8 +63,13 @@
     "title": "Edit Mode",
     "badge": "Edit mode",
     "done": "Done",
+    "gotIt": "Got it",
     "instructions": "Changes are updated in HA.",
-    "instructionsTooltip": "All changes you make here are immediately saved to Home Assistant."
+    "instructionsTooltip": "All changes you make here are immediately saved to Home Assistant.",
+    "infoTitle": "How to edit",
+    "infoHoldToEdit": "Hold a room, floor or device to edit it",
+    "infoHoldToMove": "Hold again to reorder while in edit mode",
+    "infoSavesDirectly": "All changes are saved directly to Home Assistant"
   },
   "connection": {
     "connecting": "Connecting..."
@@ -124,6 +129,10 @@
       "error": "Connection failed. Check your settings.",
       "logout": "Log Out",
       "logoutConfirm": "Are you sure you want to log out? You will need to reconnect to Home Assistant."
+    },
+    "developer": {
+      "title": "Developer",
+      "description": "Test with mock data scenarios"
     }
   },
   "domains": {
@@ -136,7 +145,8 @@
     "cover": "Covers",
     "fan": "Fans",
     "vacuum": "Vacuums",
-    "media_player": "Media"
+    "media_player": "Media",
+    "sensor": "Sensors"
   },
   "floors": {
     "other": "Other",
@@ -212,6 +222,7 @@
     "devices": {
       "title": "Edit {count} Devices",
       "moveToRoom": "Move to room",
+      "setIcon": "Set icon",
       "hide": "Hide all",
       "unhide": "Unhide all"
     }

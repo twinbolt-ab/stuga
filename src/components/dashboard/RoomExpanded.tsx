@@ -260,6 +260,10 @@ export function RoomExpanded({ room, allRooms }: RoomExpandedProps) {
         <SensorsDisplay
           temperatureSensors={temperatureSensors}
           humiditySensors={humiditySensors}
+          isInEditMode={isInEditMode}
+          isSelected={isSelected}
+          onToggleSelection={toggleSelection}
+          onEnterEditModeWithSelection={handleEnterEditModeWithSelection}
         />
 
         {/* Empty state */}

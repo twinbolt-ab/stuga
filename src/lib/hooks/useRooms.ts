@@ -1,7 +1,9 @@
 import { useMemo, useState, useEffect } from 'react'
 import { useHAConnection } from './useHAConnection'
+import { useDevMode } from './useDevMode'
 import { haWebSocket } from '../ha-websocket'
 import { getShowHiddenItemsSync } from '../config'
+import { generateMockData } from '../mock-data'
 import type { HAEntity, RoomWithDevices } from '@/types/ha'
 import { DEFAULT_ORDER, STORAGE_KEYS } from '../constants'
 
@@ -18,6 +20,7 @@ function slugify(name: string): string {
 
 export function useRooms() {
   const { entities, isConnected } = useHAConnection()
+  const { activeMockScenario } = useDevMode()
   const [registryVersion, setRegistryVersion] = useState(0)
   const [showHiddenItems, setShowHiddenItems] = useState(false)
 
@@ -53,6 +56,14 @@ export function useRooms() {
   }, [])
 
   const { rooms, floors } = useMemo(() => {
+    // If mock scenario is active, return mock data
+    if (activeMockScenario !== 'none') {
+      const mockData = generateMockData(activeMockScenario)
+      if (mockData) {
+        return mockData
+      }
+    }
+
     const roomMap = new Map<string, { entities: HAEntity[]; areaId: string | null }>()
     const areaRegistry = haWebSocket.getAreaRegistry()
     const floorRegistry = haWebSocket.getFloors()
@@ -152,9 +163,12 @@ export function useRooms() {
     })
 
     return { rooms: result, floors: floorsArray }
-  }, [entities, registryVersion, showHiddenItems])
+  }, [entities, registryVersion, showHiddenItems, activeMockScenario])
 
-  return { rooms, floors, isConnected }
+  // When mock mode is active, always report as connected
+  const effectiveIsConnected = activeMockScenario !== 'none' ? true : isConnected
+
+  return { rooms, floors, isConnected: effectiveIsConnected }
 }
 
 // Helper to extract area from entity attributes (populated by ha-websocket.ts from HA registry)

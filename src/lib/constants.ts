@@ -27,4 +27,6 @@ export const STORAGE_KEYS = {
   SETUP_COMPLETE: 'giraff-setup-complete',
   ENABLED_DOMAINS: 'giraff-enabled-domains',
   SHOW_HIDDEN_ITEMS: 'giraff-show-hidden-items',
+  DEV_MODE: 'giraff-dev-mode',
+  MOCK_SCENARIO: 'giraff-mock-scenario',
 } as const

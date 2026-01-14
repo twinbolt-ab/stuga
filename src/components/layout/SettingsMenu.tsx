@@ -1,12 +1,14 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { motion, AnimatePresence, useMotionValue, PanInfo } from 'framer-motion'
 import { useTheme } from '@/providers/ThemeProvider'
-import { Moon, Sun, Pencil, X, Wifi, Layers, Package, Eye, EyeOff, Sparkles } from 'lucide-react'
+import { Moon, Sun, Pencil, X, Wifi, Layers, Package, Eye, EyeOff, Sparkles, Beaker } from 'lucide-react'
 import { t } from '@/lib/i18n'
 import { ConnectionSettingsModal } from '@/components/settings/ConnectionSettingsModal'
 import { DomainConfigModal } from '@/components/settings/DomainConfigModal'
+import { DeveloperMenuModal } from '@/components/settings/DeveloperMenuModal'
 import { useEnabledDomains } from '@/lib/hooks/useEnabledDomains'
 import { useSettings, type ShowScenesOption } from '@/lib/hooks/useSettings'
+import { useDevMode } from '@/lib/hooks/useDevMode'
 import { isHAAddon } from '@/lib/config'
 import { clsx } from 'clsx'
 
@@ -27,10 +29,40 @@ export function SettingsMenu({
   const isDark = resolvedTheme === 'dark'
   const [showConnectionSettings, setShowConnectionSettings] = useState(false)
   const [showDomainConfig, setShowDomainConfig] = useState(false)
+  const [showDeveloperMenu, setShowDeveloperMenu] = useState(false)
   const { showHiddenItems, setShowHiddenItems } = useEnabledDomains()
   const { showScenes, setShowScenes } = useSettings()
+  const { isDevMode, enableDevMode } = useDevMode()
   const y = useMotionValue(0)
   const sheetRef = useRef<HTMLDivElement>(null)
+
+  // Dev mode activation via click counter
+  const [devModeClickCount, setDevModeClickCount] = useState(0)
+  const [showDevModeToast, setShowDevModeToast] = useState(false)
+  const devModeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const handleSettingsHeaderClick = useCallback(() => {
+    if (isDevMode) return // Already in dev mode
+
+    if (devModeTimeoutRef.current) {
+      clearTimeout(devModeTimeoutRef.current)
+    }
+
+    const newCount = devModeClickCount + 1
+    setDevModeClickCount(newCount)
+
+    if (newCount >= 10) {
+      enableDevMode()
+      setDevModeClickCount(0)
+      setShowDevModeToast(true)
+      setTimeout(() => setShowDevModeToast(false), 2000)
+    } else {
+      // Reset counter after 2s of inactivity
+      devModeTimeoutRef.current = setTimeout(() => {
+        setDevModeClickCount(0)
+      }, 2000)
+    }
+  }, [devModeClickCount, isDevMode, enableDevMode])
 
   const showScenesOptions: ShowScenesOption[] = ['auto', 'on', 'off']
 
@@ -136,7 +168,12 @@ export function SettingsMenu({
 
             {/* Header */}
             <div className="flex items-center justify-between px-4 pb-2">
-              <h2 className="text-lg font-semibold text-foreground">{t.settings.title}</h2>
+              <h2
+                className="text-lg font-semibold text-foreground cursor-default select-none"
+                onClick={handleSettingsHeaderClick}
+              >
+                {t.settings.title}
+              </h2>
               <button
                 onClick={onClose}
                 className="p-2 -mr-2 rounded-full hover:bg-border/50 transition-colors touch-feedback"
@@ -262,6 +299,22 @@ export function SettingsMenu({
                 </button>
               )}
 
+              {/* Developer Menu - only shown when dev mode is active */}
+              {isDevMode && (
+                <button
+                  onClick={() => setShowDeveloperMenu(true)}
+                  className="w-full flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-border/30 transition-colors touch-feedback"
+                >
+                  <div className="p-2.5 rounded-xl bg-amber-500/20">
+                    <Beaker className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="font-medium text-foreground">{t.settings.developer?.title || 'Developer'}</p>
+                    <p className="text-sm text-muted">{t.settings.developer?.description || 'Test with mock data'}</p>
+                  </div>
+                </button>
+              )}
+
               {/* Edit Mode - prominent at bottom */}
               <button
                 onClick={handleEdit}
@@ -287,6 +340,26 @@ export function SettingsMenu({
             isOpen={showDomainConfig}
             onClose={() => setShowDomainConfig(false)}
           />
+
+          {/* Developer Menu Modal */}
+          <DeveloperMenuModal
+            isOpen={showDeveloperMenu}
+            onClose={() => setShowDeveloperMenu(false)}
+          />
+
+          {/* Dev Mode Activation Toast */}
+          <AnimatePresence>
+            {showDevModeToast && (
+              <motion.div
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 50 }}
+                className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] px-4 py-2 bg-amber-500 text-white rounded-full text-sm font-medium shadow-lg"
+              >
+                Dev mode enabled
+              </motion.div>
+            )}
+          </AnimatePresence>
         </>
       )}
     </AnimatePresence>

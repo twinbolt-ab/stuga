@@ -552,26 +552,26 @@ export function SetupWizard() {
                 <button
                   onClick={handleOAuthLogin}
                   disabled={isLoading}
-                  className="w-full p-4 bg-accent text-white rounded-xl flex items-start gap-4 hover:bg-accent/90 transition-colors touch-feedback disabled:opacity-50"
+                  className="w-full p-4 bg-card border-2 border-accent rounded-xl flex items-start gap-4 hover:bg-accent/5 transition-colors touch-feedback disabled:opacity-50"
                 >
-                  <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <LogIn className="w-5 h-5" />
+                  <div className="w-10 h-10 bg-accent/15 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <LogIn className="w-5 h-5 text-accent" />
                   </div>
-                  <div className="text-left">
-                    <div className="font-medium flex items-center gap-2">
+                  <div className="text-left flex-1">
+                    <div className="font-medium text-foreground flex items-center gap-2">
                       {t.setup.authMethod?.oauth || 'Login with Home Assistant'}
-                      <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">
-                        {t.setup.authMethod?.recommended || 'Recommended'}
-                      </span>
                     </div>
-                    <p className="text-sm text-white/80 mt-1">
+                    <p className="text-sm text-muted mt-1">
                       {t.setup.authMethod?.oauthHint || 'Use your existing Home Assistant account'}
                     </p>
+                    <span className="inline-block text-xs bg-accent/15 text-accent px-2 py-0.5 rounded-full mt-2 font-medium">
+                      {t.setup.authMethod?.recommended || 'Recommended'}
+                    </span>
                   </div>
                   {isLoading ? (
-                    <Loader2 className="w-5 h-5 animate-spin ml-auto flex-shrink-0" />
+                    <Loader2 className="w-5 h-5 animate-spin text-accent flex-shrink-0" />
                   ) : (
-                    <ArrowRight className="w-5 h-5 ml-auto flex-shrink-0" />
+                    <ArrowRight className="w-5 h-5 text-accent flex-shrink-0" />
                   )}
                 </button>
 
@@ -579,12 +579,12 @@ export function SetupWizard() {
                 <button
                   onClick={() => setStep('token')}
                   disabled={isLoading}
-                  className="w-full p-4 bg-card border border-border rounded-xl flex items-start gap-4 hover:bg-card/80 transition-colors touch-feedback disabled:opacity-50"
+                  className="w-full p-4 bg-card border border-border rounded-xl flex items-start gap-4 hover:bg-border/30 transition-colors touch-feedback disabled:opacity-50"
                 >
-                  <div className="w-10 h-10 bg-border rounded-lg flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 bg-border/50 rounded-lg flex items-center justify-center flex-shrink-0">
                     <Key className="w-5 h-5 text-muted" />
                   </div>
-                  <div className="text-left">
+                  <div className="text-left flex-1">
                     <div className="font-medium text-foreground">
                       {t.setup.authMethod?.token || 'Use access token'}
                     </div>
@@ -592,7 +592,7 @@ export function SetupWizard() {
                       {t.setup.authMethod?.tokenHint || 'Enter a long-lived access token manually'}
                     </p>
                   </div>
-                  <ArrowRight className="w-5 h-5 ml-auto flex-shrink-0 text-muted" />
+                  <ArrowRight className="w-5 h-5 text-muted flex-shrink-0" />
                 </button>
 
                 {error && (
