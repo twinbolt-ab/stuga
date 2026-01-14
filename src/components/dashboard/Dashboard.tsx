@@ -3,6 +3,7 @@ import { AnimatePresence } from 'framer-motion'
 import { Header } from '@/components/layout/Header'
 import { EditModeHeader } from './EditModeHeader'
 import { RoomsGrid } from './RoomsGrid'
+import { FloorSwipeContainer } from './FloorSwipeContainer'
 import { RoomEditModal } from './RoomEditModal'
 import { DeviceEditModal } from './DeviceEditModal'
 import { BulkEditRoomsModal, BulkEditDevicesModal } from './BulkEditModal'
@@ -79,6 +80,18 @@ function DashboardContent() {
     }
     return rooms.filter((room) => room.floorId === selectedFloorId)
   }, [rooms, selectedFloorId, isEntityVisible])
+
+  // Get rooms for a specific floor (used by FloorSwipeContainer)
+  const getRoomsForFloor = useCallback((floorId: string | null): RoomWithDevices[] => {
+    if (floorId === null) {
+      // Uncategorized rooms
+      return rooms.filter((room) => {
+        if (room.floorId) return false
+        return room.devices.some((d) => isEntityVisible(d.entity_id))
+      })
+    }
+    return rooms.filter((room) => room.floorId === floorId)
+  }, [rooms, isEntityVisible])
 
   // Sync room data changes (name/icon updates) while preserving order - replaces useEffect
   const orderedRooms = useMemo(() => {
@@ -163,8 +176,17 @@ function DashboardContent() {
   }, [expandedRoomId, isEditMode, handleExitEditMode])
 
   const handleViewUncategorized = useCallback(() => {
-    setSelectedFloorId('__uncategorized__' as unknown as string)
+    setExpandedRoomId(null) // Close any expanded room
+    setSelectedFloorId('__uncategorized__') // Special ID for uncategorized devices view
   }, [])
+
+  // Handle floor selection (from swipe or tab click) - auto-close expanded rooms
+  const handleSelectFloor = useCallback((floorId: string | null) => {
+    if (floorId !== selectedFloorId) {
+      setExpandedRoomId(null) // Close any expanded room when changing floors
+    }
+    setSelectedFloorId(floorId)
+  }, [selectedFloorId])
 
   // Get selected rooms for bulk edit modal
   const selectedRoomsForEdit = useMemo(() => {
@@ -220,22 +242,81 @@ function DashboardContent() {
         )}
       </AnimatePresence>
 
-      <div className="px-4 py-4" onClick={handleBackgroundClick}>
+      <div onClick={handleBackgroundClick}>
         <section>
-          <RoomsGrid
-            selectedFloorId={selectedFloorId}
-            displayRooms={displayRooms}
-            orderedRooms={orderedRooms}
-            allRooms={rooms}
-            expandedRoomId={expandedRoomId}
-            isConnected={isConnected}
-            isRoomEditMode={isRoomEditMode}
-            shouldShowScenes={shouldShowScenes}
-            onReorder={handleReorder}
-            onToggleExpand={handleToggleExpand}
-            onClickOutside={handleExitEditMode}
-            onEnterEditModeWithSelection={handleEnterEditModeWithSelection}
-          />
+          {selectedFloorId === '__uncategorized__' ? (
+            // Uncategorized devices view (not part of swipe navigation)
+            <div className="px-4 py-4">
+              <RoomsGrid
+                selectedFloorId={selectedFloorId}
+                displayRooms={[]}
+                orderedRooms={[]}
+                allRooms={rooms}
+                expandedRoomId={expandedRoomId}
+                isConnected={isConnected}
+                isRoomEditMode={false}
+                shouldShowScenes={false}
+                onReorder={() => {}}
+                onToggleExpand={handleToggleExpand}
+                onClickOutside={handleExitEditMode}
+                onEnterEditModeWithSelection={handleEnterEditModeWithSelection}
+              />
+            </div>
+          ) : isRoomEditMode ? (
+            // Edit mode: show only current floor in ReorderableGrid
+            <div className="px-4 py-4">
+              <RoomsGrid
+                selectedFloorId={selectedFloorId}
+                displayRooms={displayRooms}
+                orderedRooms={orderedRooms}
+                allRooms={rooms}
+                expandedRoomId={expandedRoomId}
+                isConnected={isConnected}
+                isRoomEditMode={isRoomEditMode}
+                shouldShowScenes={shouldShowScenes}
+                onReorder={handleReorder}
+                onToggleExpand={handleToggleExpand}
+                onClickOutside={handleExitEditMode}
+                onEnterEditModeWithSelection={handleEnterEditModeWithSelection}
+              />
+            </div>
+          ) : (
+            // Normal mode: swipeable floor container
+            <div className="py-4">
+              <FloorSwipeContainer
+                floors={floors}
+                hasUncategorized={hasUnassignedRooms}
+                selectedFloorId={selectedFloorId}
+                onSelectFloor={handleSelectFloor}
+              >
+                {(floorId) => {
+                  const floorRooms = getRoomsForFloor(floorId)
+                  const floorShowScenes = showScenes === 'on' ||
+                    (showScenes === 'auto' && floorRooms.length < AUTO_SCENES_ROOM_THRESHOLD &&
+                     floorRooms.some(room => room.devices.some(d => d.entity_id.startsWith('scene.'))))
+
+                  return (
+                    <div className="px-4">
+                      <RoomsGrid
+                        selectedFloorId={floorId}
+                        displayRooms={floorRooms}
+                        orderedRooms={[]}
+                        allRooms={rooms}
+                        expandedRoomId={expandedRoomId}
+                        isConnected={isConnected}
+                        isRoomEditMode={false}
+                        shouldShowScenes={floorShowScenes}
+                        onReorder={() => {}}
+                        onToggleExpand={handleToggleExpand}
+                        onClickOutside={handleExitEditMode}
+                        onEnterEditModeWithSelection={handleEnterEditModeWithSelection}
+                      />
+                    </div>
+                  )
+                }}
+              </FloorSwipeContainer>
+            </div>
+          )}
         </section>
       </div>
 
@@ -243,7 +324,7 @@ function DashboardContent() {
         onEnterEditMode={handleEnterEditMode}
         floors={floors}
         selectedFloorId={selectedFloorId}
-        onSelectFloor={setSelectedFloorId}
+        onSelectFloor={handleSelectFloor}
         hasUnassignedRooms={hasUnassignedRooms}
         isEditMode={isRoomEditMode}
         onViewUncategorized={handleViewUncategorized}

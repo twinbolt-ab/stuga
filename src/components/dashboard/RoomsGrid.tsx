@@ -18,6 +18,8 @@ interface RoomsGridProps {
   onToggleExpand: (roomId: string) => void
   onClickOutside?: () => void
   onEnterEditModeWithSelection?: (roomId: string) => void
+  /** Callback for edge hover during drag (for cross-floor navigation) */
+  onEdgeHover?: ((edge: 'left' | 'right' | null) => void) | null
 }
 
 export function RoomsGrid({
@@ -33,6 +35,7 @@ export function RoomsGrid({
   onToggleExpand,
   onClickOutside,
   onEnterEditModeWithSelection,
+  onEdgeHover,
 }: RoomsGridProps) {
   // Uncategorized view
   if (selectedFloorId === '__uncategorized__') {
@@ -61,6 +64,7 @@ export function RoomsGrid({
         items={orderedRooms}
         onReorder={onReorder}
         onClickOutside={onClickOutside}
+        onEdgeHover={onEdgeHover}
         getKey={(room) => room.id}
         columns={2}
         gap={12}

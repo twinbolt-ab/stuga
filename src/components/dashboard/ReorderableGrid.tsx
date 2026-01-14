@@ -4,12 +4,15 @@ import { clsx } from 'clsx'
 
 const LONG_PRESS_DURATION = 400
 const MOVE_THRESHOLD = 10
+const EDGE_THRESHOLD = 60 // Distance from screen edge to trigger floor navigation
 
 interface ReorderableGridProps<T> {
   items: T[]
   renderItem: (item: T, index: number, isDragging: boolean, isActive: boolean) => React.ReactNode
   onReorder: (items: T[]) => void
   onClickOutside?: () => void
+  /** Callback when dragging near screen edge (for cross-floor navigation) */
+  onEdgeHover?: ((edge: 'left' | 'right' | null) => void) | null
   getKey: (item: T) => string
   columns?: number
   gap?: number
@@ -21,6 +24,7 @@ export function ReorderableGrid<T>({
   renderItem,
   onReorder,
   onClickOutside,
+  onEdgeHover,
   getKey,
   columns = 2,
   gap = 12,
@@ -163,6 +167,9 @@ export function ReorderableGrid<T>({
     return false
   }, [pendingDragIndex, draggedIndex, handlePointerCancel])
 
+  // Track current edge hover state
+  const lastEdgeRef = useRef<'left' | 'right' | null>(null)
+
   // Handle drag move
   const handleDragMove = useCallback((clientX: number, clientY: number) => {
     if (draggedIndex === null) return
@@ -171,6 +178,22 @@ export function ReorderableGrid<T>({
       x: clientX - dragStartPos.x,
       y: clientY - dragStartPos.y,
     })
+
+    // Edge detection for cross-floor navigation
+    if (onEdgeHover) {
+      let currentEdge: 'left' | 'right' | null = null
+      if (clientX < EDGE_THRESHOLD) {
+        currentEdge = 'left'
+      } else if (clientX > window.innerWidth - EDGE_THRESHOLD) {
+        currentEdge = 'right'
+      }
+
+      // Only call callback when edge state changes
+      if (currentEdge !== lastEdgeRef.current) {
+        lastEdgeRef.current = currentEdge
+        onEdgeHover(currentEdge)
+      }
+    }
 
     const newTargetIndex = getIndexFromPointer(clientX, clientY)
 
@@ -190,7 +213,7 @@ export function ReorderableGrid<T>({
         y: prev.y + (newPos.y - oldPos.y),
       }))
     }
-  }, [draggedIndex, dragStartPos, getIndexFromPointer, orderedItems, getPositionFromIndex])
+  }, [draggedIndex, dragStartPos, getIndexFromPointer, orderedItems, getPositionFromIndex, onEdgeHover])
 
   // Handle drag end
   const handleDragEnd = useCallback(() => {
@@ -200,7 +223,12 @@ export function ReorderableGrid<T>({
     }
     setDraggedIndex(null)
     setDragOffset({ x: 0, y: 0 })
-  }, [draggedIndex, orderedItems, onReorder, clearLongPressTimer])
+    // Clear edge hover state
+    if (onEdgeHover && lastEdgeRef.current !== null) {
+      lastEdgeRef.current = null
+      onEdgeHover(null)
+    }
+  }, [draggedIndex, orderedItems, onReorder, clearLongPressTimer, onEdgeHover])
 
   // Touch handlers
   const handleTouchStart = useCallback((index: number) => (e: React.TouchEvent) => {
