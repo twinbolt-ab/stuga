@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect, useMemo } from 'react'
+import { useRef, useCallback, useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { clsx } from 'clsx'
 import { Lightbulb, LightbulbOff, Thermometer, ChevronDown, Home, Check } from 'lucide-react'
@@ -53,6 +53,21 @@ export function RoomCard({
   // Check if this room should be blurred (another room is being edited)
   const isOtherRoomInDeviceEdit = isDeviceEditMode && mode.type === 'edit-devices' && mode.roomId !== room.id
   const shouldBlur = isOtherRoomInDeviceEdit
+
+  // Delayed width state for sequenced animation
+  // On expand: width changes immediately
+  // On collapse: width changes after height animation (0.2s delay)
+  const [isWidthExpanded, setIsWidthExpanded] = useState(isExpanded)
+  useEffect(() => {
+    if (isExpanded) {
+      // Expand: change width immediately
+      setIsWidthExpanded(true)
+    } else {
+      // Collapse: delay width change until after height animation
+      const timer = setTimeout(() => setIsWidthExpanded(false), 200)
+      return () => clearTimeout(timer)
+    }
+  }, [isExpanded])
 
   // Room data
   const lights = room.devices.filter((d) => d.entity_id.startsWith('light.'))
@@ -207,8 +222,7 @@ export function RoomCard({
 
   const cardClassName = clsx(
     'card w-full text-left relative overflow-hidden',
-    !isInEditMode && 'transition-all duration-200',
-    isExpanded ? 'p-4 col-span-2' : 'px-4 py-1.5',
+    isWidthExpanded ? 'col-span-2' : '',
     isThisRoomSelected && 'ring-2 ring-accent',
     shouldBlur && 'opacity-40 blur-[1px]'
   )
@@ -334,16 +348,20 @@ export function RoomCard({
                 <Thermometer className="w-3.5 h-3.5" />
                 <span>{room.temperature.toFixed(1)}°</span>
               </span>
-            ) : room.totalLights > 0 && (
+            ) : hasControllableDevices && (
               <span className="flex items-center gap-1">
-                {displayLightsOn ? (
+                {hasDevicesOn ? (
                   <Lightbulb className="w-3.5 h-3.5 text-accent" />
                 ) : (
                   <LightbulbOff className="w-3.5 h-3.5 text-muted" />
                 )}
                 <span>
-                  {displayLightsOn
-                    ? interpolate(t.devices.lightsOn, { count: lightsOnState.isOptimistic ? room.totalLights : room.lightsOn })
+                  {hasDevicesOn
+                    ? interpolate(t.devices.lightsOn, {
+                        count: lightsOnState.isOptimistic
+                          ? lights.length + switches.length
+                          : room.lightsOn + switches.filter(s => s.state === 'on').length
+                      })
                     : t.devices.lightsOff}
                 </span>
               </span>
@@ -368,10 +386,10 @@ export function RoomCard({
           )}
         </div>
 
-        {/* Expanded content */}
-        <AnimatePresence>
-          {isExpanded && !isInEditMode && <RoomExpanded room={room} allRooms={allRooms} />}
-        </AnimatePresence>
+        {/* Expanded content - always rendered for height measurement */}
+        {!isInEditMode && (
+          <RoomExpanded room={room} allRooms={allRooms} isExpanded={isExpanded} />
+        )}
       </div>
     </>
   )
@@ -382,6 +400,7 @@ export function RoomCard({
       <div
         onClick={handleToggleSelection}
         className={cardClassName}
+        style={{ padding: '6px 16px' }}
       >
         {cardContent}
       </div>
@@ -394,7 +413,13 @@ export function RoomCard({
       ref={cardRef}
       layout="position"
       initial={false}
-      transition={{ layout: { duration: 0.12, ease: [0.25, 0.1, 0.25, 1] } }}
+      animate={{
+        padding: isWidthExpanded ? '16px' : '6px 16px',
+      }}
+      transition={{
+        layout: { duration: 0.12, ease: [0.25, 0.1, 0.25, 1] },
+        padding: { duration: 0.12, ease: [0.25, 0.1, 0.25, 1] },
+      }}
       className={clsx(cardClassName, hasControllableDevices && !isExpanded && 'cursor-pointer')}
       onClick={handleCardClick}
       onPointerDown={handlePointerDown}
