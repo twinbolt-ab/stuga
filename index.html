@@ -22,14 +22,14 @@
     <script>
       (function() {
         const theme = localStorage.getItem('theme');
-        const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        if (theme === 'dark' || (!theme && systemDark)) {
+        // Default to dark mode unless user explicitly chose light
+        if (theme !== 'light') {
           document.documentElement.classList.add('dark');
         }
       })();
     </script>
   </head>
-  <body class="min-h-screen">
+  <body class="min-h-screen" style="background-color: #0D0D0C;">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

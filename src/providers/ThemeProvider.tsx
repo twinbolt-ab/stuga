@@ -12,13 +12,13 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
 function getSystemTheme(): ResolvedTheme {
-  if (typeof window === 'undefined') return 'light'
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  // Always default to dark mode
+  return 'dark'
 }
 
 function getStoredTheme(): Theme {
-  if (typeof window === 'undefined') return 'system'
-  return (localStorage.getItem('theme') as Theme) || 'system'
+  if (typeof window === 'undefined') return 'dark'
+  return (localStorage.getItem('theme') as Theme) || 'dark'
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {

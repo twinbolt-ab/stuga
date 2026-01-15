@@ -90,9 +90,18 @@
   }
 }
 
-/* Smooth scrolling */
-html {
+/* Smooth scrolling and full-page background */
+html, body, #root {
   scroll-behavior: smooth;
+  /* Hardcode dark background to avoid flash/gaps before CSS variables resolve */
+  background-color: #0D0D0C;
+  /* Fill entire viewport including safe areas */
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+html:not(.dark), html:not(.dark) body, html:not(.dark) #root {
+  background-color: #FAFAF9;
 }
 
 /* Hide scrollbar but keep functionality */
