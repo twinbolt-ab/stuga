@@ -148,6 +148,38 @@ export const ALL_CONFIGURABLE_DOMAINS: ConfigurableDomain[] = [
   'climate',
   'cover',
   'fan',
-  // 'vacuum',      // TODO: Not yet implemented
-  // 'media_player', // TODO: Not yet implemented
 ]
+
+// Type guards for runtime validation
+export function isHALabel(value: unknown): value is HALabel {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'label_id' in value &&
+    'name' in value &&
+    typeof (value as HALabel).label_id === 'string' &&
+    typeof (value as HALabel).name === 'string'
+  )
+}
+
+export function isHAFloor(value: unknown): value is HAFloor {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'floor_id' in value &&
+    'name' in value &&
+    typeof (value as HAFloor).floor_id === 'string' &&
+    typeof (value as HAFloor).name === 'string'
+  )
+}
+
+export function isAreaRegistryEntry(value: unknown): value is AreaRegistryEntry {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'area_id' in value &&
+    'name' in value &&
+    typeof (value as AreaRegistryEntry).area_id === 'string' &&
+    typeof (value as AreaRegistryEntry).name === 'string'
+  )
+}

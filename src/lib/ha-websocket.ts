@@ -1,4 +1,5 @@
 import type { HAEntity, WebSocketMessage, HALabel, HAFloor, AreaRegistryEntry, EntityRegistryEntry } from '@/types/ha'
+import { isHALabel, isHAFloor, isAreaRegistryEntry } from '@/types/ha'
 import { ROOM_ORDER_LABEL_PREFIX, DEVICE_ORDER_LABEL_PREFIX, TEMPERATURE_SENSOR_LABEL_PREFIX, DEFAULT_ORDER } from './constants'
 import { getValidAccessToken, isUsingOAuth } from './ha-oauth'
 import { logger } from './logger'
@@ -106,13 +107,15 @@ class HAWebSocket {
       case 'result':
         // Handle pending callbacks first
         if (message.id && this.pendingCallbacks.has(message.id)) {
-          const pending = this.pendingCallbacks.get(message.id)!
-          clearTimeout(pending.timeout)
-          this.pendingCallbacks.delete(message.id)
-          if (!message.success && message.error) {
-            logger.error('HA WS', 'Command failed:', message.error.code, message.error.message)
+          const pending = this.pendingCallbacks.get(message.id)
+          if (pending) {
+            clearTimeout(pending.timeout)
+            this.pendingCallbacks.delete(message.id)
+            if (!message.success && message.error) {
+              logger.error('HA WS', 'Command failed:', message.error.code, message.error.message)
+            }
+            pending.callback(message.success ?? false, message.result, message.error)
           }
-          pending.callback(message.success ?? false, message.result, message.error)
         }
 
         if (message.success) {
@@ -602,10 +605,9 @@ class HAWebSocket {
       sensorLabelId = await new Promise<string>((resolve, reject) => {
         const msgId = this.messageId++
         this.registerCallback(msgId, (success, result) => {
-          if (success && result && typeof result === 'object' && 'label_id' in result) {
-            const newLabel = result as HALabel
-            this.labels.set(newLabel.label_id, newLabel)
-            resolve(newLabel.label_id)
+          if (success && isHALabel(result)) {
+            this.labels.set(result.label_id, result)
+            resolve(result.label_id)
           } else {
             reject(new Error('Failed to create label'))
           }
@@ -686,10 +688,9 @@ class HAWebSocket {
     return new Promise((resolve, reject) => {
       const msgId = this.messageId++
       this.registerCallback(msgId, (success, result) => {
-        if (success && result && typeof result === 'object' && 'label_id' in result) {
-          const newLabel = result as HALabel
-          this.labels.set(newLabel.label_id, newLabel)
-          resolve(newLabel.label_id)
+        if (success && isHALabel(result)) {
+          this.labels.set(result.label_id, result)
+          resolve(result.label_id)
         } else {
           reject(new Error('Failed to create label'))
         }
@@ -861,13 +862,12 @@ class HAWebSocket {
     return new Promise((resolve, reject) => {
       const msgId = this.messageId++
       this.registerCallback(msgId, (success, result) => {
-        if (success && result && typeof result === 'object' && 'area_id' in result) {
-          const newArea = result as AreaRegistryEntry
+        if (success && isAreaRegistryEntry(result)) {
           // Add to local registries
-          this.areaRegistry.set(newArea.area_id, newArea)
-          this.areas.set(newArea.area_id, newArea.name)
+          this.areaRegistry.set(result.area_id, result)
+          this.areas.set(result.area_id, result.name)
           this.notifyRegistryHandlers()
-          resolve(newArea.area_id)
+          resolve(result.area_id)
         } else {
           reject(new Error('Failed to create area'))
         }
@@ -889,12 +889,11 @@ class HAWebSocket {
     return new Promise((resolve, reject) => {
       const msgId = this.messageId++
       this.registerCallback(msgId, (success, result) => {
-        if (success && result && typeof result === 'object' && 'floor_id' in result) {
-          const newFloor = result as HAFloor
+        if (success && isHAFloor(result)) {
           // Add to local registry
-          this.floors.set(newFloor.floor_id, newFloor)
+          this.floors.set(result.floor_id, result)
           this.notifyRegistryHandlers()
-          resolve(newFloor.floor_id)
+          resolve(result.floor_id)
         } else {
           reject(new Error('Failed to create floor'))
         }

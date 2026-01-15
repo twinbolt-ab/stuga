@@ -3,7 +3,6 @@ import { motion, AnimatePresence, useMotionValue, PanInfo } from 'framer-motion'
 import { X, Check, Loader2, AlertCircle, Eye, EyeOff, LogOut, LogIn, Key, Server } from 'lucide-react'
 import { t } from '@/lib/i18n'
 import {
-  getStoredCredentialsSync,
   updateUrl,
   updateToken,
   clearCredentials,
@@ -11,6 +10,8 @@ import {
   type AuthMethod
 } from '@/lib/config'
 import { getOAuthCredentials, storePendingOAuth, isNativeApp, getClientId, getRedirectUri, storeOAuthCredentials } from '@/lib/ha-oauth'
+import { getStorage } from '@/lib/storage'
+import { STORAGE_KEYS } from '@/lib/constants'
 import { useHAConnection } from '@/lib/hooks/useHAConnection'
 import { OAuth2Client } from '@byteowls/capacitor-oauth2'
 import { logger } from '@/lib/logger'
@@ -23,6 +24,7 @@ interface ConnectionSettingsModalProps {
 export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsModalProps) {
   const { reconnect } = useHAConnection()
   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null)
+  const [isLoadingCredentials, setIsLoadingCredentials] = useState(true)
   const [url, setUrl] = useState('')
   const [token, setToken] = useState('')
   const [showToken, setShowToken] = useState(false)
@@ -39,9 +41,8 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
     if (sheetRef.current && 'pointerId' in event) {
       try {
         sheetRef.current.releasePointerCapture((event as PointerEvent).pointerId)
-      } catch (e) {
+      } catch {
         // Expected when pointer capture wasn't held - not an error
-        console.debug('[ConnectionSettings] Pointer capture release skipped:', e)
       }
     }
 
@@ -72,22 +73,44 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
   // Load current credentials and detect auth method when modal opens
   useEffect(() => {
     if (isOpen) {
+      setIsLoadingCredentials(true)
       const loadCredentials = async () => {
-        const method = await getAuthMethod()
-        setAuthMethod(method)
+        try {
+          const method = await getAuthMethod()
+          logger.debug('ConnectionSettings', 'Detected auth method:', method)
+          setAuthMethod(method)
 
-        if (method === 'oauth') {
+          let loadedUrl = ''
+          let loadedToken = ''
+
+          // Try OAuth credentials first (works on native with secure storage)
           const oauthCreds = await getOAuthCredentials()
           if (oauthCreds) {
-            setUrl(oauthCreds.ha_url)
+            logger.debug('ConnectionSettings', 'Found OAuth credentials, URL:', oauthCreds.ha_url)
+            loadedUrl = oauthCreds.ha_url
           }
-        } else {
-          const credentials = getStoredCredentialsSync()
-          if (credentials) {
-            setUrl(credentials.url)
-            setToken(credentials.token)
+
+          // Try async storage (Capacitor Preferences on native, localStorage on web)
+          const storage = getStorage()
+          const storedUrl = await storage.getItem(STORAGE_KEYS.HA_URL)
+          const storedToken = await storage.getItem(STORAGE_KEYS.HA_TOKEN)
+
+          if (storedUrl) {
+            logger.debug('ConnectionSettings', 'Found URL in storage:', storedUrl)
+            if (!loadedUrl) loadedUrl = storedUrl
           }
+          if (storedToken) {
+            logger.debug('ConnectionSettings', 'Found token in storage')
+            loadedToken = storedToken
+          }
+
+          setUrl(loadedUrl)
+          setToken(loadedToken)
+          logger.debug('ConnectionSettings', 'Final state - URL:', loadedUrl, 'Has token:', !!loadedToken)
+        } catch (err) {
+          logger.error('ConnectionSettings', 'Failed to load credentials:', err)
         }
+        setIsLoadingCredentials(false)
       }
       loadCredentials()
       setError(null)
@@ -426,6 +449,12 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
 
             {/* Content */}
             <div className="px-4 pb-safe space-y-4">
+              {isLoadingCredentials ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-muted" />
+                </div>
+              ) : (
+                <>
               {/* Auth Method Badge */}
               <div className="flex items-center gap-3 p-3 bg-background rounded-xl border border-border">
                 <div className="w-10 h-10 rounded-lg bg-card border border-border flex items-center justify-center flex-shrink-0">
@@ -592,6 +621,8 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
               )}
 
               <div className="h-4" />
+                </>
+              )}
             </div>
           </motion.div>
         </>

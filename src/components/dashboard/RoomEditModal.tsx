@@ -62,7 +62,8 @@ export function RoomEditModal({ room, allRooms = [], floors, onClose }: RoomEdit
       const currentSensor = haWebSocket.getAreaTemperatureSensor(roomId)
       setTemperatureSensor(currentSensor || '')
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Only re-run when roomId changes, not when room object reference changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId])
 
   const floorOptions = [

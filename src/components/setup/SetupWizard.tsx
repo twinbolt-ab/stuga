@@ -36,7 +36,7 @@ export function SetupWizard() {
   const navigate = useNavigate()
   const [step, setStep] = useState<Step>('welcome')
   const [url, setUrl] = useState('')
-  const [token, setToken] = useState(import.meta.env.VITE_DEV_HA_TOKEN || '')
+  const [token, setToken] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [suggestions, setSuggestions] = useState<UrlSuggestion[]>([])
@@ -217,7 +217,7 @@ export function SetupWizard() {
           })
 
           // Store the tokens
-          logger.debug('OAuth', 'HTTPS response:', JSON.stringify(response, null, 2))
+          logger.debug('OAuth', 'HTTPS response received, has access_token:', !!response.access_token)
           if (response.access_token) {
             logger.debug('OAuth', 'Storing credentials for URL:', url)
             await storeOAuthCredentials(url, {
@@ -294,7 +294,7 @@ export function SetupWizard() {
 
           const tokens = await tokenResponse.json()
 
-          logger.debug('OAuth', 'HTTP tokens received:', JSON.stringify(tokens, null, 2))
+          logger.debug('OAuth', 'HTTP tokens received, expires_in:', tokens.expires_in)
           logger.debug('OAuth', 'Storing credentials for URL:', url)
           await storeOAuthCredentials(url, {
             access_token: tokens.access_token,

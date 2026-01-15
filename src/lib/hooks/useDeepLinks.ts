@@ -14,7 +14,7 @@ export function useDeepLinks() {
 
   useEffect(() => {
     // Only set up listener on native platforms
-    const isNative = (window as any).Capacitor?.isNativePlatform?.()
+    const isNative = window.Capacitor?.isNativePlatform?.()
     if (!isNative) return
 
     const handleDeepLink = (event: URLOpenListenerEvent) => {

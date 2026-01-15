@@ -9,7 +9,7 @@ let secureAdapter: StorageAdapter | null = null
 
 export async function initStorage(): Promise<void> {
   // Check if running in Capacitor native app
-  if (typeof window !== 'undefined' && (window as any).Capacitor?.isNativePlatform()) {
+  if (typeof window !== 'undefined' && window.Capacitor?.isNativePlatform()) {
     const { NativeStorage } = await import('./native')
     const { SecureStorage } = await import('./secure')
     adapter = new NativeStorage()
