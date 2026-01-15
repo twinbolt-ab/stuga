@@ -6,8 +6,11 @@ import { RoomsGrid } from './RoomsGrid'
 import { FloorSwipeContainer } from './FloorSwipeContainer'
 import { RoomEditModal } from './RoomEditModal'
 import { DeviceEditModal } from './DeviceEditModal'
+import { FloorEditModal } from './FloorEditModal'
 import { BulkEditRoomsModal, BulkEditDevicesModal } from './BulkEditModal'
+import { StructureHint } from './StructureHint'
 import { EditModeProvider, useEditMode } from '@/lib/contexts/EditModeContext'
+import { useHAConnection } from '@/lib/hooks/useHAConnection'
 import { useRooms } from '@/lib/hooks/useRooms'
 import { useRoomOrder } from '@/lib/hooks/useRoomOrder'
 import { useEnabledDomains } from '@/lib/hooks/useEnabledDomains'
@@ -15,8 +18,10 @@ import { useSettings } from '@/lib/hooks/useSettings'
 import { useDevMode } from '@/lib/hooks/useDevMode'
 import { useFloorNavigation } from '@/lib/hooks/useFloorNavigation'
 import { useModalState } from '@/lib/hooks/useModalState'
+import { setFloorOrder } from '@/lib/ha-websocket'
 import { ORDER_GAP } from '@/lib/constants'
-import type { RoomWithDevices, HAEntity } from '@/types/ha'
+import { logger } from '@/lib/logger'
+import type { RoomWithDevices, HAEntity, HAFloor } from '@/types/ha'
 
 // Auto threshold for showing scenes
 const AUTO_SCENES_ROOM_THRESHOLD = 16
@@ -24,6 +29,7 @@ const AUTO_SCENES_ROOM_THRESHOLD = 16
 // Inner component that uses the context
 function DashboardContent() {
   const { rooms, floors, isConnected, hasReceivedData } = useRooms()
+  const { entities } = useHAConnection()
   const { isEntityVisible } = useEnabledDomains()
   const { showScenes } = useSettings()
   const { setAreaOrder } = useRoomOrder()
@@ -34,18 +40,24 @@ function DashboardContent() {
     isEditMode,
     isRoomEditMode,
     isDeviceEditMode,
-    isUncategorizedEditMode,
+    isAllDevicesEditMode,
+    isFloorEditMode,
     selectedCount,
     selectedIds,
     orderedRooms: rawOrderedRooms,
+    orderedFloors,
+    selectedFloorId: editModeSelectedFloorId,
     enterRoomEdit,
     enterDeviceEdit,
-    enterUncategorizedEdit,
+    enterAllDevicesEdit,
     exitEditMode,
     clearSelection,
     toggleSelection,
     reorderRooms,
   } = useEditMode()
+
+  // State for floor edit modal from floor edit mode
+  const [editingFloorFromHeader, setEditingFloorFromHeader] = useState<HAFloor | null>(null)
 
   // Expanded room state (kept separate as it's used for toggling)
   const [expandedRoomId, setExpandedRoomId] = useState<string | null>(null)
@@ -58,7 +70,7 @@ function DashboardContent() {
     hasUnassignedRooms,
     getRoomsForFloor,
     handleSelectFloor,
-    handleViewUncategorized,
+    handleViewAllDevices,
   } = useFloorNavigation({
     rooms,
     floors,
@@ -123,26 +135,41 @@ function DashboardContent() {
   }, [isRoomEditMode])
 
   const handleEnterEditMode = useCallback(() => {
-    if (selectedFloorId === '__uncategorized__') {
-      enterUncategorizedEdit()
+    if (selectedFloorId === '__all_devices__') {
+      enterAllDevicesEdit()
     } else if (expandedRoomId) {
       enterDeviceEdit(expandedRoomId)
     } else {
       enterRoomEdit(filteredRooms)
     }
-  }, [selectedFloorId, expandedRoomId, filteredRooms, enterRoomEdit, enterDeviceEdit, enterUncategorizedEdit])
+  }, [selectedFloorId, expandedRoomId, filteredRooms, enterRoomEdit, enterDeviceEdit, enterAllDevicesEdit])
 
-  // Save room order to HA before exiting edit mode - replaces useEffect
-  const handleExitEditMode = useCallback(() => {
+  // Save room/floor order to HA before exiting edit mode
+  const handleExitEditMode = useCallback(async () => {
     if (isRoomEditMode && orderedRooms.length > 0) {
       const updates = orderedRooms
         .map((room, idx) => ({ areaId: room.areaId, order: (idx + 1) * ORDER_GAP }))
         .filter(item => item.areaId)
 
-      Promise.all(updates.map(({ areaId, order }) => setAreaOrder(areaId!, order)))
+      await Promise.all(updates.map(({ areaId, order }) => setAreaOrder(areaId!, order)))
     }
+
+    if (isFloorEditMode && orderedFloors.length > 0) {
+      for (let i = 0; i < orderedFloors.length; i++) {
+        const floor = orderedFloors[i]
+        const originalIndex = floors.findIndex(f => f.floor_id === floor.floor_id)
+        if (originalIndex !== i) {
+          try {
+            await setFloorOrder(floor.floor_id, i * ORDER_GAP)
+          } catch (error) {
+            logger.error('Dashboard', 'Failed to save floor order:', error)
+          }
+        }
+      }
+    }
+
     exitEditMode()
-  }, [isRoomEditMode, orderedRooms, exitEditMode, setAreaOrder])
+  }, [isRoomEditMode, isFloorEditMode, orderedRooms, orderedFloors, floors, exitEditMode, setAreaOrder])
 
   // Callback for RoomCard long-press to enter edit mode with room selected
   const handleEnterEditModeWithSelection = useCallback((roomId: string) => {
@@ -156,7 +183,8 @@ function DashboardContent() {
     const isInsideCard = target.closest('.card')
 
     if (!isInsideCard) {
-      if (isEditMode) {
+      // Don't exit floor edit mode from background click - it's handled in Header
+      if (isEditMode && !isFloorEditMode) {
         handleExitEditMode()
         return
       }
@@ -164,7 +192,7 @@ function DashboardContent() {
         setExpandedRoomId(null)
       }
     }
-  }, [expandedRoomId, isEditMode, handleExitEditMode])
+  }, [expandedRoomId, isEditMode, isFloorEditMode, handleExitEditMode])
 
   // Get selected rooms for bulk edit modal
   const selectedRoomsForEdit = useMemo(() => {
@@ -174,21 +202,34 @@ function DashboardContent() {
 
   // Get selected devices for bulk edit modal
   const selectedDevicesForEdit = useMemo(() => {
-    if (isUncategorizedEditMode) {
-      return Array.from(selectedIds).map(id => ({ entity_id: id } as HAEntity))
+    if (isAllDevicesEditMode) {
+      // Find actual entity objects - first try rooms, then fall back to entities map
+      const allDevices = rooms.flatMap(r => r.devices)
+      return Array.from(selectedIds)
+        .map(id => allDevices.find(d => d.entity_id === id) || entities.get(id))
+        .filter((d): d is HAEntity => d !== undefined)
     }
     if (!isDeviceEditMode || !expandedRoomId) return []
     const expandedRoom = rooms.find(r => r.id === expandedRoomId)
     if (!expandedRoom) return []
     return expandedRoom.devices.filter(d => selectedIds.has(d.entity_id))
-  }, [isDeviceEditMode, isUncategorizedEditMode, expandedRoomId, rooms, selectedIds])
+  }, [isDeviceEditMode, isAllDevicesEditMode, expandedRoomId, rooms, entities, selectedIds])
 
   // Handle edit button click
   const handleEditButtonClick = useCallback(() => {
-    const isDeviceOrUncategorized = isDeviceEditMode || isUncategorizedEditMode
+    // Floor edit mode - open the selected floor's edit modal
+    if (isFloorEditMode && editModeSelectedFloorId) {
+      const floor = floors.find(f => f.floor_id === editModeSelectedFloorId)
+      if (floor) {
+        setEditingFloorFromHeader(floor)
+      }
+      return
+    }
+
+    const isDeviceOrAllDevices = isDeviceEditMode || isAllDevicesEditMode
 
     if (selectedCount === 1) {
-      if (isDeviceOrUncategorized) {
+      if (isDeviceOrAllDevices) {
         const selectedDevice = selectedDevicesForEdit[0]
         if (selectedDevice) {
           openDeviceEdit(selectedDevice)
@@ -200,13 +241,13 @@ function DashboardContent() {
         }
       }
     } else {
-      if (isDeviceOrUncategorized) {
+      if (isDeviceOrAllDevices) {
         openBulkDevices()
       } else {
         openBulkRooms()
       }
     }
-  }, [selectedCount, isDeviceEditMode, isUncategorizedEditMode, selectedDevicesForEdit, selectedRoomsForEdit, openDeviceEdit, openRoomEdit, openBulkDevices, openBulkRooms])
+  }, [selectedCount, isDeviceEditMode, isAllDevicesEditMode, isFloorEditMode, editModeSelectedFloorId, floors, selectedDevicesForEdit, selectedRoomsForEdit, openDeviceEdit, openRoomEdit, openBulkDevices, openBulkRooms])
 
   return (
     <div className="min-h-screen bg-background pt-safe pb-nav">
@@ -222,8 +263,8 @@ function DashboardContent() {
 
       <div onClick={handleBackgroundClick}>
         <section>
-          {selectedFloorId === '__uncategorized__' ? (
-            // Uncategorized devices view (not part of swipe navigation)
+          {selectedFloorId === '__all_devices__' ? (
+            // All devices view (not part of swipe navigation)
             <div className="px-4 py-4">
               <RoomsGrid
                 selectedFloorId={selectedFloorId}
@@ -296,16 +337,24 @@ function DashboardContent() {
             </div>
           )}
         </section>
+
+        {/* Hints for empty structure */}
+        {hasReceivedData && rooms.length === 0 && floors.length === 0 ? (
+          <StructureHint type="structure" show />
+        ) : hasReceivedData && rooms.length > 0 && floors.length === 0 ? (
+          <StructureHint type="floors" show />
+        ) : null}
       </div>
 
       <Header
         onEnterEditMode={handleEnterEditMode}
         floors={floors}
+        rooms={rooms}
         selectedFloorId={selectedFloorId}
         onSelectFloor={handleSelectFloor}
         hasUnassignedRooms={hasUnassignedRooms}
         isEditMode={isRoomEditMode}
-        onViewUncategorized={handleViewUncategorized}
+        onViewAllDevices={handleViewAllDevices}
       />
 
       <RoomEditModal
@@ -313,6 +362,7 @@ function DashboardContent() {
         allRooms={rooms}
         floors={floors}
         onClose={closeRoomEdit}
+        onFloorCreated={handleSelectFloor}
       />
 
       <DeviceEditModal
@@ -326,6 +376,7 @@ function DashboardContent() {
         floors={floors}
         onClose={closeBulkRooms}
         onComplete={clearSelection}
+        onFloorCreated={handleSelectFloor}
       />
 
       <BulkEditDevicesModal
@@ -333,6 +384,21 @@ function DashboardContent() {
         rooms={rooms}
         onClose={closeBulkDevices}
         onComplete={clearSelection}
+      />
+
+      <FloorEditModal
+        floor={editingFloorFromHeader}
+        floors={floors}
+        rooms={rooms}
+        onClose={() => setEditingFloorFromHeader(null)}
+        onDeleted={() => {
+          // Exit floor edit mode and navigate to first floor
+          exitEditMode()
+          const firstFloorId = floors[0]?.floor_id || null
+          if (firstFloorId !== selectedFloorId) {
+            handleSelectFloor(firstFloorId)
+          }
+        }}
       />
     </div>
   )

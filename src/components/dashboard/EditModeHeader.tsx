@@ -11,13 +11,40 @@ interface EditModeHeaderProps {
 export function EditModeHeader({ onEditClick, onDone }: EditModeHeaderProps) {
   const {
     isDeviceEditMode,
-    isUncategorizedEditMode,
+    isAllDevicesEditMode,
+    isFloorEditMode,
     selectedCount,
     clearSelection,
   } = useEditMode()
 
+  // Floor edit mode has its own simpler UI
+  if (isFloorEditMode) {
+    return (
+      <motion.div
+        initial={{ y: 60, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: 60, opacity: 0 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 400 }}
+        className="fixed left-4 right-4 z-20 floating-bar rounded-2xl shadow-lg glass"
+      >
+        <div className="flex items-center justify-between px-4 py-3">
+          <span className="text-sm text-muted">
+            {t.rooms.floorReorderHint}
+          </span>
+
+          <button
+            onClick={onDone}
+            className="px-3 py-1.5 rounded-full btn-glass text-foreground text-sm font-medium transition-colors"
+          >
+            {t.editMode.done}
+          </button>
+        </div>
+      </motion.div>
+    )
+  }
+
   const editButtonLabel = selectedCount === 1
-    ? (isDeviceEditMode || isUncategorizedEditMode)
+    ? (isDeviceEditMode || isAllDevicesEditMode)
       ? t.bulkEdit.editDevice
       : t.bulkEdit.editRoom
     : t.bulkEdit.editSelected

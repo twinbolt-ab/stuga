@@ -82,13 +82,23 @@
     "loading": "Loading rooms...",
     "connectingToHA": "Connecting to Home Assistant...",
     "reorderHint": "Drag to reorder, tap to edit",
+    "floorReorderHint": "Tap a floor to edit, drag to reorder",
     "noDevices": "No controllable devices in this room",
     "noRoomsOnFloor": "No rooms on this floor",
+    "emptyFloor": "This floor is empty. Long-press a room to move it here, or browse All Devices.",
     "brightness": "Brightness"
+  },
+  "hints": {
+    "structureEmpty": "Organize your home by long-pressing any device to assign it to a room.",
+    "noFloors": "Group your rooms by floor. Long-press a room to assign it."
   },
   "settings": {
     "title": "Settings",
     "close": "Close",
+    "display": {
+      "title": "Display",
+      "description": "Theme, visible devices & scenes"
+    },
     "theme": {
       "title": "Theme",
       "dark": "Dark mode",
@@ -170,11 +180,17 @@
     "other": "Other",
     "none": "None"
   },
-  "uncategorized": {
-    "title": "Uncategorized Items",
-    "menuTitle": "Uncategorized items",
-    "menuDescription": "View entities without a room",
-    "empty": "All entities are assigned to rooms"
+  "allDevices": {
+    "title": "All Devices",
+    "menuTitle": "All devices",
+    "menuDescription": "Browse and search all devices",
+    "empty": "No devices found",
+    "noResults": "No devices match your search",
+    "searchPlaceholder": "Search devices...",
+    "hiddenBadge": "Hidden",
+    "noRoomBadge": "No room",
+    "filterHidden": "Hidden",
+    "filterNoRoom": "No room"
   },
   "devices": {
     "lightsOn": "{count} on",
@@ -257,6 +273,16 @@
       "uncategorized": "Leave uncategorized",
       "deleting": "Deleting...",
       "willMove": "{count} devices will be moved to {destination}"
+    },
+    "floor": {
+      "button": "Delete Floor",
+      "title": "Delete Floor",
+      "confirm": "Are you sure you want to delete \"{name}\"?",
+      "hasRooms": "This floor has {count} rooms. Where should they be moved?",
+      "moveToFloor": "Move to floor",
+      "unassigned": "Unassigned",
+      "willMove": "{count} rooms will be moved to {destination}",
+      "deleting": "Deleting..."
     },
     "scene": {
       "button": "Delete Scene",

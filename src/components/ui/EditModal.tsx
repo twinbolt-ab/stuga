@@ -11,9 +11,11 @@ interface EditModalProps {
   onClose: () => void
   title: string
   children: ReactNode
+  /** When true, modal auto-sizes to content instead of using fixed height */
+  compact?: boolean
 }
 
-export function EditModal({ isOpen, onClose, title, children }: EditModalProps) {
+export function EditModal({ isOpen, onClose, title, children, compact = false }: EditModalProps) {
   const [mounted, setMounted] = useState(false)
   const y = useMotionValue(0)
   const backdropOpacity = useTransform(y, [0, 300], [1, 0.3])
@@ -102,7 +104,9 @@ export function EditModal({ isOpen, onClose, title, children }: EditModalProps) 
             dragElastic={{ top: 0.1, bottom: 0.5 }}
             onDragEnd={handleDragEnd}
             style={{ y }}
-            className="fixed bottom-0 left-0 right-0 z-[100] bg-card rounded-t-2xl shadow-warm-lg h-[90vh] flex flex-col touch-none"
+            className={`fixed bottom-0 left-0 right-0 z-[100] bg-card rounded-t-2xl shadow-warm-lg flex flex-col touch-none ${
+              compact ? 'max-h-[90vh]' : 'h-[90vh]'
+            }`}
           >
             {/* Handle bar */}
             <div className="flex justify-center pt-3 pb-2">
