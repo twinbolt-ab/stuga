@@ -1,13 +1,12 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { motion, AnimatePresence, useMotionValue, PanInfo } from 'framer-motion'
 import { useTheme } from '@/providers/ThemeProvider'
-import { Moon, Sun, Pencil, X, Wifi, Layers, Package, Eye, EyeOff, Sparkles, Beaker } from 'lucide-react'
+import { Moon, Sun, Pencil, X, Wifi, Layers, Sparkles, Beaker, ChevronDown, Palette } from 'lucide-react'
 import { t } from '@/lib/i18n'
 import { ConnectionSettingsModal } from '@/components/settings/ConnectionSettingsModal'
 import { DomainConfigModal } from '@/components/settings/DomainConfigModal'
 import { DeveloperMenuModal } from '@/components/settings/DeveloperMenuModal'
 import { EditModeInfoModal } from '@/components/settings/EditModeInfoModal'
-import { useEnabledDomains } from '@/lib/hooks/useEnabledDomains'
 import { useSettings, type ShowScenesOption } from '@/lib/hooks/useSettings'
 import { useDevMode } from '@/lib/hooks/useDevMode'
 import { isHAAddon } from '@/lib/config'
@@ -17,14 +16,14 @@ interface SettingsMenuProps {
   isOpen: boolean
   onClose: () => void
   onEnterEditMode: () => void
-  onViewUncategorized?: () => void
+  onViewAllDevices?: () => void
 }
 
 export function SettingsMenu({
   isOpen,
   onClose,
   onEnterEditMode,
-  onViewUncategorized,
+  onViewAllDevices,
 }: SettingsMenuProps) {
   const { resolvedTheme, setTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
@@ -32,7 +31,7 @@ export function SettingsMenu({
   const [showDomainConfig, setShowDomainConfig] = useState(false)
   const [showDeveloperMenu, setShowDeveloperMenu] = useState(false)
   const [showEditModeInfo, setShowEditModeInfo] = useState(false)
-  const { showHiddenItems, setShowHiddenItems } = useEnabledDomains()
+  const [displayOptionsOpen, setDisplayOptionsOpen] = useState(false)
   const { showScenes, setShowScenes } = useSettings()
   const { isDevMode, enableDevMode } = useDevMode()
   const y = useMotionValue(0)
@@ -131,9 +130,9 @@ export function SettingsMenu({
     onEnterEditMode()
   }
 
-  const handleViewUncategorized = () => {
+  const handleViewAllDevices = () => {
     onClose()
-    onViewUncategorized?.()
+    onViewAllDevices?.()
   }
 
   const handleThemeToggle = () => {
@@ -192,101 +191,114 @@ export function SettingsMenu({
 
             {/* Menu Items */}
             <div className="px-2 pb-safe">
-              {/* Theme Toggle */}
-              <button
-                onClick={handleThemeToggle}
-                className="w-full flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-border/30 transition-colors touch-feedback"
-              >
-                <div className="p-2.5 rounded-xl bg-border/50">
-                  {isDark ? (
-                    <Sun className="w-5 h-5 text-foreground" />
-                  ) : (
-                    <Moon className="w-5 h-5 text-foreground" />
-                  )}
-                </div>
-                <div className="flex-1 text-left">
-                  <p className="font-medium text-foreground">{t.settings.theme.title}</p>
-                  <p className="text-sm text-muted">
-                    {isDark ? t.settings.theme.dark : t.settings.theme.light}
-                  </p>
-                </div>
-              </button>
+              {/* Display Options - Collapsible Section */}
+              <div>
+                <button
+                  onClick={() => setDisplayOptionsOpen(!displayOptionsOpen)}
+                  className="w-full flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-border/30 transition-colors touch-feedback"
+                >
+                  <div className="p-2.5 rounded-xl bg-border/50">
+                    <Palette className="w-5 h-5 text-foreground" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="font-medium text-foreground">{t.settings.display.title}</p>
+                    <p className="text-sm text-muted">{t.settings.display.description}</p>
+                  </div>
+                  <motion.div
+                    animate={{ rotate: displayOptionsOpen ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <ChevronDown className="w-5 h-5 text-muted" />
+                  </motion.div>
+                </button>
 
-              {/* Device Types */}
+                <AnimatePresence initial={false}>
+                  {displayOptionsOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="pl-4 border-l-2 border-border/50 ml-7 space-y-1">
+                        {/* Theme Toggle */}
+                        <button
+                          onClick={handleThemeToggle}
+                          className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-border/30 transition-colors touch-feedback"
+                        >
+                          <div className="p-2 rounded-lg bg-border/50">
+                            {isDark ? (
+                              <Sun className="w-4 h-4 text-foreground" />
+                            ) : (
+                              <Moon className="w-4 h-4 text-foreground" />
+                            )}
+                          </div>
+                          <div className="flex-1 text-left">
+                            <p className="text-sm font-medium text-foreground">{t.settings.theme.title}</p>
+                            <p className="text-xs text-muted">
+                              {isDark ? t.settings.theme.dark : t.settings.theme.light}
+                            </p>
+                          </div>
+                        </button>
+
+                        {/* Device Types */}
+                        <button
+                          onClick={() => setShowDomainConfig(true)}
+                          className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-border/30 transition-colors touch-feedback"
+                        >
+                          <div className="p-2 rounded-lg bg-border/50">
+                            <Layers className="w-4 h-4 text-foreground" />
+                          </div>
+                          <div className="flex-1 text-left">
+                            <p className="text-sm font-medium text-foreground">{t.settings.domains.title}</p>
+                            <p className="text-xs text-muted">{t.settings.domains.description}</p>
+                          </div>
+                        </button>
+
+                        {/* Show Scenes */}
+                        <div className="w-full flex items-center gap-3 px-3 py-3 rounded-xl">
+                          <div className="p-2 rounded-lg bg-border/50">
+                            <Sparkles className="w-4 h-4 text-foreground" />
+                          </div>
+                          <div className="flex-1 text-left">
+                            <p className="text-sm font-medium text-foreground">{t.settings.showScenes.title}</p>
+                          </div>
+                          {/* 3-option segmented control */}
+                          <div className="flex bg-border/50 rounded-lg p-0.5">
+                            {showScenesOptions.map((option) => (
+                              <button
+                                key={option}
+                                onClick={() => setShowScenes(option)}
+                                className={clsx(
+                                  'px-2 py-0.5 text-xs font-medium rounded-md transition-colors',
+                                  showScenes === option
+                                    ? 'bg-accent text-white'
+                                    : 'text-muted hover:text-foreground'
+                                )}
+                              >
+                                {t.settings.showScenes[option]}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* All Devices */}
               <button
-                onClick={() => setShowDomainConfig(true)}
+                onClick={handleViewAllDevices}
                 className="w-full flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-border/30 transition-colors touch-feedback"
               >
                 <div className="p-2.5 rounded-xl bg-border/50">
                   <Layers className="w-5 h-5 text-foreground" />
                 </div>
                 <div className="flex-1 text-left">
-                  <p className="font-medium text-foreground">{t.settings.domains.title}</p>
-                  <p className="text-sm text-muted">{t.settings.domains.description}</p>
-                </div>
-              </button>
-
-              {/* Show Hidden Items */}
-              <button
-                onClick={() => setShowHiddenItems(!showHiddenItems)}
-                className="w-full flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-border/30 transition-colors touch-feedback"
-              >
-                <div className="p-2.5 rounded-xl bg-border/50">
-                  {showHiddenItems ? (
-                    <Eye className="w-5 h-5 text-foreground" />
-                  ) : (
-                    <EyeOff className="w-5 h-5 text-foreground" />
-                  )}
-                </div>
-                <div className="flex-1 text-left">
-                  <p className="font-medium text-foreground">{t.settings.showHidden.title}</p>
-                  <p className="text-sm text-muted">{t.settings.showHidden.description}</p>
-                </div>
-                {/* Toggle indicator */}
-                <div className={`w-10 h-6 rounded-full transition-colors ${showHiddenItems ? 'bg-accent' : 'bg-border'}`}>
-                  <div className={`w-5 h-5 mt-0.5 rounded-full bg-white shadow transition-transform ${showHiddenItems ? 'translate-x-4.5 ml-0.5' : 'translate-x-0.5'}`} />
-                </div>
-              </button>
-
-              {/* Show Scenes */}
-              <div className="w-full flex items-center gap-4 px-4 py-4 rounded-xl">
-                <div className="p-2.5 rounded-xl bg-border/50">
-                  <Sparkles className="w-5 h-5 text-foreground" />
-                </div>
-                <div className="flex-1 text-left">
-                  <p className="font-medium text-foreground">{t.settings.showScenes.title}</p>
-                  <p className="text-sm text-muted">{t.settings.showScenes.description}</p>
-                </div>
-                {/* 3-option segmented control */}
-                <div className="flex bg-border/50 rounded-lg p-0.5">
-                  {showScenesOptions.map((option) => (
-                    <button
-                      key={option}
-                      onClick={() => setShowScenes(option)}
-                      className={clsx(
-                        'px-2.5 py-1 text-xs font-medium rounded-md transition-colors',
-                        showScenes === option
-                          ? 'bg-accent text-white'
-                          : 'text-muted hover:text-foreground'
-                      )}
-                    >
-                      {t.settings.showScenes[option]}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Uncategorized Items */}
-              <button
-                onClick={handleViewUncategorized}
-                className="w-full flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-border/30 transition-colors touch-feedback"
-              >
-                <div className="p-2.5 rounded-xl bg-border/50">
-                  <Package className="w-5 h-5 text-foreground" />
-                </div>
-                <div className="flex-1 text-left">
-                  <p className="font-medium text-foreground">{t.uncategorized.menuTitle}</p>
-                  <p className="text-sm text-muted">{t.uncategorized.menuDescription}</p>
+                  <p className="font-medium text-foreground">{t.allDevices.menuTitle}</p>
+                  <p className="text-sm text-muted">{t.allDevices.menuDescription}</p>
                 </div>
               </button>
 

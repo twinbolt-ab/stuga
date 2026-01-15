@@ -270,7 +270,7 @@
       "confirm": "Are you sure you want to delete \"{name}\"? This will also remove it from Home Assistant.",
       "hasDevices": "This room contains {count} devices. Where should they be moved?",
       "moveToRoom": "Move to room",
-      "uncategorized": "Leave uncategorized",
+      "uncategorized": "Uncategorized",
       "deleting": "Deleting...",
       "willMove": "{count} devices will be moved to {destination}"
     },
