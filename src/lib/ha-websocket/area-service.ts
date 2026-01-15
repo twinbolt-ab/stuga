@@ -304,3 +304,34 @@ export async function deleteArea(state: HAWebSocketState, areaId: string): Promi
     })
   })
 }
+
+/**
+ * Update an area's labels array directly (used for cleanup operations)
+ */
+export async function updateAreaLabels(
+  state: HAWebSocketState,
+  areaId: string,
+  labels: string[]
+): Promise<void> {
+  const area = state.areaRegistry.get(areaId)
+  if (!area) return
+
+  return new Promise((resolve, reject) => {
+    const msgId = getNextMessageId(state)
+    registerCallback(state, msgId, (success) => {
+      if (success) {
+        area.labels = labels
+        notifyRegistryHandlers(state)
+        resolve()
+      } else {
+        reject(new Error('Failed to update area labels'))
+      }
+    })
+    send(state, {
+      id: msgId,
+      type: 'config/area_registry/update',
+      area_id: areaId,
+      labels,
+    })
+  })
+}

@@ -287,3 +287,34 @@ export function callService(
     })
   })
 }
+
+/**
+ * Update an entity's labels array directly (used for cleanup operations)
+ */
+export async function updateEntityLabels(
+  state: HAWebSocketState,
+  entityId: string,
+  labels: string[]
+): Promise<void> {
+  const entity = state.entityRegistry.get(entityId)
+  if (!entity) return
+
+  return new Promise((resolve, reject) => {
+    const msgId = getNextMessageId(state)
+    registerCallback(state, msgId, (success) => {
+      if (success) {
+        entity.labels = labels
+        notifyRegistryHandlers(state)
+        resolve()
+      } else {
+        reject(new Error('Failed to update entity labels'))
+      }
+    })
+    send(state, {
+      id: msgId,
+      type: 'config/entity_registry/update',
+      entity_id: entityId,
+      labels,
+    })
+  })
+}

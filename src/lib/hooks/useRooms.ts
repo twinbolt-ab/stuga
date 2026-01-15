@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from 'react'
 import { useHAConnection } from './useHAConnection'
 import { useDevMode } from './useDevMode'
 import * as ws from '../ha-websocket'
+import * as metadata from '../metadata'
 import { generateMockData } from '../mock-data'
 import type { HAEntity, RoomWithDevices } from '@/types/ha'
 import { DEFAULT_ORDER } from '../constants'
@@ -88,7 +89,7 @@ export function useRooms() {
       // Get temperature from selected sensor, or first one alphabetically
       let temperature: number | undefined
       if (tempSensors.length > 0) {
-        const selectedSensorId = areaId ? ws.getAreaTemperatureSensor(areaId) : undefined
+        const selectedSensorId = areaId ? metadata.getAreaTemperatureSensor(areaId) : undefined
         const selectedSensor = selectedSensorId
           ? tempSensors.find((s) => s.entity_id === selectedSensorId)
           : undefined
@@ -111,7 +112,7 @@ export function useRooms() {
         : undefined
 
       // Get order, icon, and floor from HA
-      const order = areaId ? ws.getAreaOrder(areaId) : DEFAULT_ORDER
+      const order = areaId ? metadata.getAreaOrder(areaId) : DEFAULT_ORDER
       const icon = areaId ? ws.getAreaIcon(areaId) : undefined
       const areaEntry = areaId ? areaRegistry.get(areaId) : undefined
       const floorId = areaEntry?.floor_id

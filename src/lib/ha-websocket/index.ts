@@ -17,6 +17,7 @@ import * as registry from './registry-manager'
 import * as areaSvc from './area-service'
 import * as floorSvc from './floor-service'
 import * as entitySvc from './entity-service'
+import * as labelSvc from './label-service'
 import { logger } from '@/lib/logger'
 
 // Module-private singleton state
@@ -119,8 +120,20 @@ export const updateFloor = (floorId: string, updates: { name?: string; icon?: st
   floorSvc.updateFloor(state, floorId, updates)
 export const setFloorOrder = (floorId: string, order: number) =>
   floorSvc.setFloorOrder(state, floorId, order)
+export const saveFloorOrderBatch = (orderedFloors: HAFloor[], originalFloors: HAFloor[]) =>
+  floorSvc.saveFloorOrderBatch(state, orderedFloors, originalFloors)
 export const createFloor = (name: string) => floorSvc.createFloor(state, name)
 export const deleteFloor = (floorId: string) => floorSvc.deleteFloor(state, floorId)
+
+// Labels (for cleanup operations)
+export const deleteLabel = (labelId: string) => labelSvc.deleteLabel(state, labelId)
+export const updateAreaLabels = (areaId: string, labels: string[]) =>
+  areaSvc.updateAreaLabels(state, areaId, labels)
+export const updateEntityLabels = (entityId: string, labels: string[]) =>
+  entitySvc.updateEntityLabels(state, entityId, labels)
+
+// State access (for metadata service)
+export const getState = () => state
 
 // Re-export types
 export type { HAWebSocketState, MessageHandler, ConnectionHandler, RegistryHandler } from './types'

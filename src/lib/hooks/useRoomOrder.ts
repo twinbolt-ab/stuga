@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import * as ws from '../ha-websocket'
+import * as metadata from '../metadata'
 import { ORDER_GAP } from '../constants'
 
 export function useRoomOrder() {
@@ -14,11 +15,11 @@ export function useRoomOrder() {
   }, [])
 
   const getAreaOrder = useCallback((areaId: string): number => {
-    return ws.getAreaOrder(areaId)
+    return metadata.getAreaOrder(areaId)
   }, [])
 
   const setAreaOrder = useCallback(async (areaId: string, order: number): Promise<void> => {
-    await ws.setAreaOrder(areaId, order)
+    await metadata.setAreaOrder(areaId, order)
   }, [])
 
   // Calculate new order values when reordering
@@ -32,7 +33,7 @@ export function useRoomOrder() {
     // Get current orders
     const itemsWithOrder = items.map(item => ({
       ...item,
-      order: ws.getAreaOrder(item.areaId)
+      order: metadata.getAreaOrder(item.areaId)
     }))
 
     // Move item from fromIndex to toIndex
@@ -77,7 +78,7 @@ export function useRoomOrder() {
 
     // Apply all order changes
     const updates = Array.from(newOrders.entries()).map(([areaId, order]) =>
-      ws.setAreaOrder(areaId, order)
+      metadata.setAreaOrder(areaId, order)
     )
 
     await Promise.all(updates)

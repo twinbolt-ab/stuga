@@ -59,6 +59,21 @@
       "failed": "Authentication failed",
       "tryAgain": "Try again",
       "startError": "Failed to start authentication"
+    },
+    "storage": {
+      "title": "Data Storage",
+      "subtitle": "Choose where Stuga stores your customizations like room order",
+      "haLabels": "Sync with Home Assistant",
+      "haLabelsHint": "Room order and preferences sync across all your devices. Stuga will add labels prefixed with stuga- to your areas.",
+      "localStorage": "Store on this device only",
+      "localStorageHint": "Keeps your Home Assistant clean — no stuga- labels will be added to your areas"
+    },
+    "syncToHA": {
+      "title": "Sync room order to Home Assistant",
+      "description": "Room order is stored locally by default. Enable to sync across devices (adds stuga- labels to HA).",
+      "enabled": "On",
+      "disabled": "Off",
+      "enabling": "Migrating..."
     }
   },
   "editMode": {

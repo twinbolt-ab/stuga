@@ -2,12 +2,14 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { initStorage } from './lib/storage'
+import { initMetadataService } from './lib/metadata'
 import App from './App'
 import './index.css'
 
 async function bootstrap() {
   try {
     await initStorage()
+    await initMetadataService()
 
     const root = document.getElementById('root')
     if (!root) throw new Error('Root element not found')
