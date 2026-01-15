@@ -515,6 +515,7 @@ export function SetupWizard() {
                   <button
                     onClick={() => setStep('welcome')}
                     disabled={isLoading}
+                    aria-label={t.common.back}
                     className="py-4 px-4 bg-card border border-border text-foreground rounded-xl font-medium flex items-center justify-center hover:bg-border/30 transition-colors touch-feedback disabled:opacity-50"
                   >
                     <ArrowLeft className="w-5 h-5" />
@@ -613,14 +614,16 @@ export function SetupWizard() {
                   </div>
                 )}
 
-                <button
-                  onClick={() => setStep('url')}
-                  disabled={isLoading}
-                  className="w-full py-3 px-4 text-muted font-medium flex items-center justify-center gap-2 hover:text-foreground transition-colors touch-feedback disabled:opacity-50"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  {t.common.back}
-                </button>
+                <div className="flex gap-3 mt-2">
+                  <button
+                    onClick={() => setStep('url')}
+                    disabled={isLoading}
+                    aria-label={t.common.back}
+                    className="py-4 px-4 bg-card border border-border text-foreground rounded-xl font-medium flex items-center justify-center hover:bg-border/30 transition-colors touch-feedback disabled:opacity-50"
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
             </motion.div>
           )}
@@ -684,6 +687,7 @@ export function SetupWizard() {
                   <button
                     onClick={() => setStep('auth-method')}
                     disabled={isLoading}
+                    aria-label={t.common.back}
                     className="py-4 px-4 bg-card border border-border text-foreground rounded-xl font-medium flex items-center justify-center hover:bg-border/30 transition-colors touch-feedback disabled:opacity-50"
                   >
                     <ArrowLeft className="w-5 h-5" />

@@ -3,7 +3,8 @@ import { isHAFloor } from '@/types/ha'
 import type { HAWebSocketState } from './types'
 import { send, getNextMessageId } from './connection'
 import { registerCallback, notifyRegistryHandlers } from './message-router'
-import { DEFAULT_ORDER } from '@/lib/constants'
+import { DEFAULT_ORDER, ORDER_GAP } from '@/lib/constants'
+import { logger } from '@/lib/logger'
 
 export function getFloors(state: HAWebSocketState): Map<string, HAFloor> {
   return state.floors
@@ -133,4 +134,26 @@ export async function deleteFloor(state: HAWebSocketState, floorId: string): Pro
       floor_id: floorId,
     })
   })
+}
+
+/**
+ * Saves floor order to Home Assistant for floors that have changed position.
+ * Compares orderedFloors against originalFloors and only updates floors whose index changed.
+ */
+export async function saveFloorOrderBatch(
+  state: HAWebSocketState,
+  orderedFloors: HAFloor[],
+  originalFloors: HAFloor[]
+): Promise<void> {
+  for (let i = 0; i < orderedFloors.length; i++) {
+    const floor = orderedFloors[i]
+    const originalIndex = originalFloors.findIndex(f => f.floor_id === floor.floor_id)
+    if (originalIndex !== i) {
+      try {
+        await setFloorOrder(state, floor.floor_id, i * ORDER_GAP)
+      } catch (error) {
+        logger.error('FloorService', 'Failed to save floor order:', error)
+      }
+    }
+  }
 }

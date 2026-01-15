@@ -2,25 +2,24 @@ import { useState, useCallback, useRef } from 'react'
 import { Reorder } from 'framer-motion'
 import { Settings } from 'lucide-react'
 import { SettingsMenu } from './SettingsMenu'
-import { FloorEditModal } from '@/components/dashboard/FloorEditModal'
 import { MdiIcon } from '@/components/ui/MdiIcon'
-import { setFloorOrder } from '@/lib/ha-websocket'
+import { saveFloorOrderBatch } from '@/lib/ha-websocket'
 import { useLongPress } from '@/lib/hooks/useLongPress'
 import { useEditMode } from '@/lib/contexts/EditModeContext'
 import { LONG_PRESS_DURATION } from '@/lib/constants'
 import { t } from '@/lib/i18n'
-import { logger } from '@/lib/logger'
-import type { HAFloor, RoomWithDevices } from '@/types/ha'
+import type { HAFloor } from '@/types/ha'
 
 interface BottomNavProps {
   onEnterEditMode: () => void
   floors: HAFloor[]
-  rooms?: RoomWithDevices[]
   selectedFloorId: string | null
   onSelectFloor: (floorId: string | null) => void
   hasUnassignedRooms: boolean
   isEditMode?: boolean
   onViewAllDevices?: () => void
+  onEditFloor?: (floor: HAFloor | null) => void
+  editingFloorId?: string | null
 }
 
 // Floor tab for normal mode - supports long-press to enter floor edit mode
@@ -34,6 +33,7 @@ interface FloorTabProps {
 function FloorTab({ floor, isActive, onSelect, onLongPress }: FloorTabProps) {
   const longPress = useLongPress({
     duration: LONG_PRESS_DURATION,
+    moveThreshold: 5, // Lower threshold to cancel on slight swipe
     onLongPress,
   })
 
@@ -52,6 +52,7 @@ function FloorTab({ floor, isActive, onSelect, onLongPress }: FloorTabProps) {
       className={`flex flex-col items-center gap-1 px-4 py-2 min-w-[72px] flex-shrink-0 transition-colors touch-feedback ${
         isActive ? 'text-accent' : 'text-muted hover:text-foreground'
       }`}
+      style={{ touchAction: 'pan-x' }}
     >
       {floor.icon ? (
         <MdiIcon icon={floor.icon} className="w-6 h-6" />
@@ -115,15 +116,15 @@ function ReorderableFloorTab({ floor, isActive, isSelected, onTap }: Reorderable
 export function BottomNav({
   onEnterEditMode,
   floors,
-  rooms = [],
   selectedFloorId,
   onSelectFloor,
   hasUnassignedRooms,
   isEditMode: isRoomEditMode = false,
   onViewAllDevices,
+  onEditFloor,
+  editingFloorId,
 }: BottomNavProps) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
-  const [editingFloor, setEditingFloor] = useState<HAFloor | null>(null)
 
   // Get floor edit mode from context
   const {
@@ -142,7 +143,7 @@ export function BottomNav({
   const handleFloorClick = useCallback((floor: HAFloor | null, floorId: string) => {
     if (isRoomEditMode && floor) {
       // In room edit mode, tap floor opens edit modal
-      setEditingFloor(floor)
+      onEditFloor?.(floor)
     } else {
       const newFloorId = floorId === '__other__' ? null : floorId
       if (newFloorId !== selectedFloorId) {
@@ -150,7 +151,7 @@ export function BottomNav({
         window.scrollTo({ top: 0, behavior: 'smooth' })
       }
     }
-  }, [isRoomEditMode, onSelectFloor, selectedFloorId])
+  }, [isRoomEditMode, onSelectFloor, selectedFloorId, onEditFloor])
 
   // Handle long-press to enter floor edit mode
   const handleFloorLongPress = useCallback((floor: HAFloor) => {
@@ -163,39 +164,28 @@ export function BottomNav({
   }, [reorderFloors])
 
   // Save floor order to HA
-  const saveFloorOrder = useCallback(async () => {
+  const handleSaveFloorOrder = useCallback(async () => {
     if (!isFloorEditMode) return
-
-    for (let i = 0; i < contextOrderedFloors.length; i++) {
-      const floor = contextOrderedFloors[i]
-      const originalIndex = floors.findIndex(f => f.floor_id === floor.floor_id)
-      if (originalIndex !== i) {
-        try {
-          await setFloorOrder(floor.floor_id, i * 10)
-        } catch (error) {
-          logger.error('Header', 'Failed to save floor order:', error)
-        }
-      }
-    }
+    await saveFloorOrderBatch(contextOrderedFloors, floors)
   }, [isFloorEditMode, contextOrderedFloors, floors])
 
   // Handle tap on floor in floor edit mode - open edit modal, or close if already open
   const handleFloorEditTap = useCallback((floor: HAFloor) => {
-    if (editingFloor) {
-      // Modal is open - just close it (don't open new modal)
-      setEditingFloor(null)
+    if (editingFloorId) {
+      // Modal is open - close it
+      onEditFloor?.(null)
     } else {
-      setEditingFloor(floor)
+      onEditFloor?.(floor)
     }
-  }, [editingFloor])
+  }, [editingFloorId, onEditFloor])
 
   // Handle click outside to exit floor edit mode
   const handleBackgroundClick = useCallback(() => {
     if (isFloorEditMode) {
-      saveFloorOrder()
+      handleSaveFloorOrder()
       exitEditMode()
     }
-  }, [isFloorEditMode, saveFloorOrder, exitEditMode])
+  }, [isFloorEditMode, handleSaveFloorOrder, exitEditMode])
 
   const showBottomNav = floors.length > 0
 
@@ -252,7 +242,7 @@ export function BottomNav({
                       key={floor.floor_id}
                       value={floor}
                       onPointerDown={(e: React.PointerEvent) => e.stopPropagation()}
-                      onPointerUp={saveFloorOrder}
+                      onPointerUp={handleSaveFloorOrder}
                       className="flex-shrink-0 cursor-grab active:cursor-grabbing list-none"
                       style={{ border: 'none', outline: 'none', boxShadow: 'none', background: 'transparent' }}
                       whileDrag={{ scale: 1.1, zIndex: 50 }}
@@ -326,22 +316,6 @@ export function BottomNav({
         onClose={() => setIsSettingsOpen(false)}
         onEnterEditMode={onEnterEditMode}
         onViewAllDevices={onViewAllDevices}
-      />
-
-      <FloorEditModal
-        floor={editingFloor}
-        floors={floors}
-        rooms={rooms}
-        onClose={() => setEditingFloor(null)}
-        onDeleted={() => {
-          // Exit floor edit mode and navigate to first floor
-          saveFloorOrder()
-          exitEditMode()
-          const firstFloorId = floors[0]?.floor_id || null
-          if (firstFloorId !== selectedFloorId) {
-            onSelectFloor(firstFloorId)
-          }
-        }}
       />
     </>
   )

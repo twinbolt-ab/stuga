@@ -18,9 +18,8 @@ import { useSettings } from '@/lib/hooks/useSettings'
 import { useDevMode } from '@/lib/hooks/useDevMode'
 import { useFloorNavigation } from '@/lib/hooks/useFloorNavigation'
 import { useModalState } from '@/lib/hooks/useModalState'
-import { setFloorOrder } from '@/lib/ha-websocket'
+import { saveFloorOrderBatch } from '@/lib/ha-websocket'
 import { ORDER_GAP } from '@/lib/constants'
-import { logger } from '@/lib/logger'
 import type { RoomWithDevices, HAEntity, HAFloor } from '@/types/ha'
 
 // Auto threshold for showing scenes
@@ -56,8 +55,8 @@ function DashboardContent() {
     reorderRooms,
   } = useEditMode()
 
-  // State for floor edit modal from floor edit mode
-  const [editingFloorFromHeader, setEditingFloorFromHeader] = useState<HAFloor | null>(null)
+  // State for floor edit modal
+  const [editingFloor, setEditingFloor] = useState<HAFloor | null>(null)
 
   // Expanded room state (kept separate as it's used for toggling)
   const [expandedRoomId, setExpandedRoomId] = useState<string | null>(null)
@@ -155,17 +154,7 @@ function DashboardContent() {
     }
 
     if (isFloorEditMode && orderedFloors.length > 0) {
-      for (let i = 0; i < orderedFloors.length; i++) {
-        const floor = orderedFloors[i]
-        const originalIndex = floors.findIndex(f => f.floor_id === floor.floor_id)
-        if (originalIndex !== i) {
-          try {
-            await setFloorOrder(floor.floor_id, i * ORDER_GAP)
-          } catch (error) {
-            logger.error('Dashboard', 'Failed to save floor order:', error)
-          }
-        }
-      }
+      await saveFloorOrderBatch(orderedFloors, floors)
     }
 
     exitEditMode()
@@ -221,7 +210,7 @@ function DashboardContent() {
     if (isFloorEditMode && editModeSelectedFloorId) {
       const floor = floors.find(f => f.floor_id === editModeSelectedFloorId)
       if (floor) {
-        setEditingFloorFromHeader(floor)
+        setEditingFloor(floor)
       }
       return
     }
@@ -349,12 +338,13 @@ function DashboardContent() {
       <Header
         onEnterEditMode={handleEnterEditMode}
         floors={floors}
-        rooms={rooms}
         selectedFloorId={selectedFloorId}
         onSelectFloor={handleSelectFloor}
         hasUnassignedRooms={hasUnassignedRooms}
         isEditMode={isRoomEditMode}
         onViewAllDevices={handleViewAllDevices}
+        onEditFloor={setEditingFloor}
+        editingFloorId={editingFloor?.floor_id}
       />
 
       <RoomEditModal
@@ -387,10 +377,10 @@ function DashboardContent() {
       />
 
       <FloorEditModal
-        floor={editingFloorFromHeader}
+        floor={editingFloor}
         floors={floors}
         rooms={rooms}
-        onClose={() => setEditingFloorFromHeader(null)}
+        onClose={() => setEditingFloor(null)}
         onDeleted={() => {
           // Exit floor edit mode and navigate to first floor
           exitEditMode()
