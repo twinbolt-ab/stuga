@@ -100,18 +100,27 @@ export function useRooms() {
       const lights = devices.filter((d) => d.entity_id.startsWith('light.'))
       const lightsOn = lights.filter((l) => l.state === 'on').length
 
-      // Find temperature sensors and average valid values
-      const tempSensors = devices.filter(
-        (d) =>
-          d.entity_id.startsWith('sensor.') &&
-          d.attributes.device_class === 'temperature'
-      )
-      const validTemps = tempSensors
-        .map((s) => parseFloat(s.state))
-        .filter((v) => !isNaN(v))
-      const temperature = validTemps.length > 0
-        ? validTemps.reduce((a, b) => a + b, 0) / validTemps.length
-        : undefined
+      // Find temperature sensors
+      const tempSensors = devices
+        .filter(
+          (d) =>
+            d.entity_id.startsWith('sensor.') &&
+            d.attributes.device_class === 'temperature'
+        )
+        .filter((s) => !isNaN(parseFloat(s.state)))
+        .sort((a, b) => a.entity_id.localeCompare(b.entity_id))
+
+      // Get temperature from selected sensor, or first one alphabetically
+      let temperature: number | undefined
+      if (tempSensors.length > 0) {
+        const selectedSensorId = areaId ? haWebSocket.getAreaTemperatureSensor(areaId) : undefined
+        const selectedSensor = selectedSensorId
+          ? tempSensors.find((s) => s.entity_id === selectedSensorId)
+          : undefined
+        // Use selected sensor if valid, otherwise fall back to first sensor
+        const sensorToUse = selectedSensor || tempSensors[0]
+        temperature = parseFloat(sensorToUse.state)
+      }
 
       // Find humidity sensors and average valid values
       const humiditySensors = devices.filter(

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Trash2 } from 'lucide-react'
 import { EditModal } from '@/components/ui/EditModal'
 import { FormField } from '@/components/ui/FormField'
@@ -21,8 +21,32 @@ export function RoomEditModal({ room, allRooms = [], floors, onClose }: RoomEdit
   const [name, setName] = useState('')
   const [floorId, setFloorId] = useState('')
   const [icon, setIcon] = useState('')
+  const [temperatureSensor, setTemperatureSensor] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+
+  // Get temperature sensors for this room
+  const temperatureSensors = useMemo(() => {
+    if (!room) return []
+    return room.devices
+      .filter(
+        (d) =>
+          d.entity_id.startsWith('sensor.') &&
+          d.attributes.device_class === 'temperature'
+      )
+      .filter((d) => !isNaN(parseFloat(d.state)))
+      .sort((a, b) => a.entity_id.localeCompare(b.entity_id))
+  }, [room])
+
+  const temperatureSensorOptions = useMemo(() => {
+    return [
+      { value: '', label: t.edit.room.autoSensor },
+      ...temperatureSensors.map((s) => ({
+        value: s.entity_id,
+        label: s.attributes.friendly_name || s.entity_id,
+      })),
+    ]
+  }, [temperatureSensors])
 
   // Reset form only when a different room is selected
   const roomId = room?.areaId
@@ -31,6 +55,9 @@ export function RoomEditModal({ room, allRooms = [], floors, onClose }: RoomEdit
       setName(room.name)
       setFloorId(room.floorId || '')
       setIcon(room.icon || '')
+      // Get current temperature sensor selection from HA
+      const currentSensor = haWebSocket.getAreaTemperatureSensor(roomId)
+      setTemperatureSensor(currentSensor || '')
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId])
@@ -50,6 +77,11 @@ export function RoomEditModal({ room, allRooms = [], floors, onClose }: RoomEdit
         floor_id: floorId || null,
         icon: icon.trim() || null,
       })
+      // Save temperature sensor selection (empty string clears selection)
+      await haWebSocket.setAreaTemperatureSensor(
+        room.areaId,
+        temperatureSensor || null
+      )
       onClose()
     } catch (error) {
       console.error('Failed to update room:', error)
@@ -90,6 +122,17 @@ export function RoomEditModal({ room, allRooms = [], floors, onClose }: RoomEdit
             onChange={setIcon}
           />
         </FormField>
+
+        {temperatureSensors.length >= 2 && (
+          <FormField label={t.edit.room.temperatureSensor}>
+            <ComboBox
+              value={temperatureSensor}
+              onChange={setTemperatureSensor}
+              options={temperatureSensorOptions}
+              placeholder={t.edit.room.autoSensor}
+            />
+          </FormField>
+        )}
 
         <div className="flex gap-3 pt-4">
           <button

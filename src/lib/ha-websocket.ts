@@ -1,5 +1,5 @@
 import type { HAEntity, WebSocketMessage, HALabel, HAFloor, AreaRegistryEntry, EntityRegistryEntry } from '@/types/ha'
-import { ROOM_ORDER_LABEL_PREFIX, DEVICE_ORDER_LABEL_PREFIX, DEFAULT_ORDER } from './constants'
+import { ROOM_ORDER_LABEL_PREFIX, DEVICE_ORDER_LABEL_PREFIX, TEMPERATURE_SENSOR_LABEL_PREFIX, DEFAULT_ORDER } from './constants'
 import { getValidAccessToken, isUsingOAuth } from './ha-oauth'
 
 type MessageHandler = (entities: Map<string, HAEntity>) => void
@@ -499,6 +499,108 @@ class HAWebSocket {
     }
 
     return undefined
+  }
+
+  // Get selected temperature sensor for an area
+  getAreaTemperatureSensor(areaId: string): string | undefined {
+    const area = this.areaRegistry.get(areaId)
+    if (!area?.labels) return undefined
+
+    for (const labelId of area.labels) {
+      const label = this.labels.get(labelId)
+      if (label?.name.startsWith(TEMPERATURE_SENSOR_LABEL_PREFIX)) {
+        // Extract entity_id from label name (e.g., "stuga-temp-sensor.bedroom_temperature" -> "sensor.bedroom_temperature")
+        return label.name.slice(TEMPERATURE_SENSOR_LABEL_PREFIX.length)
+      }
+    }
+    return undefined
+  }
+
+  // Set selected temperature sensor for an area (pass null to clear)
+  async setAreaTemperatureSensor(areaId: string, sensorEntityId: string | null): Promise<void> {
+    const area = this.areaRegistry.get(areaId)
+    if (!area) return
+
+    // Get existing labels, filtering out any existing temperature sensor labels
+    const existingLabels = (area.labels || []).filter(labelId => {
+      const label = this.labels.get(labelId)
+      return !label?.name.startsWith(TEMPERATURE_SENSOR_LABEL_PREFIX)
+    })
+
+    // If clearing the sensor, just update with existing labels (minus temp label)
+    if (!sensorEntityId) {
+      return new Promise((resolve, reject) => {
+        const msgId = this.messageId++
+        this.pendingCallbacks.set(msgId, (success) => {
+          if (success) {
+            area.labels = existingLabels
+            this.notifyRegistryHandlers()
+            resolve()
+          } else {
+            reject(new Error('Failed to update area labels'))
+          }
+        })
+        this.send({
+          id: msgId,
+          type: 'config/area_registry/update',
+          area_id: areaId,
+          labels: existingLabels,
+        })
+      })
+    }
+
+    // Create or get the sensor label
+    const labelName = `${TEMPERATURE_SENSOR_LABEL_PREFIX}${sensorEntityId}`
+    let sensorLabelId: string | undefined
+
+    // Check if label already exists
+    for (const [labelId, label] of this.labels) {
+      if (label.name === labelName) {
+        sensorLabelId = labelId
+        break
+      }
+    }
+
+    // Create label if it doesn't exist
+    if (!sensorLabelId) {
+      sensorLabelId = await new Promise<string>((resolve, reject) => {
+        const msgId = this.messageId++
+        this.pendingCallbacks.set(msgId, (success, result) => {
+          if (success && result && typeof result === 'object' && 'label_id' in result) {
+            const newLabel = result as HALabel
+            this.labels.set(newLabel.label_id, newLabel)
+            resolve(newLabel.label_id)
+          } else {
+            reject(new Error('Failed to create label'))
+          }
+        })
+        this.send({
+          id: msgId,
+          type: 'config/label_registry/create',
+          name: labelName,
+        })
+      })
+    }
+
+    // Update area with new labels
+    return new Promise((resolve, reject) => {
+      const msgId = this.messageId++
+      this.pendingCallbacks.set(msgId, (success) => {
+        if (success) {
+          area.labels = [...existingLabels, sensorLabelId!]
+          this.notifyRegistryHandlers()
+          resolve()
+        } else {
+          reject(new Error('Failed to update area labels'))
+        }
+      })
+      this.send({
+        id: msgId,
+        type: 'config/area_registry/update',
+        area_id: areaId,
+        labels: [...existingLabels, sensorLabelId],
+      })
+    })
   }
 
   // Order helpers - extract order from stuga-*-order-XX labels

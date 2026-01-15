@@ -33,6 +33,7 @@
       "placeholder": "Paste your token here",
       "goToProfile": "Go to your HA Profile",
       "hint": "and create a Long-Lived Access Token",
+      "instructions": "In Home Assistant: Profile (bottom left) → Security → scroll to Long-Lived Access Tokens → Create Token",
       "authenticate": "Connect",
       "authenticating": "Connecting...",
       "success": "Authentication successful!",
@@ -174,7 +175,9 @@
       "title": "Edit Room",
       "name": "Name",
       "floor": "Floor",
-      "icon": "Icon"
+      "icon": "Icon",
+      "temperatureSensor": "Temperature sensor",
+      "autoSensor": "Auto (first available)"
     },
     "device": {
       "title": "Edit Device",
