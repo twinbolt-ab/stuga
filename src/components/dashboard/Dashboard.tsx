@@ -162,9 +162,8 @@ function DashboardContent() {
 
   // Callback for RoomCard long-press to enter edit mode with room selected
   const handleEnterEditModeWithSelection = useCallback((roomId: string) => {
-    enterRoomEdit(filteredRooms)
-    toggleSelection(roomId)
-  }, [filteredRooms, enterRoomEdit, toggleSelection])
+    enterRoomEdit(filteredRooms, roomId)
+  }, [filteredRooms, enterRoomEdit])
 
   // Handle clicks on empty area (gaps between cards)
   const handleBackgroundClick = useCallback((e: React.MouseEvent) => {
@@ -173,7 +172,8 @@ function DashboardContent() {
 
     if (!isInsideCard) {
       // Don't exit floor edit mode from background click - it's handled in Header
-      if (isEditMode && !isFloorEditMode) {
+      // Don't exit all-devices edit mode from background click - there are no .card elements
+      if (isEditMode && !isFloorEditMode && !isAllDevicesEditMode) {
         handleExitEditMode()
         return
       }
@@ -181,7 +181,7 @@ function DashboardContent() {
         setExpandedRoomId(null)
       }
     }
-  }, [expandedRoomId, isEditMode, isFloorEditMode, handleExitEditMode])
+  }, [expandedRoomId, isEditMode, isFloorEditMode, isAllDevicesEditMode, handleExitEditMode])
 
   // Get selected rooms for bulk edit modal
   const selectedRoomsForEdit = useMemo(() => {
@@ -361,20 +361,24 @@ function DashboardContent() {
         onClose={closeDeviceEdit}
       />
 
-      <BulkEditRoomsModal
-        rooms={showBulkEditRooms ? selectedRoomsForEdit : []}
-        floors={floors}
-        onClose={closeBulkRooms}
-        onComplete={clearSelection}
-        onFloorCreated={handleSelectFloor}
-      />
+      {showBulkEditRooms && (
+        <BulkEditRoomsModal
+          rooms={selectedRoomsForEdit}
+          floors={floors}
+          onClose={closeBulkRooms}
+          onComplete={() => {}} // Keep selection after save
+          onFloorCreated={handleSelectFloor}
+        />
+      )}
 
-      <BulkEditDevicesModal
-        devices={showBulkEditDevices ? selectedDevicesForEdit : []}
-        rooms={rooms}
-        onClose={closeBulkDevices}
-        onComplete={clearSelection}
-      />
+      {showBulkEditDevices && (
+        <BulkEditDevicesModal
+          devices={selectedDevicesForEdit}
+          rooms={rooms}
+          onClose={closeBulkDevices}
+          onComplete={() => {}} // Keep selection after save
+        />
+      )}
 
       <FloorEditModal
         floor={editingFloor}

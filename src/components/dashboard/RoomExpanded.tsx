@@ -39,10 +39,8 @@ export function RoomExpanded({ room, allRooms, isExpanded }: RoomExpandedProps) 
 
   // Enter device edit mode and select the device
   const handleEnterEditModeWithSelection = useCallback((deviceId: string) => {
-    enterDeviceEdit(room.id)
-    // Use setTimeout to ensure edit mode is active before selecting
-    setTimeout(() => toggleSelection(deviceId), 0)
-  }, [enterDeviceEdit, room.id, toggleSelection])
+    enterDeviceEdit(room.id, deviceId)
+  }, [enterDeviceEdit, room.id])
 
   // Filter devices by type (only show enabled domains)
   const lights = useMemo(

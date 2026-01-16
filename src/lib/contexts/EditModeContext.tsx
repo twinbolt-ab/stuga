@@ -11,9 +11,9 @@ export type EditMode =
 
 // Actions
 type EditModeAction =
-  | { type: 'ENTER_ROOM_EDIT'; rooms: RoomWithDevices[] }
-  | { type: 'ENTER_DEVICE_EDIT'; roomId: string }
-  | { type: 'ENTER_ALL_DEVICES_EDIT' }
+  | { type: 'ENTER_ROOM_EDIT'; rooms: RoomWithDevices[]; initialSelection?: string }
+  | { type: 'ENTER_DEVICE_EDIT'; roomId: string; initialSelection?: string }
+  | { type: 'ENTER_ALL_DEVICES_EDIT'; initialSelection?: string }
   | { type: 'ENTER_FLOOR_EDIT'; floors: HAFloor[]; selectedFloorId: string }
   | { type: 'EXIT_EDIT_MODE' }
   | { type: 'TOGGLE_SELECTION'; id: string }
@@ -21,17 +21,23 @@ type EditModeAction =
   | { type: 'REORDER_ROOMS'; rooms: RoomWithDevices[] }
   | { type: 'REORDER_FLOORS'; floors: HAFloor[] }
 
-// Reducer
-function editModeReducer(state: EditMode, action: EditModeAction): EditMode {
+// Reducer - exported for testing
+export function editModeReducer(state: EditMode, action: EditModeAction): EditMode {
   switch (action.type) {
-    case 'ENTER_ROOM_EDIT':
-      return { type: 'edit-rooms', selectedIds: new Set(), orderedRooms: action.rooms }
+    case 'ENTER_ROOM_EDIT': {
+      const selectedIds = action.initialSelection ? new Set([action.initialSelection]) : new Set<string>()
+      return { type: 'edit-rooms', selectedIds, orderedRooms: action.rooms }
+    }
 
-    case 'ENTER_DEVICE_EDIT':
-      return { type: 'edit-devices', roomId: action.roomId, selectedIds: new Set() }
+    case 'ENTER_DEVICE_EDIT': {
+      const selectedIds = action.initialSelection ? new Set([action.initialSelection]) : new Set<string>()
+      return { type: 'edit-devices', roomId: action.roomId, selectedIds }
+    }
 
-    case 'ENTER_ALL_DEVICES_EDIT':
-      return { type: 'edit-all-devices', selectedIds: new Set() }
+    case 'ENTER_ALL_DEVICES_EDIT': {
+      const selectedIds = action.initialSelection ? new Set([action.initialSelection]) : new Set<string>()
+      return { type: 'edit-all-devices', selectedIds }
+    }
 
     case 'ENTER_FLOOR_EDIT':
       return { type: 'edit-floors', selectedFloorId: action.selectedFloorId, orderedFloors: action.floors }
@@ -93,9 +99,9 @@ interface EditModeContextValue {
   selectedFloorId: string | null
 
   // Actions
-  enterRoomEdit: (rooms: RoomWithDevices[]) => void
-  enterDeviceEdit: (roomId: string) => void
-  enterAllDevicesEdit: () => void
+  enterRoomEdit: (rooms: RoomWithDevices[], initialSelection?: string) => void
+  enterDeviceEdit: (roomId: string, initialSelection?: string) => void
+  enterAllDevicesEdit: (initialSelection?: string) => void
   enterFloorEdit: (floors: HAFloor[], selectedFloorId: string) => void
   exitEditMode: () => void
   toggleSelection: (id: string) => void
@@ -154,9 +160,9 @@ export function EditModeProvider({ children }: EditModeProviderProps) {
   const isSelected = useCallback((id: string) => selectedIds.has(id), [selectedIds])
 
   // Actions
-  const enterRoomEdit = useCallback((rooms: RoomWithDevices[]) => dispatch({ type: 'ENTER_ROOM_EDIT', rooms }), [])
-  const enterDeviceEdit = useCallback((roomId: string) => dispatch({ type: 'ENTER_DEVICE_EDIT', roomId }), [])
-  const enterAllDevicesEdit = useCallback(() => dispatch({ type: 'ENTER_ALL_DEVICES_EDIT' }), [])
+  const enterRoomEdit = useCallback((rooms: RoomWithDevices[], initialSelection?: string) => dispatch({ type: 'ENTER_ROOM_EDIT', rooms, initialSelection }), [])
+  const enterDeviceEdit = useCallback((roomId: string, initialSelection?: string) => dispatch({ type: 'ENTER_DEVICE_EDIT', roomId, initialSelection }), [])
+  const enterAllDevicesEdit = useCallback((initialSelection?: string) => dispatch({ type: 'ENTER_ALL_DEVICES_EDIT', initialSelection }), [])
   const enterFloorEdit = useCallback((floors: HAFloor[], selectedFloorId: string) => dispatch({ type: 'ENTER_FLOOR_EDIT', floors, selectedFloorId }), [])
   const exitEditMode = useCallback(() => dispatch({ type: 'EXIT_EDIT_MODE' }), [])
   const toggleSelection = useCallback((id: string) => dispatch({ type: 'TOGGLE_SELECTION', id }), [])

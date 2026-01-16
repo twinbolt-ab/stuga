@@ -6,7 +6,7 @@ import { ComboBox } from '@/components/ui/ComboBox'
 import { IconPickerField } from '@/components/ui/IconPickerField'
 import { useToast } from '@/providers/ToastProvider'
 import { t, interpolate } from '@/lib/i18n'
-import { updateArea, createFloor, updateEntity, createArea } from '@/lib/ha-websocket'
+import { updateArea, createFloor, updateEntity, createArea, setEntityHidden } from '@/lib/ha-websocket'
 import { logger } from '@/lib/logger'
 import type { RoomWithDevices, HAFloor, HAEntity } from '@/types/ha'
 
@@ -55,7 +55,7 @@ export function BulkEditRoomsModal({ rooms, floors, onClose, onComplete, onFloor
 
   return (
     <EditModal
-      isOpen={rooms.length > 0}
+      isOpen={true}
       onClose={onClose}
       title={interpolate(t.bulkEdit.rooms.title, { count: rooms.length })}
     >
@@ -129,9 +129,11 @@ export function BulkEditDevicesModal({ devices, rooms, onClose, onComplete }: Bu
 
     setIsSaving(true)
     try {
-      await Promise.all(
-        devices.map(device => {
-          const updates: { area_id?: string | null; icon?: string | null; hidden_by?: string | null } = {}
+      // Handle entity updates (room, icon)
+      const entityUpdates = devices
+        .filter(() => roomId || icon)
+        .map(device => {
+          const updates: { area_id?: string | null; icon?: string | null } = {}
 
           if (roomId) {
             updates.area_id = roomId === '__none__' ? null : roomId
@@ -139,13 +141,16 @@ export function BulkEditDevicesModal({ devices, rooms, onClose, onComplete }: Bu
           if (icon) {
             updates.icon = icon
           }
-          if (hidden) {
-            updates.hidden_by = hidden === 'hide' ? 'user' : null
-          }
 
           return updateEntity(device.entity_id, updates)
         })
-      )
+
+      // Handle hidden state separately using the correct API
+      const hiddenUpdates = hidden
+        ? devices.map(device => setEntityHidden(device.entity_id, hidden === 'hide'))
+        : []
+
+      await Promise.all([...entityUpdates, ...hiddenUpdates])
       onComplete()
       onClose()
     } catch (error) {
@@ -158,7 +163,7 @@ export function BulkEditDevicesModal({ devices, rooms, onClose, onComplete }: Bu
 
   return (
     <EditModal
-      isOpen={devices.length > 0}
+      isOpen={true}
       onClose={onClose}
       title={interpolate(t.bulkEdit.devices.title, { count: devices.length })}
     >

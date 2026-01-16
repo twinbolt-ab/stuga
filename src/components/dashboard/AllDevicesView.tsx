@@ -35,13 +35,12 @@ export function AllDevicesView() {
   // Get edit mode state from context
   const { isAllDevicesEditMode, isSelected, toggleSelection, enterAllDevicesEdit } = useEditMode()
   const isInEditMode = isAllDevicesEditMode
+  // Note: toggleSelection is still needed for clicking devices after entering edit mode
 
   // Enter edit mode and select the device (for long-press)
   const handleEnterEditModeWithSelection = useCallback((deviceId: string) => {
-    enterAllDevicesEdit()
-    // Use setTimeout to ensure edit mode is active before selecting
-    setTimeout(() => toggleSelection(deviceId), 0)
-  }, [enterAllDevicesEdit, toggleSelection])
+    enterAllDevicesEdit(deviceId)
+  }, [enterAllDevicesEdit])
 
   // Get entities by domain
   const lights = useMemo(
