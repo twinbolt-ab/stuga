@@ -76,6 +76,7 @@ describe('BulkEditDevicesModal', () => {
 
       renderWithProviders(
         <BulkEditDevicesModal
+          isOpen={true}
           devices={lights}
           rooms={rooms}
           onClose={mockOnClose}
@@ -111,6 +112,7 @@ describe('BulkEditDevicesModal', () => {
 
       renderWithProviders(
         <BulkEditDevicesModal
+          isOpen={true}
           devices={lights}
           rooms={rooms}
           onClose={mockOnClose}
@@ -141,6 +143,7 @@ describe('BulkEditDevicesModal', () => {
 
       renderWithProviders(
         <BulkEditDevicesModal
+          isOpen={true}
           devices={switches}
           rooms={rooms}
           onClose={mockOnClose}
@@ -171,6 +174,7 @@ describe('BulkEditDevicesModal', () => {
 
       renderWithProviders(
         <BulkEditDevicesModal
+          isOpen={true}
           devices={switches}
           rooms={rooms}
           onClose={mockOnClose}
@@ -201,6 +205,7 @@ describe('BulkEditDevicesModal', () => {
 
       renderWithProviders(
         <BulkEditDevicesModal
+          isOpen={true}
           devices={devices}
           rooms={rooms}
           onClose={mockOnClose}
@@ -231,6 +236,7 @@ describe('BulkEditDevicesModal', () => {
 
       renderWithProviders(
         <BulkEditDevicesModal
+          isOpen={true}
           devices={devices}
           rooms={rooms}
           onClose={mockOnClose}
@@ -263,6 +269,7 @@ describe('BulkEditDevicesModal', () => {
 
       renderWithProviders(
         <BulkEditDevicesModal
+          isOpen={true}
           devices={lights}
           rooms={rooms}
           onClose={mockOnClose}
@@ -305,6 +312,7 @@ describe('BulkEditDevicesModal', () => {
 
       renderWithProviders(
         <BulkEditDevicesModal
+          isOpen={true}
           devices={switches}
           rooms={rooms}
           onClose={mockOnClose}
@@ -344,6 +352,7 @@ describe('BulkEditDevicesModal', () => {
 
       renderWithProviders(
         <BulkEditDevicesModal
+          isOpen={true}
           devices={devices}
           rooms={rooms}
           onClose={mockOnClose}
@@ -383,6 +392,7 @@ describe('BulkEditDevicesModal', () => {
 
       renderWithProviders(
         <BulkEditDevicesModal
+          isOpen={true}
           devices={devices}
           rooms={rooms}
           onClose={mockOnClose}
@@ -424,6 +434,7 @@ describe('BulkEditDevicesModal', () => {
 
       renderWithProviders(
         <BulkEditDevicesModal
+          isOpen={true}
           devices={devices}
           rooms={rooms}
           onClose={mockOnClose}
@@ -466,6 +477,7 @@ describe('BulkEditDevicesModal', () => {
 
       renderWithProviders(
         <BulkEditDevicesModal
+          isOpen={true}
           devices={devices}
           rooms={rooms}
           onClose={mockOnClose}
@@ -497,6 +509,7 @@ describe('BulkEditDevicesModal', () => {
 
       renderWithProviders(
         <BulkEditDevicesModal
+          isOpen={true}
           devices={devices}
           rooms={rooms}
           onClose={mockOnClose}
@@ -547,6 +560,7 @@ describe('BulkEditRoomsModal', () => {
 
     renderWithProviders(
       <BulkEditRoomsModal
+        isOpen={true}
         rooms={roomsToEdit}
         floors={floors}
         onClose={mockOnClose}
@@ -593,6 +607,7 @@ describe('BulkEditRoomsModal', () => {
 
     renderWithProviders(
       <BulkEditRoomsModal
+        isOpen={true}
         rooms={roomsToEdit}
         floors={floors}
         onClose={mockOnClose}
@@ -632,6 +647,7 @@ describe('BulkEditRoomsModal', () => {
 
     renderWithProviders(
       <BulkEditRoomsModal
+        isOpen={true}
         rooms={roomsToEdit}
         floors={floors}
         onClose={mockOnClose}
@@ -660,6 +676,7 @@ describe('BulkEditRoomsModal', () => {
 
     renderWithProviders(
       <BulkEditRoomsModal
+        isOpen={true}
         rooms={roomsToEdit}
         floors={floors}
         onClose={mockOnClose}

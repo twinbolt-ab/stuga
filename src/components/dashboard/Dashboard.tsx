@@ -254,7 +254,7 @@ function DashboardContent() {
         <section>
           {selectedFloorId === '__all_devices__' ? (
             // All devices view (not part of swipe navigation)
-            <div className="px-4 py-4">
+            <div className="px-4 py-4 overflow-x-hidden">
               <RoomsGrid
                 selectedFloorId={selectedFloorId}
                 displayRooms={[]}
@@ -361,24 +361,22 @@ function DashboardContent() {
         onClose={closeDeviceEdit}
       />
 
-      {showBulkEditRooms && (
-        <BulkEditRoomsModal
-          rooms={selectedRoomsForEdit}
-          floors={floors}
-          onClose={closeBulkRooms}
-          onComplete={() => {}} // Keep selection after save
-          onFloorCreated={handleSelectFloor}
-        />
-      )}
+      <BulkEditRoomsModal
+        isOpen={showBulkEditRooms}
+        rooms={selectedRoomsForEdit}
+        floors={floors}
+        onClose={closeBulkRooms}
+        onComplete={() => {}} // Keep selection after save
+        onFloorCreated={handleSelectFloor}
+      />
 
-      {showBulkEditDevices && (
-        <BulkEditDevicesModal
-          devices={selectedDevicesForEdit}
-          rooms={rooms}
-          onClose={closeBulkDevices}
-          onComplete={() => {}} // Keep selection after save
-        />
-      )}
+      <BulkEditDevicesModal
+        isOpen={showBulkEditDevices}
+        devices={selectedDevicesForEdit}
+        rooms={rooms}
+        onClose={closeBulkDevices}
+        onComplete={() => {}} // Keep selection after save
+      />
 
       <FloorEditModal
         floor={editingFloor}

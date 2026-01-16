@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { EditModal } from '@/components/ui/EditModal'
 import { FormField } from '@/components/ui/FormField'
 import { Select } from '@/components/ui/Select'
@@ -11,6 +11,7 @@ import { logger } from '@/lib/logger'
 import type { RoomWithDevices, HAFloor, HAEntity } from '@/types/ha'
 
 interface BulkEditRoomsModalProps {
+  isOpen: boolean
   rooms: RoomWithDevices[]
   floors: HAFloor[]
   onClose: () => void
@@ -18,10 +19,18 @@ interface BulkEditRoomsModalProps {
   onFloorCreated?: (floorId: string) => void
 }
 
-export function BulkEditRoomsModal({ rooms, floors, onClose, onComplete, onFloorCreated }: BulkEditRoomsModalProps) {
+export function BulkEditRoomsModal({ isOpen, rooms, floors, onClose, onComplete, onFloorCreated }: BulkEditRoomsModalProps) {
   const [floorId, setFloorId] = useState<string>('')
   const [isSaving, setIsSaving] = useState(false)
   const { showError } = useToast()
+
+  // Reset form state when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setFloorId('')
+      setIsSaving(false)
+    }
+  }, [isOpen])
 
   const floorOptions = [
     { value: '', label: '— No change —' },
@@ -55,7 +64,7 @@ export function BulkEditRoomsModal({ rooms, floors, onClose, onComplete, onFloor
 
   return (
     <EditModal
-      isOpen={true}
+      isOpen={isOpen}
       onClose={onClose}
       title={interpolate(t.bulkEdit.rooms.title, { count: rooms.length })}
     >
@@ -96,18 +105,29 @@ export function BulkEditRoomsModal({ rooms, floors, onClose, onComplete, onFloor
 }
 
 interface BulkEditDevicesModalProps {
+  isOpen: boolean
   devices: HAEntity[]
   rooms: RoomWithDevices[]
   onClose: () => void
   onComplete: () => void
 }
 
-export function BulkEditDevicesModal({ devices, rooms, onClose, onComplete }: BulkEditDevicesModalProps) {
+export function BulkEditDevicesModal({ isOpen, devices, rooms, onClose, onComplete }: BulkEditDevicesModalProps) {
   const [roomId, setRoomId] = useState<string>('')
   const [icon, setIcon] = useState<string>('')
   const [hidden, setHidden] = useState<string>('')
   const [isSaving, setIsSaving] = useState(false)
   const { showError } = useToast()
+
+  // Reset form state when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setRoomId('')
+      setIcon('')
+      setHidden('')
+      setIsSaving(false)
+    }
+  }, [isOpen])
 
   const roomOptions = [
     { value: '', label: '— No change —' },
@@ -163,7 +183,7 @@ export function BulkEditDevicesModal({ devices, rooms, onClose, onComplete }: Bu
 
   return (
     <EditModal
-      isOpen={true}
+      isOpen={isOpen}
       onClose={onClose}
       title={interpolate(t.bulkEdit.devices.title, { count: devices.length })}
     >

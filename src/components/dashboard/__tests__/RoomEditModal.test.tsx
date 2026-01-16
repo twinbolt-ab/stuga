@@ -209,7 +209,7 @@ describe('RoomEditModal', () => {
     expect(deleteButton).toBeInTheDocument()
   })
 
-  it('should not render when room is null', () => {
+  it('should be hidden when room is null', () => {
     renderWithProviders(
       <RoomEditModal
         room={null}
@@ -220,6 +220,9 @@ describe('RoomEditModal', () => {
       />
     )
 
-    expect(screen.queryByRole('button', { name: /save/i })).not.toBeInTheDocument()
+    // Modal is always mounted but hidden via pointer-events when closed
+    const saveButton = screen.queryByRole('button', { name: /save/i })
+    expect(saveButton).toBeInTheDocument()
+    expect(saveButton?.closest('[style*="pointer-events"]')).toHaveStyle({ pointerEvents: 'none' })
   })
 })

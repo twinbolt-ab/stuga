@@ -322,12 +322,15 @@ describe('DeviceEditModal', () => {
   })
 
   describe('Modal Behavior', () => {
-    it('should not render when device is null', () => {
+    it('should be hidden when device is null', () => {
       renderWithProviders(
         <DeviceEditModal device={null} rooms={rooms} onClose={mockOnClose} />
       )
 
-      expect(screen.queryByRole('button', { name: /save/i })).not.toBeInTheDocument()
+      // Modal is always mounted but hidden via pointer-events when closed
+      const saveButton = screen.queryByRole('button', { name: /save/i })
+      expect(saveButton).toBeInTheDocument()
+      expect(saveButton?.closest('[style*="pointer-events"]')).toHaveStyle({ pointerEvents: 'none' })
     })
   })
 })

@@ -161,6 +161,9 @@ describe('FloorEditModal', () => {
       />
     )
 
-    expect(screen.queryByRole('button', { name: /save/i })).not.toBeInTheDocument()
+    // Modal is always mounted but hidden via pointer-events when closed
+    const saveButton = screen.queryByRole('button', { name: /save/i })
+    expect(saveButton).toBeInTheDocument()
+    expect(saveButton?.closest('[style*="pointer-events"]')).toHaveStyle({ pointerEvents: 'none' })
   })
 })
