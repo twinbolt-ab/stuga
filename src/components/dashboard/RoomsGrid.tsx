@@ -1,5 +1,5 @@
 import { useCallback, Fragment, useRef, useState, useLayoutEffect } from 'react'
-import { motion, LayoutGroup } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { RoomCard, MemoizedRoomCard } from './RoomCard'
 import { ReorderableGrid } from './ReorderableGrid'
 import { AllDevicesView } from './AllDevicesView'
@@ -125,59 +125,50 @@ export function RoomsGrid({
     : -1
   const layoutExpandedInRightColumn = layoutExpandedIndex !== -1 && layoutExpandedIndex % 2 === 1
 
-  // Normal grid view with layout animations
+  // Normal grid view with width animations (no layout FLIP for better performance)
   return (
-    <LayoutGroup>
-      <div ref={containerRef} className="flex flex-wrap gap-[12px]">
-        {displayRooms.map((room, index) => {
-          // isExpanded controls the card's internal state (height, content)
-          const isExpanded = room.id === expandedRoomId
-          // isLayoutExpanded controls the grid layout (col-span, position)
-          const isLayoutExpanded = room.id === layoutExpandedId
-          // Card to the left of a layout-expanded right-column card needs a placeholder
-          const needsPlaceholder = layoutExpandedInRightColumn && index === layoutExpandedIndex - 1
+    <div ref={containerRef} className="flex flex-wrap gap-[12px]">
+      {displayRooms.map((room, index) => {
+        // isExpanded controls the card's internal state (height, content)
+        const isExpanded = room.id === expandedRoomId
+        // isLayoutExpanded controls the grid layout (col-span, position)
+        const isLayoutExpanded = room.id === layoutExpandedId
+        // Card to the left of a layout-expanded right-column card needs a placeholder
+        const needsPlaceholder = layoutExpandedInRightColumn && index === layoutExpandedIndex - 1
 
-          // Use calc() fallback before container is measured
-          const targetWidth = containerWidth
-            ? (isLayoutExpanded ? fullWidth : singleColumnWidth)
-            : (isLayoutExpanded ? '100%' : 'calc(50% - 6px)')
+        // Use pixel width when measured, calc() fallback before measurement
+        const targetWidth = containerWidth
+          ? (isLayoutExpanded ? fullWidth : singleColumnWidth)
+          : (isLayoutExpanded ? '100%' : 'calc(50% - 6px)')
 
-          return (
-            <Fragment key={room.id}>
-              <motion.div
-                layout="position"
-                initial={false}
-                animate={{
-                  width: targetWidth,
-                }}
-                transition={{
-                  layout: {
-                    duration: ROOM_EXPAND_DURATION,
-                    ease: [0.25, 0.1, 0.25, 1],
-                  },
-                  width: {
-                    duration: ROOM_EXPAND_DURATION,
-                    ease: [0.25, 0.1, 0.25, 1],
-                  },
-                }}
-              >
-                <MemoizedRoomCard
-                  room={room}
-                  allRooms={allRooms}
-                  isExpanded={isExpanded}
-                  shouldShowScenes={shouldShowScenes}
-                  onToggleExpand={handleToggleExpand}
-                  onEnterEditModeWithSelection={onEnterEditModeWithSelection}
-                />
-              </motion.div>
-              {/* Invisible placeholder to preserve gap when right-column card expands */}
-              {needsPlaceholder && (
-                <div style={{ width: containerWidth ? singleColumnWidth : 'calc(50% - 6px)' }} className="invisible" />
-              )}
-            </Fragment>
-          )
-        })}
-      </div>
-    </LayoutGroup>
+        return (
+          <Fragment key={room.id}>
+            <motion.div
+              initial={false}
+              animate={{ width: targetWidth }}
+              transition={{
+                width: {
+                  duration: ROOM_EXPAND_DURATION,
+                  ease: [0.25, 0.1, 0.25, 1],
+                },
+              }}
+            >
+              <MemoizedRoomCard
+                room={room}
+                allRooms={allRooms}
+                isExpanded={isExpanded}
+                shouldShowScenes={shouldShowScenes}
+                onToggleExpand={handleToggleExpand}
+                onEnterEditModeWithSelection={onEnterEditModeWithSelection}
+              />
+            </motion.div>
+            {/* Invisible placeholder to preserve gap when right-column card expands */}
+            {needsPlaceholder && (
+              <div style={{ width: containerWidth ? singleColumnWidth : 'calc(50% - 6px)' }} className="invisible" />
+            )}
+          </Fragment>
+        )
+      })}
+    </div>
   )
 }
