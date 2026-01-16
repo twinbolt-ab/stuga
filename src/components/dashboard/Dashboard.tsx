@@ -284,7 +284,7 @@ function DashboardContent() {
   return (
     <div className="min-h-screen min-h-[100dvh] bg-background pt-safe pb-nav">
       {/* Connection status banner */}
-      <ConnectionBanner isConnected={isConnected} />
+      <ConnectionBanner isConnected={isConnected} hasReceivedData={hasReceivedData} />
 
       {/* Edit mode header bar */}
       <AnimatePresence>
