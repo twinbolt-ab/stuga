@@ -35,7 +35,7 @@ export async function updateFloor(
         // Update local registry - merge our updates with existing floor
         const updatedFloor: HAFloor = {
           ...floor,
-          ...(result as Partial<HAFloor> || {}),
+          ...((result as Partial<HAFloor>) || {}),
         }
         // Explicitly apply our updates in case they're not in the result
         if (updates.name !== undefined) updatedFloor.name = updates.name
@@ -147,7 +147,7 @@ export async function saveFloorOrderBatch(
 ): Promise<void> {
   for (let i = 0; i < orderedFloors.length; i++) {
     const floor = orderedFloors[i]
-    const originalIndex = originalFloors.findIndex(f => f.floor_id === floor.floor_id)
+    const originalIndex = originalFloors.findIndex((f) => f.floor_id === floor.floor_id)
     if (originalIndex !== i) {
       try {
         await setFloorOrder(state, floor.floor_id, i * ORDER_GAP)

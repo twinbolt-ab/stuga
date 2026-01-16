@@ -74,7 +74,10 @@ export function extractHAMetadata(): {
 export async function migrateHAToLocal(): Promise<void> {
   const metadata = extractHAMetadata()
   await importLocalMetadata(metadata)
-  logger.debug('Metadata', `Migrated ${metadata.areaOrders.length} area orders, ${metadata.areaTempSensors.length} temp sensors, ${metadata.entityOrders.length} entity orders to local storage`)
+  logger.debug(
+    'Metadata',
+    `Migrated ${metadata.areaOrders.length} area orders, ${metadata.areaTempSensors.length} temp sensors, ${metadata.entityOrders.length} entity orders to local storage`
+  )
 }
 
 /**
@@ -82,7 +85,7 @@ export async function migrateHAToLocal(): Promise<void> {
  */
 export async function cleanupHALabels(): Promise<{ deletedCount: number }> {
   const labels = ws.getLabels()
-  const stugaLabels = Array.from(labels.values()).filter(label =>
+  const stugaLabels = Array.from(labels.values()).filter((label) =>
     label.name.startsWith(STUGA_PREFIX)
   )
 
@@ -90,14 +93,14 @@ export async function cleanupHALabels(): Promise<{ deletedCount: number }> {
     return { deletedCount: 0 }
   }
 
-  const stugaLabelIds = new Set(stugaLabels.map(l => l.label_id))
+  const stugaLabelIds = new Set(stugaLabels.map((l) => l.label_id))
 
   // Remove stuga labels from areas
   const areaRegistry = ws.getAreaRegistry()
   for (const [areaId, area] of areaRegistry) {
     const areaLabels = area.labels || []
-    if (areaLabels.some(labelId => stugaLabelIds.has(labelId))) {
-      const filteredLabels = areaLabels.filter(id => !stugaLabelIds.has(id))
+    if (areaLabels.some((labelId) => stugaLabelIds.has(labelId))) {
+      const filteredLabels = areaLabels.filter((id) => !stugaLabelIds.has(id))
       try {
         await ws.updateAreaLabels(areaId, filteredLabels)
       } catch (error) {
@@ -110,8 +113,8 @@ export async function cleanupHALabels(): Promise<{ deletedCount: number }> {
   const entityRegistry = ws.getEntityRegistry()
   for (const [entityId, entity] of entityRegistry) {
     const entityLabels = entity.labels || []
-    if (entityLabels.some(labelId => stugaLabelIds.has(labelId))) {
-      const filteredLabels = entityLabels.filter(id => !stugaLabelIds.has(id))
+    if (entityLabels.some((labelId) => stugaLabelIds.has(labelId))) {
+      const filteredLabels = entityLabels.filter((id) => !stugaLabelIds.has(id))
       try {
         await ws.updateEntityLabels(entityId, filteredLabels)
       } catch (error) {

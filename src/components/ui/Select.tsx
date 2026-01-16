@@ -17,7 +17,9 @@ export function Select({ value, onChange, options, placeholder }: SelectProps) {
     <div className="relative">
       <select
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => {
+          onChange(e.target.value)
+        }}
         className="w-full appearance-none bg-background border border-border rounded-xl px-4 py-3 pr-10 text-foreground focus:outline-none focus:border-accent transition-colors"
       >
         {placeholder && (

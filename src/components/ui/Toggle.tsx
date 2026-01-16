@@ -27,9 +27,7 @@ export function Toggle({ checked, onChange, label }: ToggleProps) {
           }`}
         />
       </button>
-      {label && (
-        <span className="text-foreground">{label}</span>
-      )}
+      {label && <span className="text-foreground">{label}</span>}
     </label>
   )
 }

@@ -35,19 +35,23 @@ export function RoomCardStatus({
             <Thermometer className="w-3.5 h-3.5" />
             <span>{temperature.toFixed(1)}°</span>
           </span>
-        ) : totalLights > 0 && (
-          <span className="flex items-center gap-1">
-            {displayLightsOn ? (
-              <Lightbulb className="w-3.5 h-3.5 text-accent" />
-            ) : (
-              <LightbulbOff className="w-3.5 h-3.5 text-muted" />
-            )}
-            <span>
-              {displayLightsOn
-                ? interpolate(t.devices.lightsOn, { count: isOptimistic ? totalLights : lightsOn })
-                : t.devices.lightsOff}
+        ) : (
+          totalLights > 0 && (
+            <span className="flex items-center gap-1">
+              {displayLightsOn ? (
+                <Lightbulb className="w-3.5 h-3.5 text-accent" />
+              ) : (
+                <LightbulbOff className="w-3.5 h-3.5 text-muted" />
+              )}
+              <span>
+                {displayLightsOn
+                  ? interpolate(t.devices.lightsOn, {
+                      count: isOptimistic ? totalLights : lightsOn,
+                    })
+                  : t.devices.lightsOff}
+              </span>
             </span>
-          </span>
+          )
         )}
       </div>
 

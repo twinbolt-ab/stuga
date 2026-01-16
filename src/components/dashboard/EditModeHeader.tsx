@@ -9,12 +9,7 @@ interface EditModeHeaderProps {
 }
 
 export function EditModeHeader({ onEditClick, onDone }: EditModeHeaderProps) {
-  const {
-    isDeviceEditMode,
-    isAllDevicesEditMode,
-    isFloorEditMode,
-    selectedCount,
-  } = useEditMode()
+  const { isDeviceEditMode, isAllDevicesEditMode, isFloorEditMode, selectedCount } = useEditMode()
 
   // Floor edit mode has its own simpler UI
   if (isFloorEditMode) {
@@ -27,9 +22,7 @@ export function EditModeHeader({ onEditClick, onDone }: EditModeHeaderProps) {
         className="fixed left-4 right-4 z-20 floating-bar rounded-2xl shadow-lg glass"
       >
         <div className="flex items-center justify-between px-4 py-3">
-          <span className="text-sm text-muted">
-            {t.rooms.floorReorderHint}
-          </span>
+          <span className="text-sm text-muted">{t.rooms.floorReorderHint}</span>
 
           <button
             onClick={onDone}
@@ -43,9 +36,14 @@ export function EditModeHeader({ onEditClick, onDone }: EditModeHeaderProps) {
   }
 
   const isDeviceMode = isDeviceEditMode || isAllDevicesEditMode
-  const editButtonLabel = selectedCount === 1
-    ? isDeviceMode ? t.bulkEdit.editDevice : t.bulkEdit.editRoom
-    : isDeviceMode ? t.bulkEdit.editDevices : t.bulkEdit.editRooms
+  const editButtonLabel =
+    selectedCount === 1
+      ? isDeviceMode
+        ? t.bulkEdit.editDevice
+        : t.bulkEdit.editRoom
+      : isDeviceMode
+        ? t.bulkEdit.editDevices
+        : t.bulkEdit.editRooms
 
   return (
     <motion.div

@@ -9,7 +9,14 @@ import { IconPickerField } from '@/components/ui/IconPickerField'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { useToast } from '@/providers/ToastProvider'
 import { t, interpolate } from '@/lib/i18n'
-import { getEntityRegistry, isEntityHidden, updateEntity, setEntityHidden, deleteScene, createArea } from '@/lib/ha-websocket'
+import {
+  getEntityRegistry,
+  isEntityHidden,
+  updateEntity,
+  setEntityHidden,
+  deleteScene,
+  createArea,
+} from '@/lib/ha-websocket'
 import { logger } from '@/lib/logger'
 import type { HAEntity, RoomWithDevices } from '@/types/ha'
 
@@ -50,21 +57,23 @@ export function DeviceEditModal({ device, rooms, onClose }: DeviceEditModalProps
 
       // Get current area
       const currentArea = device.attributes.area as string | undefined
-      const currentRoom = rooms.find(r => r.name === currentArea)
+      const currentRoom = rooms.find((r) => r.name === currentArea)
       setRoomId(currentRoom?.areaId || '')
 
       // Get hidden state
       setHidden(isEntityHidden(deviceId))
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deviceId])
 
   const roomOptions = [
     { value: '', label: t.floors.none },
-    ...rooms.map(r => ({
-      value: r.areaId || '',
-      label: r.name
-    })).filter(r => r.value)
+    ...rooms
+      .map((r) => ({
+        value: r.areaId || '',
+        label: r.name,
+      }))
+      .filter((r) => r.value),
   ]
 
   const handleSave = async () => {
@@ -110,25 +119,14 @@ export function DeviceEditModal({ device, rooms, onClose }: DeviceEditModalProps
 
   return (
     <>
-      <EditModal
-        isOpen={!!device}
-        onClose={onClose}
-        title={labels.title}
-      >
+      <EditModal isOpen={!!device} onClose={onClose} title={labels.title}>
         <div className="space-y-4">
           <FormField label={labels.name}>
-            <TextInput
-              value={name}
-              onChange={setName}
-              placeholder={deviceName}
-            />
+            <TextInput value={name} onChange={setName} placeholder={deviceName} />
           </FormField>
 
           <FormField label={labels.icon}>
-            <IconPickerField
-              value={icon}
-              onChange={setIcon}
-            />
+            <IconPickerField value={icon} onChange={setIcon} />
           </FormField>
 
           <FormField label={labels.room}>
@@ -143,10 +141,7 @@ export function DeviceEditModal({ device, rooms, onClose }: DeviceEditModalProps
           </FormField>
 
           <FormField label={labels.hidden} hint={labels.hiddenHint}>
-            <Toggle
-              checked={hidden}
-              onChange={setHidden}
-            />
+            <Toggle checked={hidden} onChange={setHidden} />
           </FormField>
 
           <div className="flex gap-3 pt-4">
@@ -168,7 +163,9 @@ export function DeviceEditModal({ device, rooms, onClose }: DeviceEditModalProps
           {/* Delete button for scenes */}
           {isScene && (
             <button
-              onClick={() => setShowDeleteConfirm(true)}
+              onClick={() => {
+                setShowDeleteConfirm(true)
+              }}
               className="w-full mt-4 py-3 px-4 rounded-xl border border-red-500/30 text-red-500 font-medium hover:bg-red-500/10 transition-colors flex items-center justify-center gap-2"
             >
               <Trash2 className="w-4 h-4" />
@@ -180,7 +177,9 @@ export function DeviceEditModal({ device, rooms, onClose }: DeviceEditModalProps
 
       <ConfirmDialog
         isOpen={showDeleteConfirm}
-        onClose={() => setShowDeleteConfirm(false)}
+        onClose={() => {
+          setShowDeleteConfirm(false)
+        }}
         onConfirm={handleDelete}
         title={deleteLabels.title}
         message={interpolate(deleteLabels.confirm, { name: deviceName })}

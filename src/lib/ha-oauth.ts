@@ -139,7 +139,9 @@ export async function refreshAccessToken(
   } catch (error) {
     // Network error (offline, DNS failure, timeout, etc.)
     logger.warn('OAuth', 'Network error during refresh:', error)
-    throw new NetworkError(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    throw new NetworkError(
+      `Network error: ${error instanceof Error ? error.message : 'Unknown error'}`
+    )
   }
 
   if (!response.ok) {
@@ -280,9 +282,9 @@ export async function clearPendingOAuth(): Promise<void> {
 // Result type for getValidAccessToken
 export type TokenResult =
   | { status: 'valid'; token: string; haUrl: string }
-  | { status: 'network-error'; haUrl: string }  // Temporary - keep credentials, can retry
-  | { status: 'auth-error' }  // Permanent - credentials cleared, need re-auth
-  | { status: 'no-credentials' }  // Never had credentials
+  | { status: 'network-error'; haUrl: string } // Temporary - keep credentials, can retry
+  | { status: 'auth-error' } // Permanent - credentials cleared, need re-auth
+  | { status: 'no-credentials' } // Never had credentials
 
 // Get a valid access token, refreshing if needed
 export async function getValidAccessToken(): Promise<TokenResult> {

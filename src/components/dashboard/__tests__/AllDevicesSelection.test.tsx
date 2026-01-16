@@ -16,7 +16,7 @@ import type { HAEntity } from '@/types/ha'
  * 4. Selection state is correctly reflected in UI
  */
 
-function createMockDevice(id: string, name: string, state: string = 'off'): HAEntity {
+function createMockDevice(id: string, name: string, state = 'off'): HAEntity {
   return {
     entity_id: id,
     state,
@@ -75,8 +75,12 @@ function DeviceSelectionTestHarness({
             isInEditMode={isAllDevicesEditMode}
             isSelected={isSelected(device.entity_id)}
             onToggle={() => {}}
-            onToggleSelection={() => toggleSelection(device.entity_id)}
-            onEnterEditModeWithSelection={() => enterAllDevicesEdit(device.entity_id)}
+            onToggleSelection={() => {
+              toggleSelection(device.entity_id)
+            }}
+            onEnterEditModeWithSelection={() => {
+              enterAllDevicesEdit(device.entity_id)
+            }}
             fallbackIcon={<span>icon</span>}
           />
         ))}

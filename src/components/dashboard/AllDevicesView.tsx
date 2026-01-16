@@ -37,43 +37,25 @@ export function AllDevicesView() {
   const isInEditMode = isAllDevicesEditMode
 
   // Enter edit mode and select the device (for long-press)
-  const handleEnterEditModeWithSelection = useCallback((deviceId: string) => {
-    enterAllDevicesEdit(deviceId)
-  }, [enterAllDevicesEdit])
+  const handleEnterEditModeWithSelection = useCallback(
+    (deviceId: string) => {
+      enterAllDevicesEdit(deviceId)
+    },
+    [enterAllDevicesEdit]
+  )
 
   // Get entities by domain
-  const lights = useMemo(
-    () => entitiesByDomain.get('light') || [],
-    [entitiesByDomain]
-  )
-  const switches = useMemo(
-    () => entitiesByDomain.get('switch') || [],
-    [entitiesByDomain]
-  )
-  const scenes = useMemo(
-    () => entitiesByDomain.get('scene') || [],
-    [entitiesByDomain]
-  )
+  const lights = useMemo(() => entitiesByDomain.get('light') || [], [entitiesByDomain])
+  const switches = useMemo(() => entitiesByDomain.get('switch') || [], [entitiesByDomain])
+  const scenes = useMemo(() => entitiesByDomain.get('scene') || [], [entitiesByDomain])
   const inputBooleans = useMemo(
     () => entitiesByDomain.get('input_boolean') || [],
     [entitiesByDomain]
   )
-  const inputNumbers = useMemo(
-    () => entitiesByDomain.get('input_number') || [],
-    [entitiesByDomain]
-  )
-  const climates = useMemo(
-    () => entitiesByDomain.get('climate') || [],
-    [entitiesByDomain]
-  )
-  const covers = useMemo(
-    () => entitiesByDomain.get('cover') || [],
-    [entitiesByDomain]
-  )
-  const fans = useMemo(
-    () => entitiesByDomain.get('fan') || [],
-    [entitiesByDomain]
-  )
+  const inputNumbers = useMemo(() => entitiesByDomain.get('input_number') || [], [entitiesByDomain])
+  const climates = useMemo(() => entitiesByDomain.get('climate') || [], [entitiesByDomain])
+  const covers = useMemo(() => entitiesByDomain.get('cover') || [], [entitiesByDomain])
+  const fans = useMemo(() => entitiesByDomain.get('fan') || [], [entitiesByDomain])
 
   const isEmpty =
     lights.length === 0 &&
@@ -109,9 +91,7 @@ export function AllDevicesView() {
             <Layers className="w-6 h-6 text-accent" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-foreground">
-              {t.allDevices.title}
-            </h2>
+            <h2 className="text-lg font-semibold text-foreground">{t.allDevices.title}</h2>
             <p className="text-sm text-muted">{subtitle}</p>
           </div>
         </div>
@@ -128,7 +108,9 @@ export function AllDevicesView() {
           {filters.map(({ id, label, count, icon: Icon }) => (
             <button
               key={id}
-              onClick={() => setActiveFilter(activeFilter === id ? 'all' : id)}
+              onClick={() => {
+                setActiveFilter(activeFilter === id ? 'all' : id)
+              }}
               className={clsx(
                 'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors',
                 activeFilter === id
@@ -139,10 +121,12 @@ export function AllDevicesView() {
               <Icon className="w-3.5 h-3.5" />
               <span>{label}</span>
               {count > 0 && (
-                <span className={clsx(
-                  'ml-0.5 px-1.5 py-0.5 text-xs rounded-full',
-                  activeFilter === id ? 'bg-white/20' : 'bg-border'
-                )}>
+                <span
+                  className={clsx(
+                    'ml-0.5 px-1.5 py-0.5 text-xs rounded-full',
+                    activeFilter === id ? 'bg-white/20' : 'bg-border'
+                  )}
+                >
                   {count}
                 </span>
               )}

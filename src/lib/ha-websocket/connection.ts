@@ -7,7 +7,12 @@ import { notifyConnectionHandlers, clearPendingCallbacks } from './message-route
 
 type MessageCallback = (message: WebSocketMessage) => void
 
-export function configure(state: HAWebSocketState, url: string, token: string, useOAuth = false): void {
+export function configure(
+  state: HAWebSocketState,
+  url: string,
+  token: string,
+  useOAuth = false
+): void {
   state.url = url.replace('http', 'ws') + '/api/websocket'
   state.token = token
   state.useOAuth = useOAuth

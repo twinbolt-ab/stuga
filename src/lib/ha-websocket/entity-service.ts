@@ -97,7 +97,11 @@ export function getEntityOrder(state: HAWebSocketState, entityId: string): numbe
 }
 
 /** Returns existing label ID or creates a new one in HA's label registry. */
-async function ensureOrderLabel(state: HAWebSocketState, prefix: string, order: number): Promise<string> {
+async function ensureOrderLabel(
+  state: HAWebSocketState,
+  prefix: string,
+  order: number
+): Promise<string> {
   const paddedOrder = order.toString().padStart(2, '0')
   const labelName = `${prefix}${paddedOrder}`
 
@@ -136,7 +140,7 @@ export async function setEntityOrder(
   if (!entity) return
 
   // Get existing non-order labels
-  const existingLabels = (entity.labels || []).filter(labelId => {
+  const existingLabels = (entity.labels || []).filter((labelId) => {
     const label = state.labels.get(labelId)
     return !label?.name.startsWith(DEVICE_ORDER_LABEL_PREFIX)
   })
@@ -179,10 +183,10 @@ export async function updateEntity(
     registerCallback(state, msgId, (success, result) => {
       if (success) {
         // Update local registry - merge our updates with existing entity
-        const baseEntity = entity || { entity_id: entityId } as EntityRegistryEntry
+        const baseEntity = entity || ({ entity_id: entityId } as EntityRegistryEntry)
         const updatedEntity: EntityRegistryEntry = {
           ...baseEntity,
-          ...(result as Partial<EntityRegistryEntry> || {}),
+          ...((result as Partial<EntityRegistryEntry>) || {}),
         }
         // Explicitly apply our updates in case they're not in the result
         if (updates.name !== undefined) updatedEntity.name = updates.name || undefined

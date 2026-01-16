@@ -60,14 +60,18 @@ function CoverItem({
   if (isInEditMode) {
     return (
       <button
-        onClick={() => onToggleSelection(cover.entity_id)}
+        onClick={() => {
+          onToggleSelection(cover.entity_id)
+        }}
         className="w-full flex items-center gap-2 px-2 py-2 rounded-lg bg-border/30 touch-feedback"
       >
         <SelectionCheckbox isSelected={isSelected} />
-        <div className={clsx(
-          'p-2 rounded-lg transition-colors flex-shrink-0',
-          isOpen ? 'bg-accent/20 text-accent' : 'bg-border/50 text-muted'
-        )}>
+        <div
+          className={clsx(
+            'p-2 rounded-lg transition-colors flex-shrink-0',
+            isOpen ? 'bg-accent/20 text-accent' : 'bg-border/50 text-muted'
+          )}
+        >
           {coverIcon ? (
             <MdiIcon icon={coverIcon} className="w-5 h-5" />
           ) : (
@@ -140,31 +144,33 @@ function CoverItem({
       {/* Control buttons */}
       <div className="flex items-center gap-1">
         <button
-          onClick={() => onOpen(cover)}
+          onClick={() => {
+            onOpen(cover)
+          }}
           disabled={isOpen}
           className={clsx(
             'p-1.5 rounded-lg transition-colors touch-feedback',
-            isOpen
-              ? 'text-muted/50'
-              : 'bg-border/50 text-foreground hover:bg-accent/20'
+            isOpen ? 'text-muted/50' : 'bg-border/50 text-foreground hover:bg-accent/20'
           )}
         >
           <ChevronUp className="w-4 h-4" />
         </button>
         <button
-          onClick={() => onStop(cover)}
+          onClick={() => {
+            onStop(cover)
+          }}
           className="p-1.5 rounded-lg bg-border/50 text-foreground hover:bg-accent/20 transition-colors touch-feedback"
         >
           <Square className="w-3 h-3" />
         </button>
         <button
-          onClick={() => onClose(cover)}
+          onClick={() => {
+            onClose(cover)
+          }}
           disabled={isClosed}
           className={clsx(
             'p-1.5 rounded-lg transition-colors touch-feedback',
-            isClosed
-              ? 'text-muted/50'
-              : 'bg-border/50 text-foreground hover:bg-accent/20'
+            isClosed ? 'text-muted/50' : 'bg-border/50 text-foreground hover:bg-accent/20'
           )}
         >
           <ChevronDown className="w-4 h-4" />

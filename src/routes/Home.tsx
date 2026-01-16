@@ -82,7 +82,8 @@ export default function Home() {
 
           {/* Message */}
           <p className="text-muted mb-8 leading-relaxed">
-            {t.sessionExpired?.message || 'Your Home Assistant session has expired. Please sign in again to continue.'}
+            {t.sessionExpired?.message ||
+              'Your Home Assistant session has expired. Please sign in again to continue.'}
           </p>
 
           {/* Sign in button */}
@@ -120,7 +121,8 @@ export default function Home() {
 
           {/* Message */}
           <p className="text-muted mb-8 leading-relaxed">
-            {t.connectionLost?.message || 'Unable to connect to Home Assistant. Check your WiFi connection and try again.'}
+            {t.connectionLost?.message ||
+              'Unable to connect to Home Assistant. Check your WiFi connection and try again.'}
           </p>
 
           {/* Retry button */}
@@ -130,7 +132,7 @@ export default function Home() {
             className="w-full py-4 px-6 bg-accent text-white rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-accent/90 transition-colors touch-feedback disabled:opacity-50"
           >
             <RefreshCw className={`w-5 h-5 ${retrying ? 'animate-spin' : ''}`} />
-            {retrying ? 'Retrying...' : (t.connectionLost?.retry || 'Retry Connection')}
+            {retrying ? 'Retrying...' : t.connectionLost?.retry || 'Retry Connection'}
           </button>
         </motion.div>
       </div>

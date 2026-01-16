@@ -1,15 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen, fireEvent, act, waitFor } from '@testing-library/react'
 import { FloorEditModal } from '../FloorEditModal'
-import {
-  renderWithProviders,
-  createMockFloor,
-  createMockRoom,
-} from '@/test/test-utils'
-import {
-  mockUpdateFloor,
-  resetAllHAMocks,
-} from '@/test/ha-mocks'
+import { renderWithProviders, createMockFloor, createMockRoom } from '@/test/test-utils'
+import { mockUpdateFloor, resetAllHAMocks } from '@/test/ha-mocks'
 
 // Mock the ha-websocket module
 vi.mock('@/lib/ha-websocket', () => ({
@@ -24,7 +17,12 @@ describe('FloorEditModal', () => {
     createMockFloor({ floor_id: 'first', name: 'First Floor' }),
   ]
   const rooms = [
-    createMockRoom({ id: 'living_room', areaId: 'living_room', name: 'Living Room', floorId: 'ground' }),
+    createMockRoom({
+      id: 'living_room',
+      areaId: 'living_room',
+      name: 'Living Room',
+      floorId: 'ground',
+    }),
     createMockRoom({ id: 'bedroom', areaId: 'bedroom', name: 'Bedroom', floorId: 'first' }),
   ]
 

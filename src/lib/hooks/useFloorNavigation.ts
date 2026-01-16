@@ -34,7 +34,9 @@ export function useFloorNavigation({
   isEntityVisible,
   onFloorChange,
 }: UseFloorNavigationOptions): UseFloorNavigationReturn {
-  const [userSelectedFloorId, setUserSelectedFloorId] = useState<string | null | undefined>(undefined)
+  const [userSelectedFloorId, setUserSelectedFloorId] = useState<string | null | undefined>(
+    undefined
+  )
 
   // Check if there are rooms without a floor that have controllable devices
   const hasUnassignedRooms = useMemo(() => {
@@ -52,7 +54,7 @@ export function useFloorNavigation({
       // Validate the selection still exists
       if (userSelectedFloorId === '__all_devices__') return '__all_devices__'
       if (userSelectedFloorId === null) return null // "Other" tab
-      if (floors.some(f => f.floor_id === userSelectedFloorId)) return userSelectedFloorId
+      if (floors.some((f) => f.floor_id === userSelectedFloorId)) return userSelectedFloorId
       // Selection is stale, fall through to auto-select
     }
 
@@ -83,24 +85,30 @@ export function useFloorNavigation({
   }, [rooms, selectedFloorId, isEntityVisible])
 
   // Get rooms for a specific floor (used by FloorSwipeContainer)
-  const getRoomsForFloor = useCallback((floorId: string | null): RoomWithDevices[] => {
-    if (floorId === null) {
-      // Uncategorized rooms
-      return rooms.filter((room) => {
-        if (room.floorId) return false
-        return room.devices.some((d) => isEntityVisible(d.entity_id))
-      })
-    }
-    return rooms.filter((room) => room.floorId === floorId)
-  }, [rooms, isEntityVisible])
+  const getRoomsForFloor = useCallback(
+    (floorId: string | null): RoomWithDevices[] => {
+      if (floorId === null) {
+        // Uncategorized rooms
+        return rooms.filter((room) => {
+          if (room.floorId) return false
+          return room.devices.some((d) => isEntityVisible(d.entity_id))
+        })
+      }
+      return rooms.filter((room) => room.floorId === floorId)
+    },
+    [rooms, isEntityVisible]
+  )
 
   // Handle floor selection (from swipe or tab click)
-  const handleSelectFloor = useCallback((floorId: string | null) => {
-    if (floorId !== selectedFloorId) {
-      onFloorChange?.() // Notify parent (e.g., to close expanded rooms)
-    }
-    setUserSelectedFloorId(floorId)
-  }, [selectedFloorId, onFloorChange])
+  const handleSelectFloor = useCallback(
+    (floorId: string | null) => {
+      if (floorId !== selectedFloorId) {
+        onFloorChange?.() // Notify parent (e.g., to close expanded rooms)
+      }
+      setUserSelectedFloorId(floorId)
+    },
+    [selectedFloorId, onFloorChange]
+  )
 
   const handleViewAllDevices = useCallback(() => {
     onFloorChange?.() // Notify parent (e.g., to close expanded rooms)

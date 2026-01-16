@@ -36,20 +36,17 @@ export function ComboBox({
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   // Get display label for current value (check created item first, then options)
-  const selectedOption = options.find(opt => opt.value === value)
-  const displayValue = selectedOption?.label || (createdItem?.value === value ? createdItem.label : '')
+  const selectedOption = options.find((opt) => opt.value === value)
+  const displayValue =
+    selectedOption?.label || (createdItem?.value === value ? createdItem.label : '')
 
   // Filter options based on input
   const filteredOptions = inputValue
-    ? options.filter(opt =>
-        opt.label.toLowerCase().includes(inputValue.toLowerCase())
-      )
+    ? options.filter((opt) => opt.label.toLowerCase().includes(inputValue.toLowerCase()))
     : options
 
   // Check if input exactly matches an existing option
-  const exactMatch = options.some(
-    opt => opt.label.toLowerCase() === inputValue.toLowerCase()
-  )
+  const exactMatch = options.some((opt) => opt.label.toLowerCase() === inputValue.toLowerCase())
 
   // Show create option when there's input and no exact match
   const showCreateOption = onCreate && inputValue.trim() && !exactMatch
@@ -65,7 +62,9 @@ export function ComboBox({
 
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside)
-      return () => document.removeEventListener('mousedown', handleClickOutside)
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside)
+      }
     }
   }, [isOpen])
 
@@ -101,11 +100,14 @@ export function ComboBox({
     }
   }, [isOpen])
 
-  const handleSelect = useCallback((optionValue: string) => {
-    onChange(optionValue)
-    setIsOpen(false)
-    setInputValue('')
-  }, [onChange])
+  const handleSelect = useCallback(
+    (optionValue: string) => {
+      onChange(optionValue)
+      setIsOpen(false)
+      setInputValue('')
+    },
+    [onChange]
+  )
 
   const handleCreate = useCallback(async () => {
     if (!onCreate || !inputValue.trim() || isCreating) return
@@ -128,26 +130,31 @@ export function ComboBox({
     }
   }, [onCreate, inputValue, isCreating, onChange])
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      if (showCreateOption) {
-        handleCreate()
-      } else if (filteredOptions.length === 1) {
-        handleSelect(filteredOptions[0].value)
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        if (showCreateOption) {
+          handleCreate()
+        } else if (filteredOptions.length === 1) {
+          handleSelect(filteredOptions[0].value)
+        }
+      } else if (e.key === 'Escape') {
+        setIsOpen(false)
+        setInputValue('')
       }
-    } else if (e.key === 'Escape') {
-      setIsOpen(false)
-      setInputValue('')
-    }
-  }, [showCreateOption, handleCreate, filteredOptions, handleSelect])
+    },
+    [showCreateOption, handleCreate, filteredOptions, handleSelect]
+  )
 
   return (
     <div ref={containerRef} className="relative">
       {/* Trigger / Display */}
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          setIsOpen(!isOpen)
+        }}
         disabled={isCreating}
         className="w-full flex items-center justify-between bg-background border border-border rounded-xl px-4 py-3 text-left text-foreground focus:outline-none focus:border-accent transition-colors disabled:opacity-50"
       >
@@ -157,7 +164,9 @@ export function ComboBox({
         {isCreating ? (
           <Loader2 className="w-5 h-5 text-muted animate-spin" />
         ) : (
-          <ChevronDown className={`w-5 h-5 text-muted transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown
+            className={`w-5 h-5 text-muted transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          />
         )}
       </button>
 
@@ -181,16 +190,11 @@ export function ComboBox({
               placeholder="Type to search or create..."
               className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground placeholder:text-muted focus:outline-none focus:border-accent transition-colors text-sm"
             />
-            {createError && (
-              <p className="text-red-500 text-xs mt-1">{createError}</p>
-            )}
+            {createError && <p className="text-red-500 text-xs mt-1">{createError}</p>}
           </div>
 
           {/* Options list - scrollable */}
-          <div
-            className="overflow-y-auto"
-            style={{ maxHeight: dropdownMaxHeight }}
-          >
+          <div className="overflow-y-auto" style={{ maxHeight: dropdownMaxHeight }}>
             {/* Create new option */}
             {showCreateOption && (
               <button
@@ -204,33 +208,33 @@ export function ComboBox({
                 ) : (
                   <Plus className="w-4 h-4" />
                 )}
-                <span>{createLabel} &ldquo;{inputValue.trim()}&rdquo;</span>
+                <span>
+                  {createLabel} &ldquo;{inputValue.trim()}&rdquo;
+                </span>
               </button>
             )}
 
             {/* Existing options */}
-            {filteredOptions.length > 0 ? (
-              filteredOptions.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => handleSelect(option.value)}
-                  className={`w-full px-4 py-3 text-left transition-colors ${
-                    option.value === value
-                      ? 'bg-accent/10 text-accent'
-                      : 'text-foreground hover:bg-border/30'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))
-            ) : (
-              !showCreateOption && (
-                <div className="px-4 py-3 text-muted text-sm">
-                  No options found
-                </div>
-              )
-            )}
+            {filteredOptions.length > 0
+              ? filteredOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => {
+                      handleSelect(option.value)
+                    }}
+                    className={`w-full px-4 py-3 text-left transition-colors ${
+                      option.value === value
+                        ? 'bg-accent/10 text-accent'
+                        : 'text-foreground hover:bg-border/30'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))
+              : !showCreateOption && (
+                  <div className="px-4 py-3 text-muted text-sm">No options found</div>
+                )}
           </div>
         </div>
       )}

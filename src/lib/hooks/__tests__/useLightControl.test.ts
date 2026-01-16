@@ -47,8 +47,20 @@ describe('useLightControl', () => {
       const { result } = renderHook(() => useLightControl())
 
       const lights: HAEntity[] = [
-        { entity_id: 'light.1', state: 'on', attributes: { brightness: 255 }, last_changed: '', last_updated: '' }, // 100%
-        { entity_id: 'light.2', state: 'on', attributes: { brightness: 127 }, last_changed: '', last_updated: '' }, // ~50%
+        {
+          entity_id: 'light.1',
+          state: 'on',
+          attributes: { brightness: 255 },
+          last_changed: '',
+          last_updated: '',
+        }, // 100%
+        {
+          entity_id: 'light.2',
+          state: 'on',
+          attributes: { brightness: 127 },
+          last_changed: '',
+          last_updated: '',
+        }, // ~50%
       ]
 
       const avg = result.current.getAverageBrightness(lights)
@@ -157,7 +169,7 @@ describe('useLightControl', () => {
 
       const startingMap = new Map([
         ['light.1', 100], // Full brightness
-        ['light.2', 50],  // Half brightness
+        ['light.2', 50], // Half brightness
       ])
       const startingAvg = 75
 

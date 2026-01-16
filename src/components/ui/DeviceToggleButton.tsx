@@ -61,11 +61,7 @@ export function DeviceToggleButton({
             isOn ? 'bg-accent/20 text-accent' : 'bg-border/50 text-muted'
           )}
         >
-          {entityIcon ? (
-            <MdiIcon icon={entityIcon} className="w-5 h-5" />
-          ) : (
-            fallbackIcon
-          )}
+          {entityIcon ? <MdiIcon icon={entityIcon} className="w-5 h-5" /> : fallbackIcon}
         </div>
         {/* Name */}
         <div className="flex-1 flex items-center gap-1.5 min-w-0">
@@ -109,10 +105,7 @@ export function DeviceToggleButton({
           haptic.light()
           onToggle()
         }}
-        className={clsx(
-          'flex-1 flex items-center gap-3',
-          'touch-feedback'
-        )}
+        className={clsx('flex-1 flex items-center gap-3', 'touch-feedback')}
       >
         {/* Icon on left */}
         <div
@@ -121,11 +114,7 @@ export function DeviceToggleButton({
             isOn ? 'bg-accent/20 text-accent' : 'bg-border/50 text-muted'
           )}
         >
-          {entityIcon ? (
-            <MdiIcon icon={entityIcon} className="w-5 h-5" />
-          ) : (
-            fallbackIcon
-          )}
+          {entityIcon ? <MdiIcon icon={entityIcon} className="w-5 h-5" /> : fallbackIcon}
         </div>
         {/* Name */}
         <div className="flex-1 flex items-center gap-1.5 min-w-0">

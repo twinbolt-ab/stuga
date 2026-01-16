@@ -1,7 +1,20 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { motion, AnimatePresence, useMotionValue, PanInfo } from 'framer-motion'
 import { useTheme } from '@/providers/ThemeProvider'
-import { Moon, Sun, Pencil, X, Wifi, Layers, Sparkles, Beaker, ChevronDown, Palette, Cloud, Loader2 } from 'lucide-react'
+import {
+  Moon,
+  Sun,
+  Pencil,
+  X,
+  Wifi,
+  Layers,
+  Sparkles,
+  Beaker,
+  ChevronDown,
+  Palette,
+  Cloud,
+  Loader2,
+} from 'lucide-react'
 import { t } from '@/lib/i18n'
 import { ConnectionSettingsModal } from '@/components/settings/ConnectionSettingsModal'
 import { DomainConfigModal } from '@/components/settings/DomainConfigModal'
@@ -67,7 +80,9 @@ export function SettingsMenu({
       enableDevMode()
       setDevModeClickCount(0)
       setShowDevModeToast(true)
-      setTimeout(() => setShowDevModeToast(false), 2000)
+      setTimeout(() => {
+        setShowDevModeToast(false)
+      }, 2000)
     } else {
       // Reset counter after 2s of inactivity
       devModeTimeoutRef.current = setTimeout(() => {
@@ -82,7 +97,7 @@ export function SettingsMenu({
     // Release any pointer capture to prevent blocking subsequent touches
     if (sheetRef.current && 'pointerId' in event) {
       try {
-        sheetRef.current.releasePointerCapture((event as PointerEvent).pointerId)
+        sheetRef.current.releasePointerCapture(event.pointerId)
       } catch {
         // Ignore if pointer capture wasn't held
       }
@@ -237,7 +252,9 @@ export function SettingsMenu({
               {/* Display Options - Collapsible Section */}
               <div>
                 <button
-                  onClick={() => setDisplayOptionsOpen(!displayOptionsOpen)}
+                  onClick={() => {
+                    setDisplayOptionsOpen(!displayOptionsOpen)
+                  }}
                   className="w-full flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-border/30 transition-colors touch-feedback"
                 >
                   <div className="p-2.5 rounded-xl bg-border/50">
@@ -278,7 +295,9 @@ export function SettingsMenu({
                             )}
                           </div>
                           <div className="flex-1 text-left">
-                            <p className="text-sm font-medium text-foreground">{t.settings.theme.title}</p>
+                            <p className="text-sm font-medium text-foreground">
+                              {t.settings.theme.title}
+                            </p>
                             <p className="text-xs text-muted">
                               {isDark ? t.settings.theme.dark : t.settings.theme.light}
                             </p>
@@ -287,14 +306,18 @@ export function SettingsMenu({
 
                         {/* Device Types */}
                         <button
-                          onClick={() => setShowDomainConfig(true)}
+                          onClick={() => {
+                            setShowDomainConfig(true)
+                          }}
                           className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-border/30 transition-colors touch-feedback"
                         >
                           <div className="p-2 rounded-lg bg-border/50">
                             <Layers className="w-4 h-4 text-foreground" />
                           </div>
                           <div className="flex-1 text-left">
-                            <p className="text-sm font-medium text-foreground">{t.settings.domains.title}</p>
+                            <p className="text-sm font-medium text-foreground">
+                              {t.settings.domains.title}
+                            </p>
                             <p className="text-xs text-muted">{t.settings.domains.description}</p>
                           </div>
                         </button>
@@ -305,14 +328,18 @@ export function SettingsMenu({
                             <Sparkles className="w-4 h-4 text-foreground" />
                           </div>
                           <div className="flex-1 text-left">
-                            <p className="text-sm font-medium text-foreground">{t.settings.showScenes.title}</p>
+                            <p className="text-sm font-medium text-foreground">
+                              {t.settings.showScenes.title}
+                            </p>
                           </div>
                           {/* 3-option segmented control */}
                           <div className="flex bg-border/50 rounded-lg p-0.5">
                             {showScenesOptions.map((option) => (
                               <button
                                 key={option}
-                                onClick={() => setShowScenes(option)}
+                                onClick={() => {
+                                  setShowScenes(option)
+                                }}
                                 className={clsx(
                                   'px-2 py-0.5 text-xs font-medium rounded-md transition-colors',
                                   showScenes === option
@@ -344,21 +371,21 @@ export function SettingsMenu({
                               {t.setup.syncToHA?.title || 'Sync to Home Assistant'}
                             </p>
                             <p className="text-xs text-muted">
-                              {t.setup.syncToHA?.description || 'Sync room order across devices via HA labels'}
+                              {t.setup.syncToHA?.description ||
+                                'Sync room order across devices via HA labels'}
                             </p>
                           </div>
-                          <div className={clsx(
-                            'px-2 py-0.5 text-xs font-medium rounded-full transition-colors',
-                            syncToHA
-                              ? 'bg-accent/15 text-accent'
-                              : 'bg-border/50 text-muted'
-                          )}>
+                          <div
+                            className={clsx(
+                              'px-2 py-0.5 text-xs font-medium rounded-full transition-colors',
+                              syncToHA ? 'bg-accent/15 text-accent' : 'bg-border/50 text-muted'
+                            )}
+                          >
                             {isMigrating
-                              ? (t.setup.syncToHA?.enabling || 'Migrating...')
+                              ? t.setup.syncToHA?.enabling || 'Migrating...'
                               : syncToHA
-                                ? (t.setup.syncToHA?.enabled || 'Syncing')
-                                : (t.setup.syncToHA?.disabled || 'Off')
-                            }
+                                ? t.setup.syncToHA?.enabled || 'Syncing'
+                                : t.setup.syncToHA?.disabled || 'Off'}
                           </div>
                         </button>
                       </div>
@@ -384,7 +411,9 @@ export function SettingsMenu({
               {/* Connection Settings - hidden in add-on mode */}
               {!isHAAddon() && (
                 <button
-                  onClick={() => setShowConnectionSettings(true)}
+                  onClick={() => {
+                    setShowConnectionSettings(true)
+                  }}
                   className="w-full flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-border/30 transition-colors touch-feedback"
                 >
                   <div className="p-2.5 rounded-xl bg-border/50">
@@ -400,15 +429,21 @@ export function SettingsMenu({
               {/* Developer Menu - only shown when dev mode is active */}
               {isDevMode && (
                 <button
-                  onClick={() => setShowDeveloperMenu(true)}
+                  onClick={() => {
+                    setShowDeveloperMenu(true)
+                  }}
                   className="w-full flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-border/30 transition-colors touch-feedback"
                 >
                   <div className="p-2.5 rounded-xl bg-amber-500/20">
                     <Beaker className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                   </div>
                   <div className="flex-1 text-left">
-                    <p className="font-medium text-foreground">{t.settings.developer?.title || 'Developer'}</p>
-                    <p className="text-sm text-muted">{t.settings.developer?.description || 'Test with mock data'}</p>
+                    <p className="font-medium text-foreground">
+                      {t.settings.developer?.title || 'Developer'}
+                    </p>
+                    <p className="text-sm text-muted">
+                      {t.settings.developer?.description || 'Test with mock data'}
+                    </p>
                   </div>
                 </button>
               )}
@@ -435,25 +470,33 @@ export function SettingsMenu({
           {/* Connection Settings Modal */}
           <ConnectionSettingsModal
             isOpen={showConnectionSettings}
-            onClose={() => setShowConnectionSettings(false)}
+            onClose={() => {
+              setShowConnectionSettings(false)
+            }}
           />
 
           {/* Domain Config Modal */}
           <DomainConfigModal
             isOpen={showDomainConfig}
-            onClose={() => setShowDomainConfig(false)}
+            onClose={() => {
+              setShowDomainConfig(false)
+            }}
           />
 
           {/* Developer Menu Modal */}
           <DeveloperMenuModal
             isOpen={showDeveloperMenu}
-            onClose={() => setShowDeveloperMenu(false)}
+            onClose={() => {
+              setShowDeveloperMenu(false)
+            }}
           />
 
           {/* Edit Mode Info Modal */}
           <EditModeInfoModal
             isOpen={showEditModeInfo}
-            onClose={() => setShowEditModeInfo(false)}
+            onClose={() => {
+              setShowEditModeInfo(false)
+            }}
             onConfirm={handleEditConfirm}
           />
 

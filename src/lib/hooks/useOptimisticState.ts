@@ -36,15 +36,18 @@ export function useOptimisticState<T>({
     }
   }, [])
 
-  const setOptimistic = useCallback((value: T) => {
-    clearTimer()
-    setOptimisticValue(value)
+  const setOptimistic = useCallback(
+    (value: T) => {
+      clearTimer()
+      setOptimisticValue(value)
 
-    timerRef.current = setTimeout(() => {
-      setOptimisticValue(null)
-      timerRef.current = null
-    }, duration)
-  }, [duration, clearTimer])
+      timerRef.current = setTimeout(() => {
+        setOptimisticValue(null)
+        timerRef.current = null
+      }, duration)
+    },
+    [duration, clearTimer]
+  )
 
   const clearOptimistic = useCallback(() => {
     clearTimer()

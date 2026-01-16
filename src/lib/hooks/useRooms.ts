@@ -26,9 +26,11 @@ export function useRooms() {
   // Subscribe to registry updates for order changes
   useEffect(() => {
     const unsubscribe = ws.onRegistryUpdate(() => {
-      setRegistryVersion(v => v + 1)
+      setRegistryVersion((v) => v + 1)
     })
-    return () => { unsubscribe() }
+    return () => {
+      unsubscribe()
+    }
   }, [])
 
   const { rooms, floors } = useMemo(() => {
@@ -79,9 +81,7 @@ export function useRooms() {
       // Find temperature sensors
       const tempSensors = devices
         .filter(
-          (d) =>
-            d.entity_id.startsWith('sensor.') &&
-            d.attributes.device_class === 'temperature'
+          (d) => d.entity_id.startsWith('sensor.') && d.attributes.device_class === 'temperature'
         )
         .filter((s) => !isNaN(parseFloat(s.state)))
         .sort((a, b) => a.entity_id.localeCompare(b.entity_id))
@@ -100,16 +100,15 @@ export function useRooms() {
 
       // Find humidity sensors and average valid values
       const humiditySensors = devices.filter(
-        (d) =>
-          d.entity_id.startsWith('sensor.') &&
-          d.attributes.device_class === 'humidity'
+        (d) => d.entity_id.startsWith('sensor.') && d.attributes.device_class === 'humidity'
       )
       const validHumidities = humiditySensors
         .map((s) => parseFloat(s.state))
         .filter((v) => !isNaN(v))
-      const humidity = validHumidities.length > 0
-        ? Math.round(validHumidities.reduce((a, b) => a + b, 0) / validHumidities.length)
-        : undefined
+      const humidity =
+        validHumidities.length > 0
+          ? Math.round(validHumidities.reduce((a, b) => a + b, 0) / validHumidities.length)
+          : undefined
 
       // Get order, icon, and floor from HA
       const order = areaId ? metadata.getAreaOrder(areaId) : DEFAULT_ORDER
@@ -154,7 +153,12 @@ export function useRooms() {
   const effectiveIsConnected = activeMockScenario !== 'none' ? true : isConnected
   const effectiveHasReceivedData = activeMockScenario !== 'none' ? true : hasReceivedData
 
-  return { rooms, floors, isConnected: effectiveIsConnected, hasReceivedData: effectiveHasReceivedData }
+  return {
+    rooms,
+    floors,
+    isConnected: effectiveIsConnected,
+    hasReceivedData: effectiveHasReceivedData,
+  }
 }
 
 // Helper to extract area from entity attributes (populated by ha-websocket.ts from HA registry)

@@ -36,8 +36,12 @@ export function SwitchesSection({
             entity={sw}
             isInEditMode={isInEditMode}
             isSelected={isSelected(sw.entity_id)}
-            onToggle={() => onToggle(sw)}
-            onToggleSelection={() => onToggleSelection(sw.entity_id)}
+            onToggle={() => {
+              onToggle(sw)
+            }}
+            onToggleSelection={() => {
+              onToggleSelection(sw.entity_id)
+            }}
             onEnterEditModeWithSelection={() => onEnterEditModeWithSelection?.(sw.entity_id)}
             fallbackIcon={<Power className="w-5 h-5" />}
             entityMeta={entityMeta?.get(sw.entity_id)}

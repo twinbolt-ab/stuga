@@ -13,7 +13,8 @@ function createEntity(
     entity_id: entityId,
     state,
     attributes: {
-      friendly_name: attributes.friendly_name as string || entityId.split('.')[1].replace(/_/g, ' '),
+      friendly_name:
+        (attributes.friendly_name as string) || entityId.split('.')[1].replace(/_/g, ' '),
       ...attributes,
     },
     last_changed: MOCK_TIMESTAMP,
@@ -37,8 +38,15 @@ export function generateEdgeCases(): MockData {
       floorId: 'ground_floor',
       icon: 'mdi:sofa',
       devices: [
-        createEntity('light.living_main', 'on', { friendly_name: 'Main Light', brightness: 255, area: 'Living Room' }),
-        createEntity('light.living_accent', 'off', { friendly_name: 'Accent Light', area: 'Living Room' }),
+        createEntity('light.living_main', 'on', {
+          friendly_name: 'Main Light',
+          brightness: 255,
+          area: 'Living Room',
+        }),
+        createEntity('light.living_accent', 'off', {
+          friendly_name: 'Accent Light',
+          area: 'Living Room',
+        }),
       ],
       lightsOn: 1,
       totalLights: 2,
@@ -94,7 +102,11 @@ export function generateEdgeCases(): MockData {
       // No floorId
       icon: 'mdi:greenhouse',
       devices: [
-        createEntity('light.shed_main', 'on', { friendly_name: 'Shed Light', brightness: 128, area: 'Garden Shed' }),
+        createEntity('light.shed_main', 'on', {
+          friendly_name: 'Shed Light',
+          brightness: 128,
+          area: 'Garden Shed',
+        }),
       ],
       lightsOn: 1,
       totalLights: 1,
@@ -144,8 +156,15 @@ export function generateEdgeCases(): MockData {
       icon: 'mdi:bed',
       devices: [
         createEntity('light.bedroom_main', 'off', { friendly_name: 'Main Light', area: 'Bedroom' }),
-        createEntity('light.bedroom_bedside_left', 'on', { friendly_name: 'Bedside Left', brightness: 64, area: 'Bedroom' }),
-        createEntity('light.bedroom_bedside_right', 'off', { friendly_name: 'Bedside Right', area: 'Bedroom' }),
+        createEntity('light.bedroom_bedside_left', 'on', {
+          friendly_name: 'Bedside Left',
+          brightness: 64,
+          area: 'Bedroom',
+        }),
+        createEntity('light.bedroom_bedside_right', 'off', {
+          friendly_name: 'Bedside Right',
+          area: 'Bedroom',
+        }),
       ],
       lightsOn: 1,
       totalLights: 3,
@@ -161,8 +180,16 @@ export function generateEdgeCases(): MockData {
       // No floorId
       icon: 'mdi:pool',
       devices: [
-        createEntity('light.pool_underwater', 'on', { friendly_name: 'Underwater Lights', brightness: 180, area: 'Pool Area' }),
-        createEntity('light.pool_deck', 'on', { friendly_name: 'Deck Lights', brightness: 255, area: 'Pool Area' }),
+        createEntity('light.pool_underwater', 'on', {
+          friendly_name: 'Underwater Lights',
+          brightness: 180,
+          area: 'Pool Area',
+        }),
+        createEntity('light.pool_deck', 'on', {
+          friendly_name: 'Deck Lights',
+          brightness: 255,
+          area: 'Pool Area',
+        }),
         createEntity('switch.pool_pump', 'on', { friendly_name: 'Pool Pump', area: 'Pool Area' }),
         createEntity('sensor.pool_temperature', '26.5', {
           friendly_name: 'Water Temperature',

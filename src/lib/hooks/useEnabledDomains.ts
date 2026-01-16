@@ -1,5 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
-import { getEnabledDomainsSync, setEnabledDomains as saveEnabledDomains, isEntityVisible as checkEntityVisible } from '../config'
+import {
+  getEnabledDomainsSync,
+  setEnabledDomains as saveEnabledDomains,
+  isEntityVisible as checkEntityVisible,
+} from '../config'
 import { DEFAULT_ENABLED_DOMAINS, type ConfigurableDomain } from '@/types/ha'
 
 /**
@@ -7,7 +11,8 @@ import { DEFAULT_ENABLED_DOMAINS, type ConfigurableDomain } from '@/types/ha'
  * Returns the current enabled domains and utilities for checking entity visibility
  */
 export function useEnabledDomains() {
-  const [enabledDomains, setEnabledDomainsState] = useState<ConfigurableDomain[]>(DEFAULT_ENABLED_DOMAINS)
+  const [enabledDomains, setEnabledDomainsState] =
+    useState<ConfigurableDomain[]>(DEFAULT_ENABLED_DOMAINS)
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -21,21 +26,27 @@ export function useEnabledDomains() {
   }, [])
 
   // Check if an entity should be visible
-  const isEntityVisible = useCallback((entityId: string): boolean => {
-    return checkEntityVisible(entityId, enabledDomains)
-  }, [enabledDomains])
+  const isEntityVisible = useCallback(
+    (entityId: string): boolean => {
+      return checkEntityVisible(entityId, enabledDomains)
+    },
+    [enabledDomains]
+  )
 
   // Toggle a domain on/off
-  const toggleDomain = useCallback((domain: ConfigurableDomain) => {
-    const newDomains = enabledDomains.includes(domain)
-      ? enabledDomains.filter(d => d !== domain)
-      : [...enabledDomains, domain]
+  const toggleDomain = useCallback(
+    (domain: ConfigurableDomain) => {
+      const newDomains = enabledDomains.includes(domain)
+        ? enabledDomains.filter((d) => d !== domain)
+        : [...enabledDomains, domain]
 
-    // Ensure at least one domain is enabled
-    if (newDomains.length > 0) {
-      setEnabledDomains(newDomains)
-    }
-  }, [enabledDomains, setEnabledDomains])
+      // Ensure at least one domain is enabled
+      if (newDomains.length > 0) {
+        setEnabledDomains(newDomains)
+      }
+    },
+    [enabledDomains, setEnabledDomains]
+  )
 
   // Reset to defaults
   const resetToDefaults = useCallback(() => {

@@ -6,7 +6,11 @@ interface RoomCardBrightnessFillProps {
   className?: string
 }
 
-export function RoomCardBrightnessFill({ brightness, isDragging, className = 'rounded-card' }: RoomCardBrightnessFillProps) {
+export function RoomCardBrightnessFill({
+  brightness,
+  isDragging,
+  className = 'rounded-card',
+}: RoomCardBrightnessFillProps) {
   return (
     <motion.div
       className={`absolute inset-0 origin-left pointer-events-none ${className}`}
@@ -24,7 +28,11 @@ interface RoomCardBrightnessOverlayProps {
   className?: string
 }
 
-export function RoomCardBrightnessOverlay({ brightness, showOverlay, className = '' }: RoomCardBrightnessOverlayProps) {
+export function RoomCardBrightnessOverlay({
+  brightness,
+  showOverlay,
+  className = '',
+}: RoomCardBrightnessOverlayProps) {
   return (
     <AnimatePresence>
       {showOverlay && (

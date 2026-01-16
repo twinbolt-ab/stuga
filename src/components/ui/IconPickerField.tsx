@@ -17,7 +17,9 @@ export function IconPickerField({ value, onChange }: IconPickerFieldProps) {
     <>
       <button
         type="button"
-        onClick={() => setIsPickerOpen(true)}
+        onClick={() => {
+          setIsPickerOpen(true)
+        }}
         className="w-full flex items-center gap-3 px-4 py-3 bg-background border border-border rounded-xl text-foreground hover:bg-border/30 transition-colors text-left"
       >
         {/* Icon preview */}
@@ -42,7 +44,9 @@ export function IconPickerField({ value, onChange }: IconPickerFieldProps) {
         isOpen={isPickerOpen}
         value={value}
         onChange={onChange}
-        onClose={() => setIsPickerOpen(false)}
+        onClose={() => {
+          setIsPickerOpen(false)
+        }}
       />
     </>
   )

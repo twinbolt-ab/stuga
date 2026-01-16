@@ -22,13 +22,20 @@ export function RoomCardScenes({ scenes, isInEditMode, onSceneActivate }: RoomCa
   }
 
   return (
-    <div className={clsx('flex gap-1.5 mb-1 min-h-[32px] items-center justify-center', isInEditMode && 'pointer-events-none')}>
+    <div
+      className={clsx(
+        'flex gap-1.5 mb-1 min-h-[32px] items-center justify-center',
+        isInEditMode && 'pointer-events-none'
+      )}
+    >
       {scenes.slice(0, 4).map((scene) => {
         const sceneIcon = getEntityIcon(scene.entity_id)
         return (
           <button
             key={scene.entity_id}
-            onClick={(e) => onSceneActivate(scene, e)}
+            onClick={(e) => {
+              onSceneActivate(scene, e)
+            }}
             className="p-1.5 rounded-lg bg-border/50 hover:bg-accent/20 hover:text-accent transition-colors text-muted touch-feedback"
             title={getSceneDisplayName(scene)}
           >

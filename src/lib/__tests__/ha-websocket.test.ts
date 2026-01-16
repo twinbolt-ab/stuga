@@ -51,11 +51,10 @@ describe('HAWebSocket', () => {
       vi.advanceTimersByTime(5001)
 
       // Callback should be called with timeout error
-      expect(callback).toHaveBeenCalledWith(
-        false,
-        undefined,
-        { code: 'timeout', message: 'Request timed out' }
-      )
+      expect(callback).toHaveBeenCalledWith(false, undefined, {
+        code: 'timeout',
+        message: 'Request timed out',
+      })
     })
   })
 
@@ -71,11 +70,10 @@ describe('HAWebSocket', () => {
       clearPendingCallbacks(state)
 
       // Callback should be called with disconnected error
-      expect(callback).toHaveBeenCalledWith(
-        false,
-        undefined,
-        { code: 'disconnected', message: 'WebSocket disconnected' }
-      )
+      expect(callback).toHaveBeenCalledWith(false, undefined, {
+        code: 'disconnected',
+        message: 'WebSocket disconnected',
+      })
     })
   })
 })

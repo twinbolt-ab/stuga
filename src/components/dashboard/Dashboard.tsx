@@ -60,7 +60,9 @@ function DashboardContent() {
 
   // Expanded room state (kept separate as it's used for toggling)
   const [expandedRoomId, setExpandedRoomId] = useState<string | null>(null)
-  const closeExpandedRoom = useCallback(() => setExpandedRoomId(null), [])
+  const closeExpandedRoom = useCallback(() => {
+    setExpandedRoomId(null)
+  }, [])
 
   // Floor navigation (extracted to hook)
   const {
@@ -99,28 +101,31 @@ function DashboardContent() {
   const orderedRooms = useMemo(() => {
     if (!isRoomEditMode || rawOrderedRooms.length === 0) return rawOrderedRooms
 
-    const freshRoomsByAreaId = new Map(filteredRooms.map(r => [r.areaId, r]))
+    const freshRoomsByAreaId = new Map(filteredRooms.map((r) => [r.areaId, r]))
 
     // Filter out deleted rooms and update data for existing ones
     return rawOrderedRooms
-      .filter(r => freshRoomsByAreaId.has(r.areaId))
-      .map(ordered => freshRoomsByAreaId.get(ordered.areaId) || ordered)
+      .filter((r) => freshRoomsByAreaId.has(r.areaId))
+      .map((ordered) => freshRoomsByAreaId.get(ordered.areaId) || ordered)
   }, [isRoomEditMode, rawOrderedRooms, filteredRooms])
 
   // Display rooms
   const displayRooms = isRoomEditMode ? orderedRooms : filteredRooms
 
   // Handle reorder during drag
-  const handleReorder = useCallback((newOrder: RoomWithDevices[]) => {
-    reorderRooms(newOrder)
-  }, [reorderRooms])
+  const handleReorder = useCallback(
+    (newOrder: RoomWithDevices[]) => {
+      reorderRooms(newOrder)
+    },
+    [reorderRooms]
+  )
 
   // Compute shouldShowScenes based on setting, room count, and whether any room has scenes
   const shouldShowScenes = useMemo(() => {
     if (showScenes === 'off') return false
     // Check if any room on this floor has scenes
-    const floorHasScenes = displayRooms.some(room =>
-      room.devices.some(d => d.entity_id.startsWith('scene.'))
+    const floorHasScenes = displayRooms.some((room) =>
+      room.devices.some((d) => d.entity_id.startsWith('scene.'))
     )
     if (!floorHasScenes) return false
     if (showScenes === 'on') return true
@@ -128,10 +133,13 @@ function DashboardContent() {
     return displayRooms.length < AUTO_SCENES_ROOM_THRESHOLD
   }, [showScenes, displayRooms])
 
-  const handleToggleExpand = useCallback((roomId: string) => {
-    if (isRoomEditMode) return
-    setExpandedRoomId((current) => (current === roomId ? null : roomId))
-  }, [isRoomEditMode])
+  const handleToggleExpand = useCallback(
+    (roomId: string) => {
+      if (isRoomEditMode) return
+      setExpandedRoomId((current) => (current === roomId ? null : roomId))
+    },
+    [isRoomEditMode]
+  )
 
   const handleEnterEditMode = useCallback(() => {
     if (selectedFloorId === '__all_devices__') {
@@ -141,14 +149,21 @@ function DashboardContent() {
     } else {
       enterRoomEdit(filteredRooms)
     }
-  }, [selectedFloorId, expandedRoomId, filteredRooms, enterRoomEdit, enterDeviceEdit, enterAllDevicesEdit])
+  }, [
+    selectedFloorId,
+    expandedRoomId,
+    filteredRooms,
+    enterRoomEdit,
+    enterDeviceEdit,
+    enterAllDevicesEdit,
+  ])
 
   // Save room/floor order to HA before exiting edit mode
   const handleExitEditMode = useCallback(async () => {
     if (isRoomEditMode && orderedRooms.length > 0) {
       const updates = orderedRooms
         .map((room, idx) => ({ areaId: room.areaId, order: (idx + 1) * ORDER_GAP }))
-        .filter(item => item.areaId)
+        .filter((item) => item.areaId)
 
       await Promise.all(updates.map(({ areaId, order }) => setAreaOrder(areaId!, order)))
     }
@@ -158,57 +173,71 @@ function DashboardContent() {
     }
 
     exitEditMode()
-  }, [isRoomEditMode, isFloorEditMode, orderedRooms, orderedFloors, floors, exitEditMode, setAreaOrder])
+  }, [
+    isRoomEditMode,
+    isFloorEditMode,
+    orderedRooms,
+    orderedFloors,
+    floors,
+    exitEditMode,
+    setAreaOrder,
+  ])
 
   // Callback for RoomCard long-press to enter edit mode with room selected
-  const handleEnterEditModeWithSelection = useCallback((roomId: string) => {
-    enterRoomEdit(filteredRooms, roomId)
-  }, [filteredRooms, enterRoomEdit])
+  const handleEnterEditModeWithSelection = useCallback(
+    (roomId: string) => {
+      enterRoomEdit(filteredRooms, roomId)
+    },
+    [filteredRooms, enterRoomEdit]
+  )
 
   // Handle clicks on empty area (gaps between cards)
-  const handleBackgroundClick = useCallback((e: React.MouseEvent) => {
-    const target = e.target as HTMLElement
-    const isInsideCard = target.closest('.card')
+  const handleBackgroundClick = useCallback(
+    (e: React.MouseEvent) => {
+      const target = e.target as HTMLElement
+      const isInsideCard = target.closest('.card')
 
-    if (!isInsideCard) {
-      // Don't exit floor edit mode from background click - it's handled in Header
-      // Don't exit all-devices edit mode from background click - there are no .card elements
-      if (isEditMode && !isFloorEditMode && !isAllDevicesEditMode) {
-        handleExitEditMode()
-        return
+      if (!isInsideCard) {
+        // Don't exit floor edit mode from background click - it's handled in Header
+        // Don't exit all-devices edit mode from background click - there are no .card elements
+        if (isEditMode && !isFloorEditMode && !isAllDevicesEditMode) {
+          handleExitEditMode()
+          return
+        }
+        if (expandedRoomId) {
+          setExpandedRoomId(null)
+        }
       }
-      if (expandedRoomId) {
-        setExpandedRoomId(null)
-      }
-    }
-  }, [expandedRoomId, isEditMode, isFloorEditMode, isAllDevicesEditMode, handleExitEditMode])
+    },
+    [expandedRoomId, isEditMode, isFloorEditMode, isAllDevicesEditMode, handleExitEditMode]
+  )
 
   // Get selected rooms for bulk edit modal
   const selectedRoomsForEdit = useMemo(() => {
     const roomsToSearch = isRoomEditMode ? orderedRooms : filteredRooms
-    return roomsToSearch.filter(r => selectedIds.has(r.id))
+    return roomsToSearch.filter((r) => selectedIds.has(r.id))
   }, [isRoomEditMode, orderedRooms, filteredRooms, selectedIds])
 
   // Get selected devices for bulk edit modal
   const selectedDevicesForEdit = useMemo(() => {
     if (isAllDevicesEditMode) {
       // Find actual entity objects - first try rooms, then fall back to entities map
-      const allDevices = rooms.flatMap(r => r.devices)
+      const allDevices = rooms.flatMap((r) => r.devices)
       return Array.from(selectedIds)
-        .map(id => allDevices.find(d => d.entity_id === id) || entities.get(id))
+        .map((id) => allDevices.find((d) => d.entity_id === id) || entities.get(id))
         .filter((d): d is HAEntity => d !== undefined)
     }
     if (!isDeviceEditMode || !expandedRoomId) return []
-    const expandedRoom = rooms.find(r => r.id === expandedRoomId)
+    const expandedRoom = rooms.find((r) => r.id === expandedRoomId)
     if (!expandedRoom) return []
-    return expandedRoom.devices.filter(d => selectedIds.has(d.entity_id))
+    return expandedRoom.devices.filter((d) => selectedIds.has(d.entity_id))
   }, [isDeviceEditMode, isAllDevicesEditMode, expandedRoomId, rooms, entities, selectedIds])
 
   // Handle edit button click
   const handleEditButtonClick = useCallback(() => {
     // Floor edit mode - open the selected floor's edit modal
     if (isFloorEditMode && editModeSelectedFloorId) {
-      const floor = floors.find(f => f.floor_id === editModeSelectedFloorId)
+      const floor = floors.find((f) => f.floor_id === editModeSelectedFloorId)
       if (floor) {
         setEditingFloor(floor)
       }
@@ -236,17 +265,27 @@ function DashboardContent() {
         openBulkRooms()
       }
     }
-  }, [selectedCount, isDeviceEditMode, isAllDevicesEditMode, isFloorEditMode, editModeSelectedFloorId, floors, selectedDevicesForEdit, selectedRoomsForEdit, openDeviceEdit, openRoomEdit, openBulkDevices, openBulkRooms])
+  }, [
+    selectedCount,
+    isDeviceEditMode,
+    isAllDevicesEditMode,
+    isFloorEditMode,
+    editModeSelectedFloorId,
+    floors,
+    selectedDevicesForEdit,
+    selectedRoomsForEdit,
+    openDeviceEdit,
+    openRoomEdit,
+    openBulkDevices,
+    openBulkRooms,
+  ])
 
   return (
     <div className="min-h-screen min-h-[100dvh] bg-background pt-safe pb-nav">
       {/* Edit mode header bar */}
       <AnimatePresence>
         {isEditMode && (
-          <EditModeHeader
-            onEditClick={handleEditButtonClick}
-            onDone={handleExitEditMode}
-          />
+          <EditModeHeader onEditClick={handleEditButtonClick} onDone={handleExitEditMode} />
         )}
       </AnimatePresence>
 
@@ -299,9 +338,13 @@ function DashboardContent() {
               >
                 {(floorId) => {
                   const floorRooms = getRoomsForFloor(floorId)
-                  const floorShowScenes = showScenes === 'on' ||
-                    (showScenes === 'auto' && floorRooms.length < AUTO_SCENES_ROOM_THRESHOLD &&
-                     floorRooms.some(room => room.devices.some(d => d.entity_id.startsWith('scene.'))))
+                  const floorShowScenes =
+                    showScenes === 'on' ||
+                    (showScenes === 'auto' &&
+                      floorRooms.length < AUTO_SCENES_ROOM_THRESHOLD &&
+                      floorRooms.some((room) =>
+                        room.devices.some((d) => d.entity_id.startsWith('scene.'))
+                      ))
 
                   return (
                     <div className="px-4">
@@ -355,11 +398,7 @@ function DashboardContent() {
         onFloorCreated={handleSelectFloor}
       />
 
-      <DeviceEditModal
-        device={editingDevice}
-        rooms={rooms}
-        onClose={closeDeviceEdit}
-      />
+      <DeviceEditModal device={editingDevice} rooms={rooms} onClose={closeDeviceEdit} />
 
       <BulkEditRoomsModal
         isOpen={showBulkEditRooms}
@@ -382,7 +421,9 @@ function DashboardContent() {
         floor={editingFloor}
         floors={floors}
         rooms={rooms}
-        onClose={() => setEditingFloor(null)}
+        onClose={() => {
+          setEditingFloor(null)
+        }}
         onDeleted={() => {
           // Exit floor edit mode and navigate to first floor
           exitEditMode()

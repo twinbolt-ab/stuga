@@ -87,9 +87,7 @@ export function useHAConnection() {
 
   const getEntitiesByDomain = useCallback(
     (domain: string) => {
-      return Array.from(entities.values()).filter((e) =>
-        e.entity_id.startsWith(`${domain}.`)
-      )
+      return Array.from(entities.values()).filter((e) => e.entity_id.startsWith(`${domain}.`))
     },
     [entities]
   )

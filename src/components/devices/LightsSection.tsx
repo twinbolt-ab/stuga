@@ -44,7 +44,9 @@ function LightItem({
   if (isInEditMode) {
     return (
       <button
-        onClick={() => onToggleSelection(light.entity_id)}
+        onClick={() => {
+          onToggleSelection(light.entity_id)
+        }}
         className={clsx(
           'flex items-center bg-card rounded-lg touch-feedback w-full',
           compact ? 'gap-1 pl-1 pr-0.5' : 'gap-2 pl-2 pr-1'
@@ -52,12 +54,7 @@ function LightItem({
       >
         <SelectionCheckbox isSelected={isSelected} />
         <div className="flex-1 min-w-0">
-          <LightSlider
-            light={light}
-            disabled={true}
-            compact={compact}
-            entityMeta={entityMeta}
-          />
+          <LightSlider light={light} disabled={true} compact={compact} entityMeta={entityMeta} />
         </div>
       </button>
     )
@@ -70,12 +67,7 @@ function LightItem({
       onPointerUp={longPress.onPointerUp}
       onPointerCancel={longPress.onPointerUp}
     >
-      <LightSlider
-        light={light}
-        disabled={false}
-        compact={compact}
-        entityMeta={entityMeta}
-      />
+      <LightSlider light={light} disabled={false} compact={compact} entityMeta={entityMeta} />
     </div>
   )
 }
@@ -98,11 +90,7 @@ export function LightsSection({
   return (
     <div className="mb-4">
       <SectionHeader>{t.devices.lights}</SectionHeader>
-      <div
-        className={clsx(
-          useTwoColumn ? 'grid grid-cols-2 gap-x-2 gap-y-1' : 'space-y-1'
-        )}
-      >
+      <div className={clsx(useTwoColumn ? 'grid grid-cols-2 gap-x-2 gap-y-1' : 'space-y-1')}>
         {lights.map((light) => (
           <LightItem
             key={light.entity_id}

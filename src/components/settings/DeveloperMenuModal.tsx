@@ -1,6 +1,16 @@
 import { useRef, useEffect } from 'react'
 import { motion, AnimatePresence, useMotionValue, PanInfo } from 'framer-motion'
-import { X, Wifi, Home, Building, AlertTriangle, XCircle, LogOut, HelpCircle, Building2 } from 'lucide-react'
+import {
+  X,
+  Wifi,
+  Home,
+  Building,
+  AlertTriangle,
+  XCircle,
+  LogOut,
+  HelpCircle,
+  Building2,
+} from 'lucide-react'
 import { useDevMode, type MockScenario } from '@/lib/hooks/useDevMode'
 import { t } from '@/lib/i18n'
 import { clsx } from 'clsx'
@@ -80,7 +90,7 @@ export function DeveloperMenuModal({ isOpen, onClose }: DeveloperMenuModalProps)
   const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     if (sheetRef.current && 'pointerId' in event) {
       try {
-        sheetRef.current.releasePointerCapture((event as PointerEvent).pointerId)
+        sheetRef.current.releasePointerCapture(event.pointerId)
       } catch {
         // Ignore if pointer capture wasn't held
       }
@@ -165,12 +175,12 @@ export function DeveloperMenuModal({ isOpen, onClose }: DeveloperMenuModalProps)
                   return (
                     <button
                       key={scenario.id}
-                      onClick={() => handleScenarioSelect(scenario.id)}
+                      onClick={() => {
+                        handleScenarioSelect(scenario.id)
+                      }}
                       className={clsx(
                         'w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-colors',
-                        isSelected
-                          ? 'bg-accent/10 ring-2 ring-accent'
-                          : 'hover:bg-border/30'
+                        isSelected ? 'bg-accent/10 ring-2 ring-accent' : 'hover:bg-border/30'
                       )}
                     >
                       <div
@@ -182,17 +192,17 @@ export function DeveloperMenuModal({ isOpen, onClose }: DeveloperMenuModalProps)
                         {scenario.icon}
                       </div>
                       <div className="flex-1 text-left">
-                        <p className={clsx(
-                          'font-medium',
-                          isSelected ? 'text-accent' : 'text-foreground'
-                        )}>
+                        <p
+                          className={clsx(
+                            'font-medium',
+                            isSelected ? 'text-accent' : 'text-foreground'
+                          )}
+                        >
                           {scenario.label}
                         </p>
                         <p className="text-sm text-muted">{scenario.description}</p>
                       </div>
-                      {isSelected && (
-                        <div className="w-2 h-2 rounded-full bg-accent" />
-                      )}
+                      {isSelected && <div className="w-2 h-2 rounded-full bg-accent" />}
                     </button>
                   )
                 })}

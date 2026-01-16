@@ -48,7 +48,10 @@ function InputNumberItem({
   const min = typeof input.attributes.min === 'number' ? input.attributes.min : 0
   const max = typeof input.attributes.max === 'number' ? input.attributes.max : 100
   const step = typeof input.attributes.step === 'number' ? input.attributes.step : 1
-  const unit = typeof input.attributes.unit_of_measurement === 'string' ? input.attributes.unit_of_measurement : ''
+  const unit =
+    typeof input.attributes.unit_of_measurement === 'string'
+      ? input.attributes.unit_of_measurement
+      : ''
   const inputIcon = getEntityIcon(input.entity_id)
 
   const longPress = useLongPress({
@@ -60,7 +63,9 @@ function InputNumberItem({
   if (isInEditMode) {
     return (
       <button
-        onClick={() => onToggleSelection(input.entity_id)}
+        onClick={() => {
+          onToggleSelection(input.entity_id)
+        }}
         className="w-full px-2 py-2 rounded-lg bg-border/30 touch-feedback"
       >
         <div className="flex items-center gap-2">
@@ -130,7 +135,9 @@ function InputNumberItem({
             max={max}
             step={step}
             value={value}
-            onChange={(e) => onNumberChange(input, parseFloat(e.target.value))}
+            onChange={(e) => {
+              onNumberChange(input, parseFloat(e.target.value))
+            }}
             className="w-full h-1.5 bg-border rounded-full appearance-none cursor-pointer accent-accent"
           />
         </div>
@@ -163,8 +170,12 @@ export function InputsSection({
             entity={input}
             isInEditMode={isInEditMode}
             isSelected={isSelected(input.entity_id)}
-            onToggle={() => onBooleanToggle(input)}
-            onToggleSelection={() => onToggleSelection(input.entity_id)}
+            onToggle={() => {
+              onBooleanToggle(input)
+            }}
+            onToggleSelection={() => {
+              onToggleSelection(input.entity_id)
+            }}
             onEnterEditModeWithSelection={() => onEnterEditModeWithSelection?.(input.entity_id)}
             fallbackIcon={<ToggleLeft className="w-5 h-5" />}
             entityMeta={entityMeta?.get(input.entity_id)}

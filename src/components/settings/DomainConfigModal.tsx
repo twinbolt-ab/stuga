@@ -44,7 +44,7 @@ export function DomainConfigModal({ isOpen, onClose }: DomainConfigModalProps) {
     // Release any pointer capture to prevent blocking subsequent touches
     if (sheetRef.current && 'pointerId' in event) {
       try {
-        sheetRef.current.releasePointerCapture((event as PointerEvent).pointerId)
+        sheetRef.current.releasePointerCapture(event.pointerId)
       } catch {
         // Ignore if pointer capture wasn't held
       }
@@ -108,9 +108,7 @@ export function DomainConfigModal({ isOpen, onClose }: DomainConfigModalProps) {
 
             {/* Content */}
             <div className="px-4 pb-safe">
-              <p className="text-sm text-muted mb-4">
-                {t.settings.domains.description}
-              </p>
+              <p className="text-sm text-muted mb-4">{t.settings.domains.description}</p>
 
               {/* Domain toggles */}
               <div className="space-y-2">
@@ -122,7 +120,9 @@ export function DomainConfigModal({ isOpen, onClose }: DomainConfigModalProps) {
                   return (
                     <button
                       key={domain}
-                      onClick={() => toggleDomain(domain)}
+                      onClick={() => {
+                        toggleDomain(domain)
+                      }}
                       className="w-full flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-border/30 transition-colors"
                     >
                       <div
@@ -139,9 +139,7 @@ export function DomainConfigModal({ isOpen, onClose }: DomainConfigModalProps) {
                       <span className="flex-1 text-left font-medium text-foreground">
                         {domainLabel}
                       </span>
-                      <span className="text-sm text-muted font-mono">
-                        {domain}.*
-                      </span>
+                      <span className="text-sm text-muted font-mono">{domain}.*</span>
                     </button>
                   )
                 })}

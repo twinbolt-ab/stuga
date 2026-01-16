@@ -38,9 +38,12 @@ export function RoomExpanded({ room, allRooms, isExpanded }: RoomExpandedProps) 
   const isInEditMode = isDeviceEditMode
 
   // Enter device edit mode and select the device
-  const handleEnterEditModeWithSelection = useCallback((deviceId: string) => {
-    enterDeviceEdit(room.id, deviceId)
-  }, [enterDeviceEdit, room.id])
+  const handleEnterEditModeWithSelection = useCallback(
+    (deviceId: string) => {
+      enterDeviceEdit(room.id, deviceId)
+    },
+    [enterDeviceEdit, room.id]
+  )
 
   // Filter devices by type (only show enabled domains)
   const lights = useMemo(
@@ -105,9 +108,7 @@ export function RoomExpanded({ room, allRooms, isExpanded }: RoomExpandedProps) 
     () =>
       room.devices
         .filter(
-          (d) =>
-            d.entity_id.startsWith('sensor.') &&
-            d.attributes.device_class === 'temperature'
+          (d) => d.entity_id.startsWith('sensor.') && d.attributes.device_class === 'temperature'
         )
         .filter((d) => !isNaN(parseFloat(d.state))),
     [room.devices]
@@ -116,15 +117,11 @@ export function RoomExpanded({ room, allRooms, isExpanded }: RoomExpandedProps) 
     () =>
       room.devices
         .filter(
-          (d) =>
-            d.entity_id.startsWith('sensor.') &&
-            d.attributes.device_class === 'humidity'
+          (d) => d.entity_id.startsWith('sensor.') && d.attributes.device_class === 'humidity'
         )
         .filter((d) => !isNaN(parseFloat(d.state))),
     [room.devices]
   )
-
-
 
   const hasDevices =
     lights.length > 0 ||
@@ -161,10 +158,18 @@ export function RoomExpanded({ room, allRooms, isExpanded }: RoomExpandedProps) 
           delay: isExpanded ? 0.12 : 0,
         }}
         className="pt-3 mt-3 border-t border-border pb-1 px-0.5 -mx-0.5"
-        onPointerDown={(e) => e.stopPropagation()}
-        onPointerMove={(e) => e.stopPropagation()}
-        onTouchStart={(e) => e.stopPropagation()}
-        onTouchMove={(e) => e.stopPropagation()}
+        onPointerDown={(e) => {
+          e.stopPropagation()
+        }}
+        onPointerMove={(e) => {
+          e.stopPropagation()
+        }}
+        onTouchStart={(e) => {
+          e.stopPropagation()
+        }}
+        onTouchMove={(e) => {
+          e.stopPropagation()
+        }}
       >
         <ScenesSection
           scenes={scenes}
@@ -243,9 +248,7 @@ export function RoomExpanded({ room, allRooms, isExpanded }: RoomExpandedProps) 
         />
 
         {/* Empty state */}
-        {!hasDevices && (
-          <p className="text-sm text-muted py-2">{t.rooms.noDevices}</p>
-        )}
+        {!hasDevices && <p className="text-sm text-muted py-2">{t.rooms.noDevices}</p>}
       </motion.div>
     </div>
   )

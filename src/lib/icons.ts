@@ -295,14 +295,14 @@ export function searchIcons(query: string): string[] {
 
   const lowerQuery = query.toLowerCase()
 
-  return COMMON_ICONS.filter(icon => {
+  return COMMON_ICONS.filter((icon) => {
     // Match icon name
     const iconName = icon.replace('mdi:', '').replace(/-/g, ' ')
     if (iconName.includes(lowerQuery)) return true
 
     // Match keywords
     const keywords = ICON_KEYWORDS[icon]
-    if (keywords?.some(kw => kw.includes(lowerQuery))) return true
+    if (keywords?.some((kw) => kw.includes(lowerQuery))) return true
 
     return false
   })

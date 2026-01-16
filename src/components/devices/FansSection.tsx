@@ -57,8 +57,12 @@ function FanItem({
         entity={fan}
         isInEditMode={isInEditMode}
         isSelected={isSelected}
-        onToggle={() => onToggle(fan)}
-        onToggleSelection={() => onToggleSelection(fan.entity_id)}
+        onToggle={() => {
+          onToggle(fan)
+        }}
+        onToggleSelection={() => {
+          onToggleSelection(fan.entity_id)
+        }}
         onEnterEditModeWithSelection={() => onEnterEditModeWithSelection?.(fan.entity_id)}
         fallbackIcon={<Fan className="w-5 h-5" />}
         entityMeta={entityMeta}
@@ -84,16 +88,14 @@ function FanItem({
           isOn ? 'bg-accent/20 text-accent' : 'bg-border/50 text-muted'
         )}
       >
-        {fanIcon ? (
-          <MdiIcon icon={fanIcon} className="w-5 h-5" />
-        ) : (
-          <Fan className="w-5 h-5" />
-        )}
+        {fanIcon ? <MdiIcon icon={fanIcon} className="w-5 h-5" /> : <Fan className="w-5 h-5" />}
       </div>
 
       {/* Clickable area */}
       <button
-        onClick={() => onToggle(fan)}
+        onClick={() => {
+          onToggle(fan)
+        }}
         className="flex-1 flex items-center gap-3 touch-feedback"
       >
         {/* Name */}

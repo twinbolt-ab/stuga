@@ -56,15 +56,19 @@ function ClimateItem({
   if (isInEditMode) {
     return (
       <button
-        onClick={() => onToggleSelection(climate.entity_id)}
+        onClick={() => {
+          onToggleSelection(climate.entity_id)
+        }}
         className="w-full px-3 py-3 rounded-xl bg-border/30 touch-feedback"
       >
         <div className="flex items-center gap-2">
           <SelectionCheckbox isSelected={isSelected} />
-          <div className={clsx(
-            'p-2 rounded-lg transition-colors flex-shrink-0',
-            isOff ? 'bg-border/50 text-muted' : 'bg-accent/20 text-accent'
-          )}>
+          <div
+            className={clsx(
+              'p-2 rounded-lg transition-colors flex-shrink-0',
+              isOff ? 'bg-border/50 text-muted' : 'bg-accent/20 text-accent'
+            )}
+          >
             {climateIcon ? (
               <MdiIcon icon={climateIcon} className="w-5 h-5" />
             ) : (
@@ -145,15 +149,15 @@ function ClimateItem({
           </div>
           <div className="flex items-center gap-3 mt-0.5 text-xs text-muted">
             {currentTemp !== undefined && <span>Current: {currentTemp}°</span>}
-            {targetTemp !== undefined && !isOff && (
-              <span>Target: {targetTemp}°</span>
-            )}
+            {targetTemp !== undefined && !isOff && <span>Target: {targetTemp}°</span>}
           </div>
         </div>
 
         {/* Power toggle */}
         <button
-          onClick={() => onToggle(climate)}
+          onClick={() => {
+            onToggle(climate)
+          }}
           className={clsx(
             'p-2 rounded-lg transition-colors touch-feedback',
             isOff ? 'bg-border/50 text-muted' : 'bg-accent text-white'

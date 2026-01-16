@@ -22,15 +22,13 @@ export function ThemeToggle() {
 
   return (
     <button
-      onClick={() => setTheme(isDark ? 'light' : 'dark')}
+      onClick={() => {
+        setTheme(isDark ? 'light' : 'dark')
+      }}
       className="p-2 rounded-button transition-colors hover:bg-border/50 touch-feedback"
       aria-label={`Switch to ${isDark ? 'light' : 'dark'} theme`}
     >
-      {isDark ? (
-        <Sun className="w-5 h-5 text-muted" />
-      ) : (
-        <Moon className="w-5 h-5 text-muted" />
-      )}
+      {isDark ? <Sun className="w-5 h-5 text-muted" /> : <Moon className="w-5 h-5 text-muted" />}
     </button>
   )
 }

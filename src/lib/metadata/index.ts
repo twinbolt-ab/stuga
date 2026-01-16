@@ -95,7 +95,10 @@ export function getAreaTemperatureSensor(areaId: string): string | undefined {
   return getBackend().getAreaTemperatureSensor(areaId)
 }
 
-export function setAreaTemperatureSensor(areaId: string, sensorEntityId: string | null): Promise<void> {
+export function setAreaTemperatureSensor(
+  areaId: string,
+  sensorEntityId: string | null
+): Promise<void> {
   return getBackend().setAreaTemperatureSensor(areaId, sensorEntityId)
 }
 
@@ -109,4 +112,8 @@ export function setEntityOrder(entityId: string, order: number): Promise<void> {
 
 // Re-export types and utilities
 export type { MetadataStorageMode } from './types'
-export { exportLocalMetadata, importLocalMetadata, clearLocalMetadata } from './local-storage-backend'
+export {
+  exportLocalMetadata,
+  importLocalMetadata,
+  clearLocalMetadata,
+} from './local-storage-backend'

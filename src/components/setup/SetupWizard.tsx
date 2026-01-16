@@ -1,7 +1,18 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Check, Loader2, ExternalLink, AlertCircle, X, Wifi, LogIn, Key } from 'lucide-react'
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Loader2,
+  ExternalLink,
+  AlertCircle,
+  X,
+  Wifi,
+  LogIn,
+  Key,
+} from 'lucide-react'
 import { saveCredentials } from '@/lib/config'
 import { t } from '@/lib/i18n'
 import {
@@ -43,77 +54,81 @@ export function SetupWizard() {
   const [isProbing, setIsProbing] = useState(false)
   const hasProbed = useRef(false)
 
-  
   // Test WebSocket connection to HA (with shorter timeout for probing)
-  const testConnection = useCallback(async (testUrl: string, testToken?: string, timeout = 10000): Promise<boolean> => {
-    return new Promise((resolve) => {
-      try {
-        const wsUrl = testUrl.replace('http', 'ws') + '/api/websocket'
-        const ws = new WebSocket(wsUrl)
-        let resolved = false
+  const testConnection = useCallback(
+    async (testUrl: string, testToken?: string, timeout = 10000): Promise<boolean> => {
+      return new Promise((resolve) => {
+        try {
+          const wsUrl = testUrl.replace('http', 'ws') + '/api/websocket'
+          const ws = new WebSocket(wsUrl)
+          let resolved = false
 
-        const cleanup = () => {
-          if (!resolved) {
-            resolved = true
-            ws.close()
+          const cleanup = () => {
+            if (!resolved) {
+              resolved = true
+              ws.close()
+            }
           }
-        }
 
-        ws.onmessage = (event) => {
-          try {
-            const data = JSON.parse(event.data)
+          ws.onmessage = (event) => {
+            try {
+              const data = JSON.parse(event.data)
 
-            if (data.type === 'auth_required') {
-              if (testToken) {
-                // Authenticate
-                ws.send(JSON.stringify({
-                  type: 'auth',
-                  access_token: testToken,
-                }))
-              } else {
-                // Just testing URL, connection works
+              if (data.type === 'auth_required') {
+                if (testToken) {
+                  // Authenticate
+                  ws.send(
+                    JSON.stringify({
+                      type: 'auth',
+                      access_token: testToken,
+                    })
+                  )
+                } else {
+                  // Just testing URL, connection works
+                  resolved = true
+                  ws.close()
+                  resolve(true)
+                }
+              } else if (data.type === 'auth_ok') {
                 resolved = true
                 ws.close()
                 resolve(true)
+              } else if (data.type === 'auth_invalid') {
+                resolved = true
+                ws.close()
+                resolve(false)
               }
-            } else if (data.type === 'auth_ok') {
-              resolved = true
-              ws.close()
-              resolve(true)
-            } else if (data.type === 'auth_invalid') {
-              resolved = true
-              ws.close()
-              resolve(false)
+            } catch (e) {
+              logger.warn('SetupWizard', 'WebSocket message parse error:', e)
             }
-          } catch (e) {
-            logger.warn('SetupWizard', 'WebSocket message parse error:', e)
           }
-        }
 
-        ws.onerror = () => {
-          cleanup()
-          resolve(false)
-        }
-
-        ws.onclose = () => {
-          if (!resolved) {
-            resolve(false)
-          }
-        }
-
-        // Timeout
-        setTimeout(() => {
-          if (!resolved) {
+          ws.onerror = () => {
             cleanup()
             resolve(false)
           }
-        }, timeout)
-      } catch (e) {
-        logger.warn('SetupWizard', 'Connection test failed:', e)
-        resolve(false)
-      }
-    })
-  }, [])
+
+          ws.onclose = () => {
+            if (!resolved) {
+              resolve(false)
+            }
+          }
+
+          // Timeout
+          setTimeout(() => {
+            if (!resolved) {
+              cleanup()
+              resolve(false)
+            }
+          }, timeout)
+        } catch (e) {
+          logger.warn('SetupWizard', 'Connection test failed:', e)
+          resolve(false)
+        }
+      })
+    },
+    []
+  )
 
   // Probe common URLs when entering URL step
   const probeUrls = useCallback(async () => {
@@ -122,7 +137,7 @@ export function SetupWizard() {
     setIsProbing(true)
 
     // Initialize suggestions with checking status
-    const initialSuggestions = COMMON_URLS.map(u => ({
+    const initialSuggestions = COMMON_URLS.map((u) => ({
       ...u,
       status: 'checking' as UrlStatus,
     }))
@@ -140,7 +155,7 @@ export function SetupWizard() {
     setIsProbing(false)
 
     // Auto-fill the first successful URL
-    const firstSuccess = results.find(r => r.status === 'success')
+    const firstSuccess = results.find((r) => r.status === 'success')
     if (firstSuccess && !url) {
       setUrl(firstSuccess.url)
     }
@@ -217,7 +232,11 @@ export function SetupWizard() {
           })
 
           // Store the tokens
-          logger.debug('OAuth', 'HTTPS response received, has access_token:', !!response.access_token)
+          logger.debug(
+            'OAuth',
+            'HTTPS response received, has access_token:',
+            !!response.access_token
+          )
           if (response.access_token) {
             logger.debug('OAuth', 'Storing credentials for URL:', url)
             await storeOAuthCredentials(url, {
@@ -399,16 +418,14 @@ export function SetupWizard() {
                   height={180}
                   className="mx-auto mb-6"
                 />
-                <h1 className="text-3xl font-bold text-foreground mb-2">
-                  {t.setup.welcome.title}
-                </h1>
-                <p className="text-muted">
-                  {t.setup.welcome.subtitle}
-                </p>
+                <h1 className="text-3xl font-bold text-foreground mb-2">{t.setup.welcome.title}</h1>
+                <p className="text-muted">{t.setup.welcome.subtitle}</p>
               </div>
 
               <button
-                onClick={() => setStep('url')}
+                onClick={() => {
+                  setStep('url')
+                }}
                 className="w-full py-4 px-6 bg-accent text-white rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-accent/90 transition-colors touch-feedback"
               >
                 {t.setup.welcome.getStarted}
@@ -427,16 +444,15 @@ export function SetupWizard() {
               exit="exit"
               transition={{ duration: 0.2 }}
             >
-              <h2 className="text-2xl font-bold text-foreground mb-2">
-                {t.setup.url.title}
-              </h2>
-              <p className="text-muted mb-6">
-                {t.setup.url.hint}
-              </p>
+              <h2 className="text-2xl font-bold text-foreground mb-2">{t.setup.url.title}</h2>
+              <p className="text-muted mb-6">{t.setup.url.hint}</p>
 
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="ha-url" className="block text-sm font-medium text-foreground mb-2">
+                  <label
+                    htmlFor="ha-url"
+                    className="block text-sm font-medium text-foreground mb-2"
+                  >
                     {t.setup.url.label}
                   </label>
                   <input
@@ -470,13 +486,14 @@ export function SetupWizard() {
                         disabled={suggestion.status === 'checking'}
                         className={`
                           flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm transition-all
-                          ${url === suggestion.url
-                            ? 'bg-accent/20 ring-2 ring-accent'
-                            : suggestion.status === 'success'
-                            ? 'bg-green-500/10 hover:bg-green-500/20 ring-1 ring-green-500/30'
-                            : suggestion.status === 'failed'
-                            ? 'bg-border/30 text-muted'
-                            : 'bg-border/50'
+                          ${
+                            url === suggestion.url
+                              ? 'bg-accent/20 ring-2 ring-accent'
+                              : suggestion.status === 'success'
+                                ? 'bg-green-500/10 hover:bg-green-500/20 ring-1 ring-green-500/30'
+                                : suggestion.status === 'failed'
+                                  ? 'bg-border/30 text-muted'
+                                  : 'bg-border/50'
                           }
                         `}
                       >
@@ -496,7 +513,9 @@ export function SetupWizard() {
                             <Wifi className="w-4 h-4 text-muted" />
                           )}
                         </div>
-                        <span className={`truncate ${suggestion.status === 'success' ? 'text-foreground font-medium' : ''}`}>
+                        <span
+                          className={`truncate ${suggestion.status === 'success' ? 'text-foreground font-medium' : ''}`}
+                        >
                           {suggestion.label}
                         </span>
                       </button>
@@ -513,7 +532,9 @@ export function SetupWizard() {
 
                 <div className="flex gap-3">
                   <button
-                    onClick={() => setStep('welcome')}
+                    onClick={() => {
+                      setStep('welcome')
+                    }}
                     disabled={isLoading}
                     aria-label={t.common.back}
                     className="py-4 px-4 bg-card border border-border text-foreground rounded-xl font-medium flex items-center justify-center hover:bg-border/30 transition-colors touch-feedback disabled:opacity-50"
@@ -589,7 +610,9 @@ export function SetupWizard() {
 
                 {/* Manual Token - Alternative */}
                 <button
-                  onClick={() => setStep('token')}
+                  onClick={() => {
+                    setStep('token')
+                  }}
                   disabled={isLoading}
                   className="w-full p-4 bg-card border border-border rounded-xl flex items-start gap-4 hover:bg-border/30 transition-colors touch-feedback disabled:opacity-50"
                 >
@@ -616,7 +639,9 @@ export function SetupWizard() {
 
                 <div className="flex gap-3 mt-2">
                   <button
-                    onClick={() => setStep('url')}
+                    onClick={() => {
+                      setStep('url')
+                    }}
                     disabled={isLoading}
                     aria-label={t.common.back}
                     className="py-4 px-4 bg-card border border-border text-foreground rounded-xl font-medium flex items-center justify-center hover:bg-border/30 transition-colors touch-feedback disabled:opacity-50"
@@ -638,9 +663,7 @@ export function SetupWizard() {
               exit="exit"
               transition={{ duration: 0.2 }}
             >
-              <h2 className="text-2xl font-bold text-foreground mb-2">
-                {t.setup.token.title}
-              </h2>
+              <h2 className="text-2xl font-bold text-foreground mb-2">{t.setup.token.title}</h2>
               <p className="text-muted mb-4">
                 <a
                   href={`${url}/profile/security`}
@@ -650,8 +673,8 @@ export function SetupWizard() {
                 >
                   {t.setup.token.goToProfile}
                   <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-                {' '}{t.setup.token.hint}
+                </a>{' '}
+                {t.setup.token.hint}
               </p>
               <p className="text-sm text-muted bg-card border border-border rounded-lg px-3 py-2 mb-6">
                 {t.setup.token.instructions}
@@ -659,7 +682,10 @@ export function SetupWizard() {
 
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="ha-token" className="block text-sm font-medium text-foreground mb-2">
+                  <label
+                    htmlFor="ha-token"
+                    className="block text-sm font-medium text-foreground mb-2"
+                  >
                     {t.setup.token.label}
                   </label>
                   <textarea
@@ -685,7 +711,9 @@ export function SetupWizard() {
 
                 <div className="flex gap-3">
                   <button
-                    onClick={() => setStep('auth-method')}
+                    onClick={() => {
+                      setStep('auth-method')
+                    }}
                     disabled={isLoading}
                     aria-label={t.common.back}
                     className="py-4 px-4 bg-card border border-border text-foreground rounded-xl font-medium flex items-center justify-center hover:bg-border/30 transition-colors touch-feedback disabled:opacity-50"
@@ -732,9 +760,7 @@ export function SetupWizard() {
                 <h2 className="text-2xl font-bold text-foreground mb-2">
                   {t.setup.complete.title}
                 </h2>
-                <p className="text-muted">
-                  {t.setup.complete.subtitle}
-                </p>
+                <p className="text-muted">{t.setup.complete.subtitle}</p>
               </div>
 
               <button

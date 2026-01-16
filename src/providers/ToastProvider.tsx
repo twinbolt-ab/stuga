@@ -22,23 +22,26 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     setToasts((prev) => prev.filter((t) => t.id !== id))
   }, [])
 
-  const showError = useCallback((message: string) => {
-    // Prevent duplicate messages
-    setToasts((prev) => {
-      if (prev.some((t) => t.message === message)) {
-        return prev
-      }
+  const showError = useCallback(
+    (message: string) => {
+      // Prevent duplicate messages
+      setToasts((prev) => {
+        if (prev.some((t) => t.message === message)) {
+          return prev
+        }
 
-      const id = `toast-${++toastIdRef.current}`
+        const id = `toast-${++toastIdRef.current}`
 
-      // Auto-dismiss after duration
-      setTimeout(() => {
-        dismissToast(id)
-      }, TOAST_DURATION)
+        // Auto-dismiss after duration
+        setTimeout(() => {
+          dismissToast(id)
+        }, TOAST_DURATION)
 
-      return [...prev, { id, message }]
-    })
-  }, [dismissToast])
+        return [...prev, { id, message }]
+      })
+    },
+    [dismissToast]
+  )
 
   return (
     <ToastContext.Provider value={{ showError }}>

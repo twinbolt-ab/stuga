@@ -34,26 +34,28 @@ export function RoomCard({
   onToggleExpand,
   onEnterEditModeWithSelection,
 }: RoomCardProps) {
-  const { setRoomBrightness, getAverageBrightness, toggleRoomLights, getLightBrightnessMap, calculateRelativeBrightness } = useLightControl()
+  const {
+    setRoomBrightness,
+    getAverageBrightness,
+    toggleRoomLights,
+    getLightBrightnessMap,
+    calculateRelativeBrightness,
+  } = useLightControl()
   const { callService } = useHAConnection()
 
   // Get edit mode state from context
-  const {
-    mode,
-    isRoomEditMode,
-    isDeviceEditMode,
-    isSelected,
-    toggleSelection,
-    exitEditMode,
-  } = useEditMode()
+  const { mode, isRoomEditMode, isDeviceEditMode, isSelected, toggleSelection, exitEditMode } =
+    useEditMode()
 
   // Derive edit mode states
   const isInEditMode = isRoomEditMode
   const isThisRoomSelected = isSelected(room.id)
-  const isDeviceInEditMode = isDeviceEditMode && mode.type === 'edit-devices' && mode.roomId === room.id
+  const isDeviceInEditMode =
+    isDeviceEditMode && mode.type === 'edit-devices' && mode.roomId === room.id
 
   // Check if this room should be blurred (another room is being edited)
-  const isOtherRoomInDeviceEdit = isDeviceEditMode && mode.type === 'edit-devices' && mode.roomId !== room.id
+  const isOtherRoomInDeviceEdit =
+    isDeviceEditMode && mode.type === 'edit-devices' && mode.roomId !== room.id
   const shouldBlur = isOtherRoomInDeviceEdit
 
   // Delayed width state for sequenced animation
@@ -66,8 +68,12 @@ export function RoomCard({
       setIsWidthExpanded(true)
     } else {
       // Collapse: delay width change until after height animation
-      const timer = setTimeout(() => setIsWidthExpanded(false), 200)
-      return () => clearTimeout(timer)
+      const timer = setTimeout(() => {
+        setIsWidthExpanded(false)
+      }, 200)
+      return () => {
+        clearTimeout(timer)
+      }
     }
   }, [isExpanded])
 
@@ -91,10 +97,13 @@ export function RoomCard({
   const showScenesRow = shouldShowScenes && !isExpanded
 
   // Scene activation handler
-  const handleSceneActivate = useCallback((scene: HAEntity, e: React.MouseEvent) => {
-    e.stopPropagation()
-    callService('scene', 'turn_on', { entity_id: scene.entity_id })
-  }, [callService])
+  const handleSceneActivate = useCallback(
+    (scene: HAEntity, e: React.MouseEvent) => {
+      e.stopPropagation()
+      callService('scene', 'turn_on', { entity_id: scene.entity_id })
+    },
+    [callService]
+  )
 
   // Refs
   const cardRef = useRef<HTMLDivElement>(null)
@@ -169,22 +178,31 @@ export function RoomCard({
   }, [isExpanded])
 
   // Combined pointer handlers (long-press + brightness gesture)
-  const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    longPress.onPointerDown(e)
-    brightnessGesture.onPointerDown(e)
-  }, [longPress, brightnessGesture])
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      longPress.onPointerDown(e)
+      brightnessGesture.onPointerDown(e)
+    },
+    [longPress, brightnessGesture]
+  )
 
-  const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    longPress.onPointerMove(e)
-    brightnessGesture.onPointerMove(e)
-  }, [longPress, brightnessGesture])
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      longPress.onPointerMove(e)
+      brightnessGesture.onPointerMove(e)
+    },
+    [longPress, brightnessGesture]
+  )
 
-  const handlePointerUp = useCallback((e: React.PointerEvent) => {
-    longPress.onPointerUp()
-    if (!longPress.didLongPress) {
-      brightnessGesture.onPointerUp(e)
-    }
-  }, [longPress, brightnessGesture])
+  const handlePointerUp = useCallback(
+    (e: React.PointerEvent) => {
+      longPress.onPointerUp()
+      if (!longPress.didLongPress) {
+        brightnessGesture.onPointerUp(e)
+      }
+    },
+    [longPress, brightnessGesture]
+  )
 
   // Card click - toggle lights (or exit edit mode if blurred)
   const handleCardClick = useCallback(() => {
@@ -203,17 +221,32 @@ export function RoomCard({
     lightsOnState.setOptimistic(willTurnOn)
     brightnessState.setOptimistic(willTurnOn ? 100 : 0)
     toggleRoomLights(lights, switches)
-  }, [hasControllableDevices, hasDevicesOn, isInEditMode, isExpanded, shouldBlur, exitEditMode, lightsOnState, brightnessState, toggleRoomLights, lights, switches])
+  }, [
+    hasControllableDevices,
+    hasDevicesOn,
+    isInEditMode,
+    isExpanded,
+    shouldBlur,
+    exitEditMode,
+    lightsOnState,
+    brightnessState,
+    toggleRoomLights,
+    lights,
+    switches,
+  ])
 
   // Header click - collapse when expanded
-  const handleHeaderClick = useCallback((e: React.MouseEvent) => {
-    if (isInEditMode || brightnessGesture.didDragRef.current) return
-    if (isExpanded) {
-      e.stopPropagation()
-      if (isDeviceInEditMode) exitEditMode()
-      onToggleExpand(room.id)
-    }
-  }, [isInEditMode, isExpanded, isDeviceInEditMode, exitEditMode, onToggleExpand, room.id])
+  const handleHeaderClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (isInEditMode || brightnessGesture.didDragRef.current) return
+      if (isExpanded) {
+        e.stopPropagation()
+        if (isDeviceInEditMode) exitEditMode()
+        onToggleExpand(room.id)
+      }
+    },
+    [isInEditMode, isExpanded, isDeviceInEditMode, exitEditMode, onToggleExpand, room.id]
+  )
 
   const handleToggleSelection = useCallback(() => {
     toggleSelection(room.id)
@@ -266,10 +299,26 @@ export function RoomCard({
             isExpanded ? '-mx-4 px-2 mb-2 py-1.5 -mt-4 pt-3 cursor-ew-resize' : '-ml-2 mb-1'
           )}
           onClick={handleHeaderClick}
-          onPointerDown={isExpanded && hasLights && !isInEditMode ? expandedBrightnessGesture.onPointerDown : undefined}
-          onPointerMove={isExpanded && hasLights && !isInEditMode ? expandedBrightnessGesture.onPointerMove : undefined}
-          onPointerUp={isExpanded && hasLights && !isInEditMode ? expandedBrightnessGesture.onPointerUp : undefined}
-          onPointerCancel={isExpanded && hasLights && !isInEditMode ? expandedBrightnessGesture.onPointerUp : undefined}
+          onPointerDown={
+            isExpanded && hasLights && !isInEditMode
+              ? expandedBrightnessGesture.onPointerDown
+              : undefined
+          }
+          onPointerMove={
+            isExpanded && hasLights && !isInEditMode
+              ? expandedBrightnessGesture.onPointerMove
+              : undefined
+          }
+          onPointerUp={
+            isExpanded && hasLights && !isInEditMode
+              ? expandedBrightnessGesture.onPointerUp
+              : undefined
+          }
+          onPointerCancel={
+            isExpanded && hasLights && !isInEditMode
+              ? expandedBrightnessGesture.onPointerUp
+              : undefined
+          }
           style={isExpanded && hasLights ? { touchAction: 'pan-y' } : undefined}
         >
           {/* Brightness fill background for expanded card */}
@@ -299,13 +348,24 @@ export function RoomCard({
           {isInEditMode && (
             <div className="flex items-center gap-1 mr-1">
               <button
-                onClick={(e) => { e.stopPropagation(); handleToggleSelection() }}
-                onMouseDown={(e) => e.stopPropagation()}
-                onTouchStart={(e) => e.stopPropagation()}
-                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleToggleSelection()
+                }}
+                onMouseDown={(e) => {
+                  e.stopPropagation()
+                }}
+                onTouchStart={(e) => {
+                  e.stopPropagation()
+                }}
+                onPointerDown={(e) => {
+                  e.stopPropagation()
+                }}
                 className={clsx(
                   'w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 transition-colors border',
-                  isThisRoomSelected ? 'bg-accent text-white border-accent' : 'bg-background border-border'
+                  isThisRoomSelected
+                    ? 'bg-accent text-white border-accent'
+                    : 'bg-background border-border'
                 )}
               >
                 {isThisRoomSelected && <Check className="w-3 h-3" />}
@@ -351,23 +411,25 @@ export function RoomCard({
                 <Thermometer className="w-3.5 h-3.5" />
                 <span>{room.temperature.toFixed(1)}°</span>
               </span>
-            ) : hasControllableDevices && (
-              <span className="flex items-center gap-1">
-                {hasDevicesOn ? (
-                  <Lightbulb className="w-3.5 h-3.5 text-accent" />
-                ) : (
-                  <LightbulbOff className="w-3.5 h-3.5 text-muted" />
-                )}
-                <span>
-                  {hasDevicesOn
-                    ? interpolate(t.devices.lightsOn, {
-                        count: lightsOnState.isOptimistic
-                          ? lights.length + switches.length
-                          : room.lightsOn + switches.filter(s => s.state === 'on').length
-                      })
-                    : t.devices.lightsOff}
+            ) : (
+              hasControllableDevices && (
+                <span className="flex items-center gap-1">
+                  {hasDevicesOn ? (
+                    <Lightbulb className="w-3.5 h-3.5 text-accent" />
+                  ) : (
+                    <LightbulbOff className="w-3.5 h-3.5 text-muted" />
+                  )}
+                  <span>
+                    {hasDevicesOn
+                      ? interpolate(t.devices.lightsOn, {
+                          count: lightsOnState.isOptimistic
+                            ? lights.length + switches.length
+                            : room.lightsOn + switches.filter((s) => s.state === 'on').length,
+                        })
+                      : t.devices.lightsOff}
+                  </span>
                 </span>
-              </span>
+              )
             )}
           </div>
 
@@ -390,9 +452,7 @@ export function RoomCard({
         </div>
 
         {/* Expanded content - always rendered for height measurement */}
-        {!isInEditMode && (
-          <RoomExpanded room={room} allRooms={allRooms} isExpanded={isExpanded} />
-        )}
+        {!isInEditMode && <RoomExpanded room={room} allRooms={allRooms} isExpanded={isExpanded} />}
       </div>
     </>
   )

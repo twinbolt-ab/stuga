@@ -104,9 +104,7 @@ export default function AuthCallback() {
             <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">
               <Check className="w-8 h-8 text-green-500" />
             </div>
-            <h2 className="text-xl font-semibold text-foreground">
-              {t.setup.complete.title}
-            </h2>
+            <h2 className="text-xl font-semibold text-foreground">{t.setup.complete.title}</h2>
             <p className="text-muted">
               {t.setup.oauth?.redirecting || 'Redirecting to dashboard...'}
             </p>

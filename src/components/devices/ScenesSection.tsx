@@ -55,7 +55,9 @@ function SceneItem({
   if (isInEditMode) {
     return (
       <button
-        onClick={() => onToggleSelection(scene.entity_id)}
+        onClick={() => {
+          onToggleSelection(scene.entity_id)
+        }}
         className={clsx(
           'px-3 py-1.5 rounded-full text-sm font-medium',
           'bg-border/50 hover:bg-accent/20 hover:text-accent',
@@ -70,19 +72,16 @@ function SceneItem({
           <Sparkles className="w-3.5 h-3.5" />
         )}
         {displayName(scene)}
-        {entityMeta && (
-          <EntityBadges
-            isHidden={entityMeta.isHidden}
-            hasRoom={entityMeta.hasRoom}
-          />
-        )}
+        {entityMeta && <EntityBadges isHidden={entityMeta.isHidden} hasRoom={entityMeta.hasRoom} />}
       </button>
     )
   }
 
   return (
     <button
-      onClick={() => onActivate(scene)}
+      onClick={() => {
+        onActivate(scene)
+      }}
       className={clsx(
         'px-3 py-1.5 rounded-full text-sm font-medium',
         'bg-border/50 hover:bg-accent/20 hover:text-accent',
@@ -100,12 +99,7 @@ function SceneItem({
         <Sparkles className="w-3.5 h-3.5" />
       )}
       {displayName(scene)}
-      {entityMeta && (
-        <EntityBadges
-          isHidden={entityMeta.isHidden}
-          hasRoom={entityMeta.hasRoom}
-        />
-      )}
+      {entityMeta && <EntityBadges isHidden={entityMeta.isHidden} hasRoom={entityMeta.hasRoom} />}
     </button>
   )
 }

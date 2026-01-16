@@ -26,7 +26,7 @@ export function EditModeInfoModal({ isOpen, onClose, onConfirm }: EditModeInfoMo
   const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     if (sheetRef.current && 'pointerId' in event) {
       try {
-        sheetRef.current.releasePointerCapture((event as PointerEvent).pointerId)
+        sheetRef.current.releasePointerCapture(event.pointerId)
       } catch {
         // Ignore if pointer capture wasn't held
       }
@@ -77,9 +77,7 @@ export function EditModeInfoModal({ isOpen, onClose, onConfirm }: EditModeInfoMo
 
             {/* Header */}
             <div className="flex items-center justify-between px-4 pb-4">
-              <h2 className="text-lg font-semibold text-foreground">
-                {t.editMode.infoTitle}
-              </h2>
+              <h2 className="text-lg font-semibold text-foreground">{t.editMode.infoTitle}</h2>
               <button
                 onClick={onClose}
                 className="p-2 -mr-2 rounded-full hover:bg-border/50 transition-colors"

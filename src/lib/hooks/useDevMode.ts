@@ -1,7 +1,14 @@
 import { useEffect, useCallback, useSyncExternalStore } from 'react'
 import { STORAGE_KEYS } from '../constants'
 
-export type MockScenario = 'none' | 'empty' | 'minimal' | 'complex' | 'edge-cases' | 'unassigned' | 'apartment'
+export type MockScenario =
+  | 'none'
+  | 'empty'
+  | 'minimal'
+  | 'complex'
+  | 'edge-cases'
+  | 'unassigned'
+  | 'apartment'
 
 interface DevModeState {
   isDevMode: boolean
@@ -15,14 +22,15 @@ const defaultState: DevModeState = {
 
 // Shared state store
 let currentState: DevModeState = defaultState
-let listeners: Set<() => void> = new Set()
+const listeners = new Set<() => void>()
 
 function loadState(): DevModeState {
   if (typeof window === 'undefined') return defaultState
 
   try {
     const isDevMode = localStorage.getItem(STORAGE_KEYS.DEV_MODE) === 'true'
-    const activeMockScenario = (localStorage.getItem(STORAGE_KEYS.MOCK_SCENARIO) as MockScenario) || 'none'
+    const activeMockScenario =
+      (localStorage.getItem(STORAGE_KEYS.MOCK_SCENARIO) as MockScenario) || 'none'
     return { isDevMode, activeMockScenario }
   } catch {
     return defaultState
@@ -41,7 +49,9 @@ function saveState(state: DevModeState) {
 }
 
 function notifyListeners() {
-  listeners.forEach(listener => listener())
+  listeners.forEach((listener) => {
+    listener()
+  })
 }
 
 function subscribe(listener: () => void) {

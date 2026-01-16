@@ -58,9 +58,7 @@ function DismissableHint({ show, storageKey, message }: DismissableHintProps) {
             <div className="p-1.5 rounded-lg bg-accent/20 text-accent flex-shrink-0">
               <Lightbulb className="w-4 h-4" />
             </div>
-            <p className="text-sm text-muted flex-1 pt-0.5">
-              {message}
-            </p>
+            <p className="text-sm text-muted flex-1 pt-0.5">{message}</p>
             <button
               onClick={handleDismiss}
               className="p-1 rounded-lg text-muted hover:text-foreground hover:bg-border/50 transition-colors flex-shrink-0"
@@ -94,11 +92,5 @@ export function StructureHint({ type, show }: StructureHintProps) {
 
   const { storageKey, message } = config[type]
 
-  return (
-    <DismissableHint
-      show={show}
-      storageKey={storageKey}
-      message={message}
-    />
-  )
+  return <DismissableHint show={show} storageKey={storageKey} message={message} />
 }

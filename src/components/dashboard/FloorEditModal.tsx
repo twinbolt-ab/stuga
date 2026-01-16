@@ -19,7 +19,13 @@ interface FloorEditModalProps {
   onDeleted?: () => void
 }
 
-export function FloorEditModal({ floor, floors = [], rooms = [], onClose, onDeleted }: FloorEditModalProps) {
+export function FloorEditModal({
+  floor,
+  floors = [],
+  rooms = [],
+  onClose,
+  onDeleted,
+}: FloorEditModalProps) {
   const [name, setName] = useState('')
   const [icon, setIcon] = useState('')
   const [isSaving, setIsSaving] = useState(false)
@@ -33,7 +39,7 @@ export function FloorEditModal({ floor, floors = [], rooms = [], onClose, onDele
       setName(floor.name)
       setIcon(floor.icon || '')
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [floorId])
 
   const handleSave = async () => {
@@ -55,26 +61,14 @@ export function FloorEditModal({ floor, floors = [], rooms = [], onClose, onDele
   }
 
   return (
-    <EditModal
-      isOpen={!!floor}
-      onClose={onClose}
-      title={t.edit.floor.title}
-      compact
-    >
+    <EditModal isOpen={!!floor} onClose={onClose} title={t.edit.floor.title} compact>
       <div className="space-y-4">
         <FormField label={t.edit.floor.name}>
-          <TextInput
-            value={name}
-            onChange={setName}
-            placeholder={floor?.name}
-          />
+          <TextInput value={name} onChange={setName} placeholder={floor?.name} />
         </FormField>
 
         <FormField label={t.edit.floor.icon}>
-          <IconPickerField
-            value={icon}
-            onChange={setIcon}
-          />
+          <IconPickerField value={icon} onChange={setIcon} />
         </FormField>
 
         <div className="flex gap-3 pt-4">
@@ -95,7 +89,9 @@ export function FloorEditModal({ floor, floors = [], rooms = [], onClose, onDele
 
         {/* Delete button */}
         <button
-          onClick={() => setShowDeleteDialog(true)}
+          onClick={() => {
+            setShowDeleteDialog(true)
+          }}
           className="w-full mt-4 py-3 px-4 rounded-xl border border-red-500/30 text-red-500 font-medium hover:bg-red-500/10 transition-colors flex items-center justify-center gap-2"
         >
           <Trash2 className="w-4 h-4" />
@@ -107,7 +103,9 @@ export function FloorEditModal({ floor, floors = [], rooms = [], onClose, onDele
         floor={showDeleteDialog ? floor : null}
         floors={floors}
         rooms={rooms}
-        onClose={() => setShowDeleteDialog(false)}
+        onClose={() => {
+          setShowDeleteDialog(false)
+        }}
         onDeleted={() => {
           onClose()
           onDeleted?.()

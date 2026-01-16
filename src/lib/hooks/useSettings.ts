@@ -17,7 +17,7 @@ const defaultSettings: Settings = {
 
 // Shared settings store
 let currentSettings: Settings = defaultSettings
-let listeners: Set<() => void> = new Set()
+const listeners = new Set<() => void>()
 
 function loadSettings(): Settings {
   if (typeof window === 'undefined') return defaultSettings
@@ -44,7 +44,9 @@ function saveSettings(settings: Settings) {
 }
 
 function notifyListeners() {
-  listeners.forEach(listener => listener())
+  listeners.forEach((listener) => {
+    listener()
+  })
 }
 
 function subscribe(listener: () => void) {

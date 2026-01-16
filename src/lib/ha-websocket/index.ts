@@ -8,7 +8,14 @@
  *   import { configure, connect, getEntities, callService } from '@/lib/ha-websocket'
  */
 
-import type { HAEntity, WebSocketMessage, HALabel, HAFloor, AreaRegistryEntry, EntityRegistryEntry } from '@/types/ha'
+import type {
+  HAEntity,
+  WebSocketMessage,
+  HALabel,
+  HAFloor,
+  AreaRegistryEntry,
+  EntityRegistryEntry,
+} from '@/types/ha'
 import { createInitialState } from './types'
 import type { MessageHandler, ConnectionHandler, RegistryHandler } from './types'
 import * as conn from './connection'
@@ -48,7 +55,13 @@ function handleMessage(message: WebSocketMessage): void {
         if (!message.success && message.error) {
           logger.error('HA WS', 'Command failed:', message.error.code, message.error.message)
         }
-        router.handlePendingCallback(state, message.id, message.success ?? false, message.result, message.error)
+        router.handlePendingCallback(
+          state,
+          message.id,
+          message.success ?? false,
+          message.result,
+          message.error
+        )
       }
       if (message.success && message.id) {
         registry.handleRegistryResult(state, message.id, message.result)
@@ -65,16 +78,23 @@ function handleMessage(message: WebSocketMessage): void {
 }
 
 // Connection
-export const configure = (url: string, token: string, useOAuth = false) =>
+export const configure = (url: string, token: string, useOAuth = false) => {
   conn.configure(state, url, token, useOAuth)
-export const connect = () => conn.connect(state, handleMessage)
-export const disconnect = () => conn.disconnect(state)
+}
+export const connect = () => {
+  conn.connect(state, handleMessage)
+}
+export const disconnect = () => {
+  conn.disconnect(state)
+}
 export const isConnected = () => conn.isConnected(state)
 
 // Subscriptions
 export const onMessage = (handler: MessageHandler) => router.addMessageHandler(state, handler)
-export const onConnection = (handler: ConnectionHandler) => router.addConnectionHandler(state, handler)
-export const onRegistryUpdate = (handler: RegistryHandler) => router.addRegistryHandler(state, handler)
+export const onConnection = (handler: ConnectionHandler) =>
+  router.addConnectionHandler(state, handler)
+export const onRegistryUpdate = (handler: RegistryHandler) =>
+  router.addRegistryHandler(state, handler)
 
 // Entities
 export const getEntities = () => entitySvc.getEntities(state)
@@ -96,22 +116,26 @@ export const setEntityHidden = (entityId: string, hidden: boolean) =>
 export const deleteScene = (entityId: string) => entitySvc.deleteScene(state, entityId)
 export const callService = (domain: string, service: string, data?: Record<string, unknown>) =>
   entitySvc.callService(state, domain, service, data)
-export const setOptimisticState = (entityId: string, newState: string, brightness?: number) =>
+export const setOptimisticState = (entityId: string, newState: string, brightness?: number) => {
   entitySvc.setOptimisticState(state, entityId, newState, brightness)
+}
 
 // Areas
 export const getAreaRegistry = () => state.areaRegistry
 export const getAreaIcon = (areaId: string) => areaSvc.getAreaIcon(state, areaId)
 export const getAreaOrder = (areaId: string) => areaSvc.getAreaOrder(state, areaId)
-export const setAreaOrder = (areaId: string, order: number) => areaSvc.setAreaOrder(state, areaId, order)
-export const getAreaTemperatureSensor = (areaId: string) => areaSvc.getAreaTemperatureSensor(state, areaId)
+export const setAreaOrder = (areaId: string, order: number) =>
+  areaSvc.setAreaOrder(state, areaId, order)
+export const getAreaTemperatureSensor = (areaId: string) =>
+  areaSvc.getAreaTemperatureSensor(state, areaId)
 export const setAreaTemperatureSensor = (areaId: string, sensorEntityId: string | null) =>
   areaSvc.setAreaTemperatureSensor(state, areaId, sensorEntityId)
 export const updateArea = (
   areaId: string,
   updates: { name?: string; floor_id?: string | null; icon?: string | null }
 ) => areaSvc.updateArea(state, areaId, updates)
-export const createArea = (name: string, floorId?: string) => areaSvc.createArea(state, name, floorId)
+export const createArea = (name: string, floorId?: string) =>
+  areaSvc.createArea(state, name, floorId)
 export const deleteArea = (areaId: string) => areaSvc.deleteArea(state, areaId)
 
 // Floors

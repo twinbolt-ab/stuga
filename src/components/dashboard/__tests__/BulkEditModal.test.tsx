@@ -50,10 +50,11 @@ describe('BulkEditDevicesModal', () => {
   async function selectComboBoxOption(label: string) {
     // Click the combobox button to open
     const buttons = screen.getAllByRole('button')
-    const comboboxButton = buttons.find(btn =>
-      btn.textContent?.includes('Select') ||
-      btn.textContent?.includes('No change') ||
-      btn.textContent?.includes('None')
+    const comboboxButton = buttons.find(
+      (btn) =>
+        btn.textContent?.includes('Select') ||
+        btn.textContent?.includes('No change') ||
+        btn.textContent?.includes('None')
     )
     if (comboboxButton) {
       await act(async () => {
@@ -70,7 +71,10 @@ describe('BulkEditDevicesModal', () => {
   describe('Hide/Unhide Operations', () => {
     it('should bulk hide multiple lights', async () => {
       const lights = [
-        createMockLight({ entity_id: 'light.living_room', attributes: { friendly_name: 'Living Room' } }),
+        createMockLight({
+          entity_id: 'light.living_room',
+          attributes: { friendly_name: 'Living Room' },
+        }),
         createMockLight({ entity_id: 'light.bedroom', attributes: { friendly_name: 'Bedroom' } }),
       ]
 
@@ -279,7 +283,7 @@ describe('BulkEditDevicesModal', () => {
 
       // Click the room combobox button to open dropdown
       const buttons = screen.getAllByRole('button')
-      const roomButton = buttons.find(btn => btn.textContent?.includes('No change'))
+      const roomButton = buttons.find((btn) => btn.textContent?.includes('No change'))
       expect(roomButton).toBeTruthy()
 
       await act(async () => {
@@ -299,8 +303,14 @@ describe('BulkEditDevicesModal', () => {
 
       await waitFor(() => {
         expect(mockUpdateEntity).toHaveBeenCalledTimes(2)
-        expect(mockUpdateEntity).toHaveBeenCalledWith('light.living_room', expect.objectContaining({ area_id: 'bedroom' }))
-        expect(mockUpdateEntity).toHaveBeenCalledWith('light.hallway', expect.objectContaining({ area_id: 'bedroom' }))
+        expect(mockUpdateEntity).toHaveBeenCalledWith(
+          'light.living_room',
+          expect.objectContaining({ area_id: 'bedroom' })
+        )
+        expect(mockUpdateEntity).toHaveBeenCalledWith(
+          'light.hallway',
+          expect.objectContaining({ area_id: 'bedroom' })
+        )
       })
     })
 
@@ -321,7 +331,7 @@ describe('BulkEditDevicesModal', () => {
       )
 
       const buttons = screen.getAllByRole('button')
-      const roomButton = buttons.find(btn => btn.textContent?.includes('No change'))
+      const roomButton = buttons.find((btn) => btn.textContent?.includes('No change'))
 
       await act(async () => {
         fireEvent.click(roomButton!)
@@ -339,8 +349,14 @@ describe('BulkEditDevicesModal', () => {
 
       await waitFor(() => {
         expect(mockUpdateEntity).toHaveBeenCalledTimes(2)
-        expect(mockUpdateEntity).toHaveBeenCalledWith('switch.garage', expect.objectContaining({ area_id: 'living_room' }))
-        expect(mockUpdateEntity).toHaveBeenCalledWith('switch.outdoor', expect.objectContaining({ area_id: 'living_room' }))
+        expect(mockUpdateEntity).toHaveBeenCalledWith(
+          'switch.garage',
+          expect.objectContaining({ area_id: 'living_room' })
+        )
+        expect(mockUpdateEntity).toHaveBeenCalledWith(
+          'switch.outdoor',
+          expect.objectContaining({ area_id: 'living_room' })
+        )
       })
     })
 
@@ -361,7 +377,7 @@ describe('BulkEditDevicesModal', () => {
       )
 
       const buttons = screen.getAllByRole('button')
-      const roomButton = buttons.find(btn => btn.textContent?.includes('No change'))
+      const roomButton = buttons.find((btn) => btn.textContent?.includes('No change'))
 
       await act(async () => {
         fireEvent.click(roomButton!)
@@ -379,8 +395,14 @@ describe('BulkEditDevicesModal', () => {
 
       await waitFor(() => {
         expect(mockUpdateEntity).toHaveBeenCalledTimes(2)
-        expect(mockUpdateEntity).toHaveBeenCalledWith('light.living_room', expect.objectContaining({ area_id: 'bedroom' }))
-        expect(mockUpdateEntity).toHaveBeenCalledWith('switch.garage', expect.objectContaining({ area_id: 'bedroom' }))
+        expect(mockUpdateEntity).toHaveBeenCalledWith(
+          'light.living_room',
+          expect.objectContaining({ area_id: 'bedroom' })
+        )
+        expect(mockUpdateEntity).toHaveBeenCalledWith(
+          'switch.garage',
+          expect.objectContaining({ area_id: 'bedroom' })
+        )
       })
     })
 
@@ -401,7 +423,7 @@ describe('BulkEditDevicesModal', () => {
       )
 
       const buttons = screen.getAllByRole('button')
-      const roomButton = buttons.find(btn => btn.textContent?.includes('No change'))
+      const roomButton = buttons.find((btn) => btn.textContent?.includes('No change'))
 
       await act(async () => {
         fireEvent.click(roomButton!)
@@ -419,8 +441,14 @@ describe('BulkEditDevicesModal', () => {
 
       await waitFor(() => {
         expect(mockUpdateEntity).toHaveBeenCalledTimes(2)
-        expect(mockUpdateEntity).toHaveBeenCalledWith('light.living_room', expect.objectContaining({ area_id: null }))
-        expect(mockUpdateEntity).toHaveBeenCalledWith('switch.garage', expect.objectContaining({ area_id: null }))
+        expect(mockUpdateEntity).toHaveBeenCalledWith(
+          'light.living_room',
+          expect.objectContaining({ area_id: null })
+        )
+        expect(mockUpdateEntity).toHaveBeenCalledWith(
+          'switch.garage',
+          expect.objectContaining({ area_id: null })
+        )
       })
     })
   })
@@ -444,7 +472,7 @@ describe('BulkEditDevicesModal', () => {
 
       // Set room
       const buttons = screen.getAllByRole('button')
-      const roomButton = buttons.find(btn => btn.textContent?.includes('No change'))
+      const roomButton = buttons.find((btn) => btn.textContent?.includes('No change'))
       await act(async () => {
         fireEvent.click(roomButton!)
       })
@@ -571,7 +599,7 @@ describe('BulkEditRoomsModal', () => {
 
     // Click the floor combobox button
     const buttons = screen.getAllByRole('button')
-    const floorButton = buttons.find(btn => btn.textContent?.includes('No change'))
+    const floorButton = buttons.find((btn) => btn.textContent?.includes('No change'))
     expect(floorButton).toBeTruthy()
 
     await act(async () => {
@@ -601,7 +629,12 @@ describe('BulkEditRoomsModal', () => {
 
   it('should bulk move rooms to "None" (no floor)', async () => {
     const roomsToEdit = [
-      createMockRoom({ id: 'living_room', areaId: 'living_room', name: 'Living Room', floorId: 'ground' }),
+      createMockRoom({
+        id: 'living_room',
+        areaId: 'living_room',
+        name: 'Living Room',
+        floorId: 'ground',
+      }),
       createMockRoom({ id: 'kitchen', areaId: 'kitchen', name: 'Kitchen', floorId: 'ground' }),
     ]
 
@@ -617,7 +650,7 @@ describe('BulkEditRoomsModal', () => {
     )
 
     const buttons = screen.getAllByRole('button')
-    const floorButton = buttons.find(btn => btn.textContent?.includes('No change'))
+    const floorButton = buttons.find((btn) => btn.textContent?.includes('No change'))
 
     await act(async () => {
       fireEvent.click(floorButton!)
@@ -686,7 +719,7 @@ describe('BulkEditRoomsModal', () => {
     )
 
     const buttons = screen.getAllByRole('button')
-    const floorButton = buttons.find(btn => btn.textContent?.includes('No change'))
+    const floorButton = buttons.find((btn) => btn.textContent?.includes('No change'))
 
     await act(async () => {
       fireEvent.click(floorButton!)

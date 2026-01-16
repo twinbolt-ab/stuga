@@ -21,7 +21,13 @@ interface RoomEditModalProps {
   onFloorCreated?: (floorId: string) => void
 }
 
-export function RoomEditModal({ room, allRooms = [], floors, onClose, onFloorCreated }: RoomEditModalProps) {
+export function RoomEditModal({
+  room,
+  allRooms = [],
+  floors,
+  onClose,
+  onFloorCreated,
+}: RoomEditModalProps) {
   const [name, setName] = useState('')
   const [floorId, setFloorId] = useState('')
   const [icon, setIcon] = useState('')
@@ -35,9 +41,7 @@ export function RoomEditModal({ room, allRooms = [], floors, onClose, onFloorCre
     if (!room) return []
     return room.devices
       .filter(
-        (d) =>
-          d.entity_id.startsWith('sensor.') &&
-          d.attributes.device_class === 'temperature'
+        (d) => d.entity_id.startsWith('sensor.') && d.attributes.device_class === 'temperature'
       )
       .filter((d) => !isNaN(parseFloat(d.state)))
       .sort((a, b) => a.entity_id.localeCompare(b.entity_id))
@@ -70,7 +74,7 @@ export function RoomEditModal({ room, allRooms = [], floors, onClose, onFloorCre
 
   const floorOptions = [
     { value: '', label: t.floors.none },
-    ...floors.map(f => ({ value: f.floor_id, label: f.name }))
+    ...floors.map((f) => ({ value: f.floor_id, label: f.name })),
   ]
 
   const handleSave = async () => {
@@ -84,10 +88,7 @@ export function RoomEditModal({ room, allRooms = [], floors, onClose, onFloorCre
         icon: icon.trim() || null,
       })
       // Save temperature sensor selection (empty string clears selection)
-      await setAreaTemperatureSensor(
-        room.areaId,
-        temperatureSensor || null
-      )
+      await setAreaTemperatureSensor(room.areaId, temperatureSensor || null)
       onClose()
     } catch (error) {
       logger.error('RoomEdit', 'Failed to update room:', error)
@@ -98,18 +99,10 @@ export function RoomEditModal({ room, allRooms = [], floors, onClose, onFloorCre
   }
 
   return (
-    <EditModal
-      isOpen={!!room}
-      onClose={onClose}
-      title={t.edit.room.title}
-    >
+    <EditModal isOpen={!!room} onClose={onClose} title={t.edit.room.title}>
       <div className="space-y-4">
         <FormField label={t.edit.room.name}>
-          <TextInput
-            value={name}
-            onChange={setName}
-            placeholder={room?.name}
-          />
+          <TextInput value={name} onChange={setName} placeholder={room?.name} />
         </FormField>
 
         <FormField label={t.edit.room.floor}>
@@ -128,10 +121,7 @@ export function RoomEditModal({ room, allRooms = [], floors, onClose, onFloorCre
         </FormField>
 
         <FormField label={t.edit.room.icon}>
-          <IconPickerField
-            value={icon}
-            onChange={setIcon}
-          />
+          <IconPickerField value={icon} onChange={setIcon} />
         </FormField>
 
         {temperatureSensors.length >= 2 && (
@@ -163,7 +153,9 @@ export function RoomEditModal({ room, allRooms = [], floors, onClose, onFloorCre
 
         {/* Delete button */}
         <button
-          onClick={() => setShowDeleteDialog(true)}
+          onClick={() => {
+            setShowDeleteDialog(true)
+          }}
           className="w-full mt-4 py-3 px-4 rounded-xl border border-red-500/30 text-red-500 font-medium hover:bg-red-500/10 transition-colors flex items-center justify-center gap-2"
         >
           <Trash2 className="w-4 h-4" />
@@ -175,7 +167,9 @@ export function RoomEditModal({ room, allRooms = [], floors, onClose, onFloorCre
         room={showDeleteDialog ? room : null}
         allRooms={allRooms}
         floors={floors}
-        onClose={() => setShowDeleteDialog(false)}
+        onClose={() => {
+          setShowDeleteDialog(false)
+        }}
         onDeleted={onClose}
       />
     </EditModal>

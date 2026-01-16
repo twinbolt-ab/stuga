@@ -1,11 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen, fireEvent, act, waitFor } from '@testing-library/react'
 import { RoomEditModal } from '../RoomEditModal'
-import {
-  renderWithProviders,
-  createMockRoom,
-  createMockFloor,
-} from '@/test/test-utils'
+import { renderWithProviders, createMockRoom, createMockFloor } from '@/test/test-utils'
 import {
   mockUpdateArea,
   mockCreateFloor,
@@ -101,7 +97,7 @@ describe('RoomEditModal', () => {
 
     // Click the floor combobox button to open dropdown
     const buttons = screen.getAllByRole('button')
-    const floorButton = buttons.find(btn => btn.textContent?.includes('None'))
+    const floorButton = buttons.find((btn) => btn.textContent?.includes('None'))
 
     await act(async () => {
       fireEvent.click(floorButton!)

@@ -153,7 +153,11 @@ export function handleRegistryResult(
   return false
 }
 
-export function handleStateChange(state: HAWebSocketState, entityId: string, newState: HAEntity | null): void {
+export function handleStateChange(
+  state: HAWebSocketState,
+  entityId: string,
+  newState: HAEntity | null
+): void {
   // Clear optimistic state since real state has arrived
   clearOptimisticState(state, entityId)
 

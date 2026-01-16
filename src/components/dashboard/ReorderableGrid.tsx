@@ -58,7 +58,7 @@ export function ReorderableGrid<T>({
       const width = containerRef.current.offsetWidth
       if (width === 0) return // Skip if not laid out yet
       const cellWidth = (width - gap * (columns - 1)) / columns
-      setCellSize(prev => ({ ...prev, width: cellWidth }))
+      setCellSize((prev) => ({ ...prev, width: cellWidth }))
     }
 
     measure()
@@ -78,7 +78,7 @@ export function ReorderableGrid<T>({
       if (!measureRef.current) return
       const actualHeight = measureRef.current.offsetHeight
       if (actualHeight > 0 && actualHeight !== cellSize.height) {
-        setCellSize(prev => ({ ...prev, height: actualHeight }))
+        setCellSize((prev) => ({ ...prev, height: actualHeight }))
       }
     }
 
@@ -97,29 +97,35 @@ export function ReorderableGrid<T>({
   }, [cellSize.width, cellSize.height, orderedItems])
 
   // Calculate pixel position from index
-  const getPositionFromIndex = useCallback((index: number) => {
-    const col = index % columns
-    const row = Math.floor(index / columns)
-    return {
-      x: col * (cellSize.width + gap),
-      y: row * (cellSize.height + gap),
-    }
-  }, [columns, cellSize, gap])
+  const getPositionFromIndex = useCallback(
+    (index: number) => {
+      const col = index % columns
+      const row = Math.floor(index / columns)
+      return {
+        x: col * (cellSize.width + gap),
+        y: row * (cellSize.height + gap),
+      }
+    },
+    [columns, cellSize, gap]
+  )
 
   // Calculate index from pointer position
-  const getIndexFromPointer = useCallback((clientX: number, clientY: number): number => {
-    if (!containerRef.current || cellSize.width === 0) return 0
+  const getIndexFromPointer = useCallback(
+    (clientX: number, clientY: number): number => {
+      if (!containerRef.current || cellSize.width === 0) return 0
 
-    const rect = containerRef.current.getBoundingClientRect()
-    const x = clientX - rect.left
-    const y = clientY - rect.top
+      const rect = containerRef.current.getBoundingClientRect()
+      const x = clientX - rect.left
+      const y = clientY - rect.top
 
-    const col = Math.min(columns - 1, Math.max(0, Math.floor(x / (cellSize.width + gap))))
-    const row = Math.max(0, Math.floor(y / (cellSize.height + gap)))
-    const index = row * columns + col
+      const col = Math.min(columns - 1, Math.max(0, Math.floor(x / (cellSize.width + gap))))
+      const row = Math.max(0, Math.floor(y / (cellSize.height + gap)))
+      const index = row * columns + col
 
-    return Math.min(orderedItems.length - 1, Math.max(0, index))
-  }, [columns, gap, cellSize, orderedItems.length])
+      return Math.min(orderedItems.length - 1, Math.max(0, index))
+    },
+    [columns, gap, cellSize, orderedItems.length]
+  )
 
   // Clear long-press timer
   const clearLongPressTimer = useCallback(() => {
@@ -139,16 +145,19 @@ export function ReorderableGrid<T>({
   }, [])
 
   // Handle pointer down - start long-press timer
-  const handlePointerDown = useCallback((index: number, clientX: number, clientY: number) => {
-    clearLongPressTimer()
-    setPendingDragIndex(index)
-    pendingDragPosRef.current = { x: clientX, y: clientY }
+  const handlePointerDown = useCallback(
+    (index: number, clientX: number, clientY: number) => {
+      clearLongPressTimer()
+      setPendingDragIndex(index)
+      pendingDragPosRef.current = { x: clientX, y: clientY }
 
-    longPressTimerRef.current = setTimeout(() => {
-      handleDragStart(index, clientX, clientY)
-      longPressTimerRef.current = null
-    }, LONG_PRESS_DURATION)
-  }, [clearLongPressTimer, handleDragStart])
+      longPressTimerRef.current = setTimeout(() => {
+        handleDragStart(index, clientX, clientY)
+        longPressTimerRef.current = null
+      }, LONG_PRESS_DURATION)
+    },
+    [clearLongPressTimer, handleDragStart]
+  )
 
   // Handle pointer cancel (movement before long-press completes)
   const handlePointerCancel = useCallback(() => {
@@ -156,64 +165,77 @@ export function ReorderableGrid<T>({
   }, [clearLongPressTimer])
 
   // Check if pointer moved beyond threshold during long-press wait
-  const checkLongPressMove = useCallback((clientX: number, clientY: number): boolean => {
-    if (pendingDragIndex === null || draggedIndex !== null) return false
-    const dx = clientX - pendingDragPosRef.current.x
-    const dy = clientY - pendingDragPosRef.current.y
-    if (Math.abs(dx) > MOVE_THRESHOLD || Math.abs(dy) > MOVE_THRESHOLD) {
-      handlePointerCancel()
-      return true
-    }
-    return false
-  }, [pendingDragIndex, draggedIndex, handlePointerCancel])
+  const checkLongPressMove = useCallback(
+    (clientX: number, clientY: number): boolean => {
+      if (pendingDragIndex === null || draggedIndex !== null) return false
+      const dx = clientX - pendingDragPosRef.current.x
+      const dy = clientY - pendingDragPosRef.current.y
+      if (Math.abs(dx) > MOVE_THRESHOLD || Math.abs(dy) > MOVE_THRESHOLD) {
+        handlePointerCancel()
+        return true
+      }
+      return false
+    },
+    [pendingDragIndex, draggedIndex, handlePointerCancel]
+  )
 
   // Track current edge hover state
   const lastEdgeRef = useRef<'left' | 'right' | null>(null)
 
   // Handle drag move
-  const handleDragMove = useCallback((clientX: number, clientY: number) => {
-    if (draggedIndex === null) return
+  const handleDragMove = useCallback(
+    (clientX: number, clientY: number) => {
+      if (draggedIndex === null) return
 
-    setDragOffset({
-      x: clientX - dragStartPos.x,
-      y: clientY - dragStartPos.y,
-    })
+      setDragOffset({
+        x: clientX - dragStartPos.x,
+        y: clientY - dragStartPos.y,
+      })
 
-    // Edge detection for cross-floor navigation
-    if (onEdgeHover) {
-      let currentEdge: 'left' | 'right' | null = null
-      if (clientX < EDGE_THRESHOLD) {
-        currentEdge = 'left'
-      } else if (clientX > window.innerWidth - EDGE_THRESHOLD) {
-        currentEdge = 'right'
+      // Edge detection for cross-floor navigation
+      if (onEdgeHover) {
+        let currentEdge: 'left' | 'right' | null = null
+        if (clientX < EDGE_THRESHOLD) {
+          currentEdge = 'left'
+        } else if (clientX > window.innerWidth - EDGE_THRESHOLD) {
+          currentEdge = 'right'
+        }
+
+        // Only call callback when edge state changes
+        if (currentEdge !== lastEdgeRef.current) {
+          lastEdgeRef.current = currentEdge
+          onEdgeHover(currentEdge)
+        }
       }
 
-      // Only call callback when edge state changes
-      if (currentEdge !== lastEdgeRef.current) {
-        lastEdgeRef.current = currentEdge
-        onEdgeHover(currentEdge)
+      const newTargetIndex = getIndexFromPointer(clientX, clientY)
+
+      if (newTargetIndex !== draggedIndex) {
+        // Reorder items
+        const newItems = [...orderedItems]
+        const [draggedItem] = newItems.splice(draggedIndex, 1)
+        newItems.splice(newTargetIndex, 0, draggedItem)
+        setOrderedItems(newItems)
+        setDraggedIndex(newTargetIndex)
+
+        // Adjust drag start position so the item stays under the cursor
+        const oldPos = getPositionFromIndex(draggedIndex)
+        const newPos = getPositionFromIndex(newTargetIndex)
+        setDragStartPos((prev) => ({
+          x: prev.x + (newPos.x - oldPos.x),
+          y: prev.y + (newPos.y - oldPos.y),
+        }))
       }
-    }
-
-    const newTargetIndex = getIndexFromPointer(clientX, clientY)
-
-    if (newTargetIndex !== draggedIndex) {
-      // Reorder items
-      const newItems = [...orderedItems]
-      const [draggedItem] = newItems.splice(draggedIndex, 1)
-      newItems.splice(newTargetIndex, 0, draggedItem)
-      setOrderedItems(newItems)
-      setDraggedIndex(newTargetIndex)
-
-      // Adjust drag start position so the item stays under the cursor
-      const oldPos = getPositionFromIndex(draggedIndex)
-      const newPos = getPositionFromIndex(newTargetIndex)
-      setDragStartPos(prev => ({
-        x: prev.x + (newPos.x - oldPos.x),
-        y: prev.y + (newPos.y - oldPos.y),
-      }))
-    }
-  }, [draggedIndex, dragStartPos, getIndexFromPointer, orderedItems, getPositionFromIndex, onEdgeHover])
+    },
+    [
+      draggedIndex,
+      dragStartPos,
+      getIndexFromPointer,
+      orderedItems,
+      getPositionFromIndex,
+      onEdgeHover,
+    ]
+  )
 
   // Handle drag end
   const handleDragEnd = useCallback(() => {
@@ -231,10 +253,13 @@ export function ReorderableGrid<T>({
   }, [draggedIndex, orderedItems, onReorder, clearLongPressTimer, onEdgeHover])
 
   // Touch handlers
-  const handleTouchStart = useCallback((index: number) => (e: React.TouchEvent) => {
-    const touch = e.touches[0]
-    handlePointerDown(index, touch.clientX, touch.clientY)
-  }, [handlePointerDown])
+  const handleTouchStart = useCallback(
+    (index: number) => (e: React.TouchEvent) => {
+      const touch = e.touches[0]
+      handlePointerDown(index, touch.clientX, touch.clientY)
+    },
+    [handlePointerDown]
+  )
 
   // Use native event listener for touchmove to allow preventDefault with passive: false
   useEffect(() => {
@@ -263,10 +288,13 @@ export function ReorderableGrid<T>({
   }, [draggedIndex, checkLongPressMove, handleDragMove, handleDragEnd])
 
   // Mouse handlers
-  const handleMouseDown = useCallback((index: number) => (e: React.MouseEvent) => {
-    e.preventDefault()
-    handlePointerDown(index, e.clientX, e.clientY)
-  }, [handlePointerDown])
+  const handleMouseDown = useCallback(
+    (index: number) => (e: React.MouseEvent) => {
+      e.preventDefault()
+      handlePointerDown(index, e.clientX, e.clientY)
+    },
+    [handlePointerDown]
+  )
 
   useEffect(() => {
     if (draggedIndex === null && pendingDragIndex === null) return
@@ -347,14 +375,14 @@ export function ReorderableGrid<T>({
             key={key}
             ref={index === 0 ? measureRef : undefined}
             data-grid-item
-            className={clsx(
-              'absolute',
-              isDragging && 'z-50',
-            )}
+            className={clsx('absolute', isDragging && 'z-50')}
             style={{
               top: 0,
               left: 0,
-              width: cellSize.width > 0 ? cellSize.width : `calc((100% - ${gap * (columns - 1)}px) / ${columns})`,
+              width:
+                cellSize.width > 0
+                  ? cellSize.width
+                  : `calc((100% - ${gap * (columns - 1)}px) / ${columns})`,
               visibility: isReady ? 'visible' : 'hidden',
             }}
             initial={false}
@@ -362,9 +390,7 @@ export function ReorderableGrid<T>({
               x: position.x + (isDragging ? dragOffset.x : 0),
               y: position.y + (isDragging ? dragOffset.y : 0),
               scale: isDragging ? 1.05 : 1,
-              boxShadow: isDragging
-                ? '0 20px 40px rgba(0,0,0,0.2)'
-                : '0 0 0 rgba(0,0,0,0)',
+              boxShadow: isDragging ? '0 20px 40px rgba(0,0,0,0.2)' : '0 0 0 rgba(0,0,0,0)',
             }}
             transition={{
               x: isDragging

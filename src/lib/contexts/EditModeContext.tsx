@@ -25,28 +25,42 @@ type EditModeAction =
 export function editModeReducer(state: EditMode, action: EditModeAction): EditMode {
   switch (action.type) {
     case 'ENTER_ROOM_EDIT': {
-      const selectedIds = action.initialSelection ? new Set([action.initialSelection]) : new Set<string>()
+      const selectedIds = action.initialSelection
+        ? new Set([action.initialSelection])
+        : new Set<string>()
       return { type: 'edit-rooms', selectedIds, orderedRooms: action.rooms }
     }
 
     case 'ENTER_DEVICE_EDIT': {
-      const selectedIds = action.initialSelection ? new Set([action.initialSelection]) : new Set<string>()
+      const selectedIds = action.initialSelection
+        ? new Set([action.initialSelection])
+        : new Set<string>()
       return { type: 'edit-devices', roomId: action.roomId, selectedIds }
     }
 
     case 'ENTER_ALL_DEVICES_EDIT': {
-      const selectedIds = action.initialSelection ? new Set([action.initialSelection]) : new Set<string>()
+      const selectedIds = action.initialSelection
+        ? new Set([action.initialSelection])
+        : new Set<string>()
       return { type: 'edit-all-devices', selectedIds }
     }
 
     case 'ENTER_FLOOR_EDIT':
-      return { type: 'edit-floors', selectedFloorId: action.selectedFloorId, orderedFloors: action.floors }
+      return {
+        type: 'edit-floors',
+        selectedFloorId: action.selectedFloorId,
+        orderedFloors: action.floors,
+      }
 
     case 'EXIT_EDIT_MODE':
       return { type: 'normal' }
 
     case 'TOGGLE_SELECTION':
-      if (state.type === 'edit-rooms' || state.type === 'edit-devices' || state.type === 'edit-all-devices') {
+      if (
+        state.type === 'edit-rooms' ||
+        state.type === 'edit-devices' ||
+        state.type === 'edit-all-devices'
+      ) {
         const newSelectedIds = new Set(state.selectedIds)
         if (newSelectedIds.has(action.id)) {
           newSelectedIds.delete(action.id)
@@ -62,7 +76,11 @@ export function editModeReducer(state: EditMode, action: EditModeAction): EditMo
       return state
 
     case 'CLEAR_SELECTION':
-      if (state.type === 'edit-rooms' || state.type === 'edit-devices' || state.type === 'edit-all-devices') {
+      if (
+        state.type === 'edit-rooms' ||
+        state.type === 'edit-devices' ||
+        state.type === 'edit-all-devices'
+      ) {
         return { ...state, selectedIds: new Set() }
       }
       return state
@@ -137,7 +155,11 @@ export function EditModeProvider({ children }: EditModeProviderProps) {
   const isFloorEditMode = mode.type === 'edit-floors'
 
   const selectedIds = useMemo(() => {
-    if (mode.type === 'edit-rooms' || mode.type === 'edit-devices' || mode.type === 'edit-all-devices') {
+    if (
+      mode.type === 'edit-rooms' ||
+      mode.type === 'edit-devices' ||
+      mode.type === 'edit-all-devices'
+    ) {
       return mode.selectedIds
     }
     return EMPTY_SET
@@ -169,67 +191,84 @@ export function EditModeProvider({ children }: EditModeProviderProps) {
   const isSelected = useCallback((id: string) => selectedIds.has(id), [selectedIds])
 
   // Actions
-  const enterRoomEdit = useCallback((rooms: RoomWithDevices[], initialSelection?: string) => dispatch({ type: 'ENTER_ROOM_EDIT', rooms, initialSelection }), [])
-  const enterDeviceEdit = useCallback((roomId: string, initialSelection?: string) => dispatch({ type: 'ENTER_DEVICE_EDIT', roomId, initialSelection }), [])
-  const enterAllDevicesEdit = useCallback((initialSelection?: string) => dispatch({ type: 'ENTER_ALL_DEVICES_EDIT', initialSelection }), [])
-  const enterFloorEdit = useCallback((floors: HAFloor[], selectedFloorId: string) => dispatch({ type: 'ENTER_FLOOR_EDIT', floors, selectedFloorId }), [])
-  const exitEditMode = useCallback(() => dispatch({ type: 'EXIT_EDIT_MODE' }), [])
-  const toggleSelection = useCallback((id: string) => dispatch({ type: 'TOGGLE_SELECTION', id }), [])
-  const clearSelection = useCallback(() => dispatch({ type: 'CLEAR_SELECTION' }), [])
-  const reorderRooms = useCallback((rooms: RoomWithDevices[]) => dispatch({ type: 'REORDER_ROOMS', rooms }), [])
-  const reorderFloors = useCallback((floors: HAFloor[]) => dispatch({ type: 'REORDER_FLOORS', floors }), [])
+  const enterRoomEdit = useCallback((rooms: RoomWithDevices[], initialSelection?: string) => {
+    dispatch({ type: 'ENTER_ROOM_EDIT', rooms, initialSelection })
+  }, [])
+  const enterDeviceEdit = useCallback((roomId: string, initialSelection?: string) => {
+    dispatch({ type: 'ENTER_DEVICE_EDIT', roomId, initialSelection })
+  }, [])
+  const enterAllDevicesEdit = useCallback((initialSelection?: string) => {
+    dispatch({ type: 'ENTER_ALL_DEVICES_EDIT', initialSelection })
+  }, [])
+  const enterFloorEdit = useCallback((floors: HAFloor[], selectedFloorId: string) => {
+    dispatch({ type: 'ENTER_FLOOR_EDIT', floors, selectedFloorId })
+  }, [])
+  const exitEditMode = useCallback(() => {
+    dispatch({ type: 'EXIT_EDIT_MODE' })
+  }, [])
+  const toggleSelection = useCallback((id: string) => {
+    dispatch({ type: 'TOGGLE_SELECTION', id })
+  }, [])
+  const clearSelection = useCallback(() => {
+    dispatch({ type: 'CLEAR_SELECTION' })
+  }, [])
+  const reorderRooms = useCallback((rooms: RoomWithDevices[]) => {
+    dispatch({ type: 'REORDER_ROOMS', rooms })
+  }, [])
+  const reorderFloors = useCallback((floors: HAFloor[]) => {
+    dispatch({ type: 'REORDER_FLOORS', floors })
+  }, [])
 
-  const value = useMemo<EditModeContextValue>(() => ({
-    mode,
-    isEditMode,
-    isRoomEditMode,
-    isDeviceEditMode,
-    isAllDevicesEditMode,
-    isFloorEditMode,
-    isSelected,
-    selectedCount,
-    selectedIds,
-    orderedRooms,
-    orderedFloors,
-    selectedFloorId,
-    enterRoomEdit,
-    enterDeviceEdit,
-    enterAllDevicesEdit,
-    enterFloorEdit,
-    exitEditMode,
-    toggleSelection,
-    clearSelection,
-    reorderRooms,
-    reorderFloors,
-  }), [
-    mode,
-    isEditMode,
-    isRoomEditMode,
-    isDeviceEditMode,
-    isAllDevicesEditMode,
-    isFloorEditMode,
-    isSelected,
-    selectedCount,
-    selectedIds,
-    orderedRooms,
-    orderedFloors,
-    selectedFloorId,
-    enterRoomEdit,
-    enterDeviceEdit,
-    enterAllDevicesEdit,
-    enterFloorEdit,
-    exitEditMode,
-    toggleSelection,
-    clearSelection,
-    reorderRooms,
-    reorderFloors,
-  ])
-
-  return (
-    <EditModeContext.Provider value={value}>
-      {children}
-    </EditModeContext.Provider>
+  const value = useMemo<EditModeContextValue>(
+    () => ({
+      mode,
+      isEditMode,
+      isRoomEditMode,
+      isDeviceEditMode,
+      isAllDevicesEditMode,
+      isFloorEditMode,
+      isSelected,
+      selectedCount,
+      selectedIds,
+      orderedRooms,
+      orderedFloors,
+      selectedFloorId,
+      enterRoomEdit,
+      enterDeviceEdit,
+      enterAllDevicesEdit,
+      enterFloorEdit,
+      exitEditMode,
+      toggleSelection,
+      clearSelection,
+      reorderRooms,
+      reorderFloors,
+    }),
+    [
+      mode,
+      isEditMode,
+      isRoomEditMode,
+      isDeviceEditMode,
+      isAllDevicesEditMode,
+      isFloorEditMode,
+      isSelected,
+      selectedCount,
+      selectedIds,
+      orderedRooms,
+      orderedFloors,
+      selectedFloorId,
+      enterRoomEdit,
+      enterDeviceEdit,
+      enterAllDevicesEdit,
+      enterFloorEdit,
+      exitEditMode,
+      toggleSelection,
+      clearSelection,
+      reorderRooms,
+      reorderFloors,
+    ]
   )
+
+  return <EditModeContext.Provider value={value}>{children}</EditModeContext.Provider>
 }
 
 // Hook to use the context

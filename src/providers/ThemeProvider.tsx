@@ -44,7 +44,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         applyTheme(e.matches ? 'dark' : 'light')
       }
       mediaQuery.addEventListener('change', handler)
-      return () => mediaQuery.removeEventListener('change', handler)
+      return () => {
+        mediaQuery.removeEventListener('change', handler)
+      }
     } else {
       applyTheme(theme)
     }

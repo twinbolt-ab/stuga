@@ -4,7 +4,11 @@ import type { HAWebSocketState } from './types'
 import { send, getNextMessageId } from './connection'
 import { registerCallback, notifyMessageHandlers, notifyRegistryHandlers } from './message-router'
 import { applyAreasToEntities } from './registry-manager'
-import { ROOM_ORDER_LABEL_PREFIX, TEMPERATURE_SENSOR_LABEL_PREFIX, DEFAULT_ORDER } from '@/lib/constants'
+import {
+  ROOM_ORDER_LABEL_PREFIX,
+  TEMPERATURE_SENSOR_LABEL_PREFIX,
+  DEFAULT_ORDER,
+} from '@/lib/constants'
 
 /** Order is stored in HA labels with a special prefix (e.g., "stuga-room-order-05"). */
 export function getAreaOrder(state: HAWebSocketState, areaId: string): number {
@@ -27,7 +31,10 @@ export function getAreaIcon(state: HAWebSocketState, areaId: string): string | u
 }
 
 /** Temperature sensor is stored in HA labels (e.g., "stuga-temp-sensor.bedroom_temperature"). */
-export function getAreaTemperatureSensor(state: HAWebSocketState, areaId: string): string | undefined {
+export function getAreaTemperatureSensor(
+  state: HAWebSocketState,
+  areaId: string
+): string | undefined {
   const area = state.areaRegistry.get(areaId)
   if (!area?.labels) return undefined
 
@@ -42,7 +49,11 @@ export function getAreaTemperatureSensor(state: HAWebSocketState, areaId: string
 }
 
 /** Returns existing label ID or creates a new one in HA's label registry. */
-async function ensureOrderLabel(state: HAWebSocketState, prefix: string, order: number): Promise<string> {
+async function ensureOrderLabel(
+  state: HAWebSocketState,
+  prefix: string,
+  order: number
+): Promise<string> {
   const paddedOrder = order.toString().padStart(2, '0')
   const labelName = `${prefix}${paddedOrder}`
 
@@ -72,12 +83,16 @@ async function ensureOrderLabel(state: HAWebSocketState, prefix: string, order: 
   })
 }
 
-export async function setAreaOrder(state: HAWebSocketState, areaId: string, order: number): Promise<void> {
+export async function setAreaOrder(
+  state: HAWebSocketState,
+  areaId: string,
+  order: number
+): Promise<void> {
   const area = state.areaRegistry.get(areaId)
   if (!area) return
 
   // Get existing non-order labels
-  const existingLabels = (area.labels || []).filter(labelId => {
+  const existingLabels = (area.labels || []).filter((labelId) => {
     const label = state.labels.get(labelId)
     return !label?.name.startsWith(ROOM_ORDER_LABEL_PREFIX)
   })
@@ -116,7 +131,7 @@ export async function setAreaTemperatureSensor(
   if (!area) return
 
   // Get existing labels, filtering out any existing temperature sensor labels
-  const existingLabels = (area.labels || []).filter(labelId => {
+  const existingLabels = (area.labels || []).filter((labelId) => {
     const label = state.labels.get(labelId)
     return !label?.name.startsWith(TEMPERATURE_SENSOR_LABEL_PREFIX)
   })
@@ -180,7 +195,7 @@ export async function setAreaTemperatureSensor(
     const msgId = getNextMessageId(state)
     registerCallback(state, msgId, (success) => {
       if (success) {
-        area.labels = [...existingLabels, sensorLabelId!]
+        area.labels = [...existingLabels, sensorLabelId]
         notifyRegistryHandlers(state)
         resolve()
       } else {
@@ -213,7 +228,7 @@ export async function updateArea(
         // Update local registry - merge our updates with existing area
         const updatedArea: AreaRegistryEntry = {
           ...area,
-          ...(result as Partial<AreaRegistryEntry> || {}),
+          ...((result as Partial<AreaRegistryEntry>) || {}),
         }
         // Explicitly apply our updates in case they're not in the result
         if (updates.name !== undefined) updatedArea.name = updates.name
@@ -256,7 +271,11 @@ export async function updateArea(
   })
 }
 
-export async function createArea(state: HAWebSocketState, name: string, floorId?: string): Promise<string> {
+export async function createArea(
+  state: HAWebSocketState,
+  name: string,
+  floorId?: string
+): Promise<string> {
   return new Promise((resolve, reject) => {
     const msgId = getNextMessageId(state)
     registerCallback(state, msgId, (success, result, error) => {

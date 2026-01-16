@@ -84,9 +84,12 @@ export function RoomsGrid({
   }
 
   // Stable callback that delegates to onToggleExpand - avoids new function refs per card
-  const handleToggleExpand = useCallback((roomId: string) => {
-    onToggleExpand(roomId)
-  }, [onToggleExpand])
+  const handleToggleExpand = useCallback(
+    (roomId: string) => {
+      onToggleExpand(roomId)
+    },
+    [onToggleExpand]
+  )
 
   // Normal grid view - use MemoizedRoomCard and skip LayoutGroup for better performance
   return (

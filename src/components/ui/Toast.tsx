@@ -28,7 +28,9 @@ export function Toast({ id, message, onDismiss }: ToastProps) {
       </div>
       <p className="flex-1 text-sm text-[var(--text-primary)]">{message}</p>
       <button
-        onClick={() => onDismiss(id)}
+        onClick={() => {
+          onDismiss(id)
+        }}
         className="flex-shrink-0 p-1 rounded-lg hover:bg-[var(--border)] transition-colors"
         aria-label="Dismiss"
       >
@@ -39,7 +41,7 @@ export function Toast({ id, message, onDismiss }: ToastProps) {
 }
 
 export interface ToastContainerProps {
-  toasts: Array<{ id: string; message: string }>
+  toasts: { id: string; message: string }[]
   onDismiss: (id: string) => void
 }
 

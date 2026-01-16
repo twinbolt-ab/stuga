@@ -61,14 +61,14 @@ export function RoomDeleteDialog({
   // Get other rooms for the dropdown
   const otherRooms = useMemo(() => {
     if (!room) return []
-    return allRooms.filter(r => r.areaId !== room.areaId && r.areaId)
+    return allRooms.filter((r) => r.areaId !== room.areaId && r.areaId)
   }, [room, allRooms])
 
   // Room options for select
   const roomOptions = useMemo(() => {
     const options = [
       { value: '', label: t.delete.room.uncategorized },
-      ...otherRooms.map(r => ({ value: r.areaId!, label: r.name }))
+      ...otherRooms.map((r) => ({ value: r.areaId!, label: r.name })),
     ]
     return options
   }, [otherRooms])
@@ -76,12 +76,13 @@ export function RoomDeleteDialog({
   // Get controllable devices count
   const controllableDevices = useMemo(() => {
     if (!room) return []
-    return room.devices.filter(d =>
-      d.entity_id.startsWith('light.') ||
-      d.entity_id.startsWith('switch.') ||
-      d.entity_id.startsWith('scene.') ||
-      d.entity_id.startsWith('input_boolean.') ||
-      d.entity_id.startsWith('input_number.')
+    return room.devices.filter(
+      (d) =>
+        d.entity_id.startsWith('light.') ||
+        d.entity_id.startsWith('switch.') ||
+        d.entity_id.startsWith('scene.') ||
+        d.entity_id.startsWith('input_boolean.') ||
+        d.entity_id.startsWith('input_number.')
     )
   }, [room])
 
@@ -90,7 +91,7 @@ export function RoomDeleteDialog({
   // Get destination label for confirmation message
   const destinationLabel = useMemo(() => {
     if (!targetRoomId) return t.delete.room.uncategorized.toLowerCase()
-    const targetRoom = otherRooms.find(r => r.areaId === targetRoomId)
+    const targetRoom = otherRooms.find((r) => r.areaId === targetRoomId)
     return targetRoom?.name || ''
   }, [targetRoomId, otherRooms])
 
@@ -103,7 +104,7 @@ export function RoomDeleteDialog({
       if (hasDevices) {
         const newAreaId = targetRoomId || null
         await Promise.all(
-          controllableDevices.map(device =>
+          controllableDevices.map((device) =>
             updateEntity(device.entity_id, { area_id: newAreaId })
           )
         )
@@ -172,17 +173,13 @@ export function RoomDeleteDialog({
                   </p>
 
                   <FormField label={t.delete.room.moveToRoom}>
-                    <Select
-                      value={targetRoomId}
-                      onChange={setTargetRoomId}
-                      options={roomOptions}
-                    />
+                    <Select value={targetRoomId} onChange={setTargetRoomId} options={roomOptions} />
                   </FormField>
 
                   <p className="text-xs text-muted text-center">
                     {interpolate(t.delete.room.willMove, {
                       count: controllableDevices.length,
-                      destination: destinationLabel
+                      destination: destinationLabel,
                     })}
                   </p>
                 </div>

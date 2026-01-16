@@ -21,7 +21,12 @@ interface LightSliderProps {
   entityMeta?: EntityMeta
 }
 
-export function LightSlider({ light, disabled = false, compact = false, entityMeta }: LightSliderProps) {
+export function LightSlider({
+  light,
+  disabled = false,
+  compact = false,
+  entityMeta,
+}: LightSliderProps) {
   const { setLightBrightness, toggleLight, getLightBrightness } = useLightControl()
   const initialBrightness = getLightBrightness(light)
   const [localBrightness, setLocalBrightness] = useState(initialBrightness)
@@ -40,20 +45,23 @@ export function LightSlider({ light, disabled = false, compact = false, entityMe
   const entityIcon = getEntityIcon(light.entity_id)
 
   // Swipe gesture handlers
-  const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    if (disabled) return
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      if (disabled) return
 
-    didDragRef.current = false
+      didDragRef.current = false
 
-    // Use local brightness if dragging or in optimistic period, otherwise use HA value
-    const startBrightness = isDragging || useOptimisticValue ? localBrightness : initialBrightness
-    dragStartRef.current = {
-      x: e.clientX,
-      y: e.clientY,
-      brightness: startBrightness,
-    }
-    setLocalBrightness(startBrightness)
-  }, [disabled, isDragging, useOptimisticValue, localBrightness, initialBrightness])
+      // Use local brightness if dragging or in optimistic period, otherwise use HA value
+      const startBrightness = isDragging || useOptimisticValue ? localBrightness : initialBrightness
+      dragStartRef.current = {
+        x: e.clientX,
+        y: e.clientY,
+        brightness: startBrightness,
+      }
+      setLocalBrightness(startBrightness)
+    },
+    [disabled, isDragging, useOptimisticValue, localBrightness, initialBrightness]
+  )
 
   const calculateBrightness = useCallback((clientX: number) => {
     // Map screen position to brightness with padding for easier mobile use
@@ -66,83 +74,97 @@ export function LightSlider({ light, disabled = false, compact = false, entityMe
     return Math.round(Math.max(0, Math.min(100, (relativeX / effectiveWidth) * 100)))
   }, [])
 
-  const updateBrightness = useCallback((clientX: number) => {
-    const newBrightness = calculateBrightness(clientX)
-    currentBrightnessRef.current = newBrightness
-    setLocalBrightness(newBrightness)
-    setLightBrightness(light.entity_id, newBrightness)
-  }, [calculateBrightness, light.entity_id, setLightBrightness])
+  const updateBrightness = useCallback(
+    (clientX: number) => {
+      const newBrightness = calculateBrightness(clientX)
+      currentBrightnessRef.current = newBrightness
+      setLocalBrightness(newBrightness)
+      setLightBrightness(light.entity_id, newBrightness)
+    },
+    [calculateBrightness, light.entity_id, setLightBrightness]
+  )
 
-  const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    if (!dragStartRef.current || disabled) return
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      if (!dragStartRef.current || disabled) return
 
-    const deltaX = e.clientX - dragStartRef.current.x
-    const deltaY = e.clientY - dragStartRef.current.y
+      const deltaX = e.clientX - dragStartRef.current.x
+      const deltaY = e.clientY - dragStartRef.current.y
 
-    // If not yet dragging, check gesture direction
-    if (!isDraggingRef.current) {
-      // If vertical movement exceeds threshold first, cancel tracking to allow scroll
-      if (Math.abs(deltaY) > DRAG_THRESHOLD) {
-        dragStartRef.current = null
-        return
-      }
-
-      // Check if we've crossed the drag threshold for brightness control
-      if (Math.abs(deltaX) > DRAG_THRESHOLD) {
-        // Only start brightness drag if horizontal movement is dominant
-        if (Math.abs(deltaY) > Math.abs(deltaX)) {
+      // If not yet dragging, check gesture direction
+      if (!isDraggingRef.current) {
+        // If vertical movement exceeds threshold first, cancel tracking to allow scroll
+        if (Math.abs(deltaY) > DRAG_THRESHOLD) {
           dragStartRef.current = null
           return
         }
-        isDraggingRef.current = true
-        didDragRef.current = true
-        setIsDragging(true)
-        setShowBrightnessOverlay(true)
-        ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
-        // Update brightness immediately when starting drag
+
+        // Check if we've crossed the drag threshold for brightness control
+        if (Math.abs(deltaX) > DRAG_THRESHOLD) {
+          // Only start brightness drag if horizontal movement is dominant
+          if (Math.abs(deltaY) > Math.abs(deltaX)) {
+            dragStartRef.current = null
+            return
+          }
+          isDraggingRef.current = true
+          didDragRef.current = true
+          setIsDragging(true)
+          setShowBrightnessOverlay(true)
+          ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+          // Update brightness immediately when starting drag
+          updateBrightness(e.clientX)
+        }
+      } else {
         updateBrightness(e.clientX)
       }
-    } else {
-      updateBrightness(e.clientX)
-    }
-  }, [disabled, updateBrightness])
+    },
+    [disabled, updateBrightness]
+  )
 
-  const handlePointerUp = useCallback((e: React.PointerEvent) => {
-    if (isDraggingRef.current) {
-      // Calculate final brightness from the release position
-      const finalBrightness = calculateBrightness(e.clientX)
-      currentBrightnessRef.current = finalBrightness
-      setLocalBrightness(finalBrightness)
+  const handlePointerUp = useCallback(
+    (e: React.PointerEvent) => {
+      if (isDraggingRef.current) {
+        // Calculate final brightness from the release position
+        const finalBrightness = calculateBrightness(e.clientX)
+        currentBrightnessRef.current = finalBrightness
+        setLocalBrightness(finalBrightness)
 
-      // Commit the brightness change
-      setLightBrightness(light.entity_id, finalBrightness, true)
-      ;(e.target as HTMLElement).releasePointerCapture(e.pointerId)
+        // Commit the brightness change
+        setLightBrightness(light.entity_id, finalBrightness, true)
+        ;(e.target as HTMLElement).releasePointerCapture(e.pointerId)
 
-      // Use optimistic value for 5 seconds, then sync with HA
-      setUseOptimisticValue(true)
-      if (optimisticTimerRef.current) {
-        clearTimeout(optimisticTimerRef.current)
+        // Use optimistic value for 5 seconds, then sync with HA
+        setUseOptimisticValue(true)
+        if (optimisticTimerRef.current) {
+          clearTimeout(optimisticTimerRef.current)
+        }
+        optimisticTimerRef.current = setTimeout(() => {
+          setUseOptimisticValue(false)
+          optimisticTimerRef.current = null
+        }, OPTIMISTIC_DURATION)
+
+        // Hide overlay after a short delay
+        setTimeout(() => {
+          setShowBrightnessOverlay(false)
+        }, OVERLAY_HIDE_DELAY)
       }
-      optimisticTimerRef.current = setTimeout(() => {
-        setUseOptimisticValue(false)
-        optimisticTimerRef.current = null
-      }, OPTIMISTIC_DURATION)
 
-      // Hide overlay after a short delay
-      setTimeout(() => setShowBrightnessOverlay(false), OVERLAY_HIDE_DELAY)
-    }
+      isDraggingRef.current = false
+      setIsDragging(false)
+      dragStartRef.current = null
+    },
+    [calculateBrightness, light.entity_id, setLightBrightness]
+  )
 
-    isDraggingRef.current = false
-    setIsDragging(false)
-    dragStartRef.current = null
-  }, [calculateBrightness, light.entity_id, setLightBrightness])
-
-  const handleToggle = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation()
-    if (disabled || isDragging) return
-    haptic.light()
-    toggleLight(light.entity_id)
-  }, [light.entity_id, toggleLight, disabled, isDragging])
+  const handleToggle = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      if (disabled || isDragging) return
+      haptic.light()
+      toggleLight(light.entity_id)
+    },
+    [light.entity_id, toggleLight, disabled, isDragging]
+  )
 
   const handleCardClick = useCallback(() => {
     if (disabled || didDragRef.current) return
@@ -164,10 +186,7 @@ export function LightSlider({ light, disabled = false, compact = false, entityMe
   return (
     <div
       ref={cardRef}
-      className={clsx(
-        'relative rounded-lg overflow-hidden bg-card',
-        !disabled && 'cursor-pointer'
-      )}
+      className={clsx('relative rounded-lg overflow-hidden bg-card', !disabled && 'cursor-pointer')}
       onClick={handleCardClick}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
@@ -197,25 +216,23 @@ export function LightSlider({ light, disabled = false, compact = false, entityMe
             exit={{ opacity: 0, scale: 0.9 }}
             className="absolute inset-0 flex items-center justify-center bg-card/80 backdrop-blur-sm z-10 pointer-events-none"
           >
-            <span className="text-2xl font-bold text-accent">
-              {displayBrightness}%
-            </span>
+            <span className="text-2xl font-bold text-accent">{displayBrightness}%</span>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className={clsx(
-        'relative z-0 flex items-center py-2',
-        compact ? 'gap-2 px-1.5' : 'gap-3 px-2'
-      )}>
+      <div
+        className={clsx(
+          'relative z-0 flex items-center py-2',
+          compact ? 'gap-2 px-1.5' : 'gap-3 px-2'
+        )}
+      >
         {/* Toggle button */}
         <button
           onClick={handleToggle}
           className={clsx(
             'p-2 rounded-lg transition-colors touch-feedback',
-            isOn
-              ? 'bg-accent/20 text-accent'
-              : 'bg-border/50 text-muted hover:bg-border'
+            isOn ? 'bg-accent/20 text-accent' : 'bg-border/50 text-muted hover:bg-border'
           )}
           aria-label={`Toggle ${displayName}`}
         >

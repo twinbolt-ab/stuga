@@ -34,7 +34,7 @@ export function useAllEntities() {
       const mockData = generateMockData(activeMockScenario)
       if (mockData?.uncategorizedEntities) {
         // Filter mock entities by enabled domains and search
-        return mockData.uncategorizedEntities.filter(entity => {
+        return mockData.uncategorizedEntities.filter((entity) => {
           const domain = entity.entity_id.split('.')[0] as ConfigurableDomain
           if (!ALL_CONFIGURABLE_DOMAINS.includes(domain)) return false
           if (!enabledDomains.includes(domain)) return false
@@ -82,7 +82,7 @@ export function useAllEntities() {
   const allEntities = useMemo(() => {
     if (activeFilter === 'all') return baseEntities
 
-    return baseEntities.filter(entity => {
+    return baseEntities.filter((entity) => {
       const hidden = isEntityHidden(entity.entity_id)
       const hasRoom = !!entity.attributes.area
 

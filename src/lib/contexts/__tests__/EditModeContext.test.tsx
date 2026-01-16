@@ -331,13 +331,19 @@ describe('editModeReducer', () => {
 
   describe('REORDER_FLOORS', () => {
     it('should update ordered floors in floor edit mode', () => {
-      const initialFloors = [createMockFloor({ floor_id: 'floor-1' }), createMockFloor({ floor_id: 'floor-2' })]
+      const initialFloors = [
+        createMockFloor({ floor_id: 'floor-1' }),
+        createMockFloor({ floor_id: 'floor-2' }),
+      ]
       const editState: EditMode = {
         type: 'edit-floors',
         selectedFloorId: 'floor-1',
         orderedFloors: initialFloors,
       }
-      const newOrder = [createMockFloor({ floor_id: 'floor-2' }), createMockFloor({ floor_id: 'floor-1' })]
+      const newOrder = [
+        createMockFloor({ floor_id: 'floor-2' }),
+        createMockFloor({ floor_id: 'floor-1' }),
+      ]
       const result = editModeReducer(editState, {
         type: 'REORDER_FLOORS',
         floors: newOrder,
@@ -559,13 +565,19 @@ describe('useEditMode hook', () => {
 
     it('should reorder floors', () => {
       const { result } = renderHook(() => useEditMode(), { wrapper })
-      const floors = [createMockFloor({ floor_id: 'floor-1' }), createMockFloor({ floor_id: 'floor-2' })]
+      const floors = [
+        createMockFloor({ floor_id: 'floor-1' }),
+        createMockFloor({ floor_id: 'floor-2' }),
+      ]
 
       act(() => {
         result.current.enterFloorEdit(floors, 'floor-1')
       })
 
-      const newOrder = [createMockFloor({ floor_id: 'floor-2' }), createMockFloor({ floor_id: 'floor-1' })]
+      const newOrder = [
+        createMockFloor({ floor_id: 'floor-2' }),
+        createMockFloor({ floor_id: 'floor-1' }),
+      ]
       act(() => {
         result.current.reorderFloors(newOrder)
       })

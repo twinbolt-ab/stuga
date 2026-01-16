@@ -100,14 +100,10 @@ export function ConfirmDialog({
               )}
 
               {/* Title */}
-              <h2 className="text-lg font-semibold text-foreground text-center mb-2">
-                {title}
-              </h2>
+              <h2 className="text-lg font-semibold text-foreground text-center mb-2">{title}</h2>
 
               {/* Message */}
-              <p className="text-sm text-muted text-center mb-6">
-                {message}
-              </p>
+              <p className="text-sm text-muted text-center mb-6">{message}</p>
 
               {/* Buttons */}
               <div className="flex gap-3">
@@ -127,7 +123,7 @@ export function ConfirmDialog({
                       : 'bg-accent text-white hover:bg-accent/90'
                   }`}
                 >
-                  {isLoading ? t.common.loading : (confirmLabel || t.common.confirm)}
+                  {isLoading ? t.common.loading : confirmLabel || t.common.confirm}
                 </button>
               </div>
             </div>

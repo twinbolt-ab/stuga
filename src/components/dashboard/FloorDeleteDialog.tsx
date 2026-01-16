@@ -61,7 +61,7 @@ export function FloorDeleteDialog({
   // Count rooms on this floor
   const roomsOnFloor = useMemo(() => {
     if (!floor) return []
-    return rooms.filter(r => r.floorId === floor.floor_id)
+    return rooms.filter((r) => r.floorId === floor.floor_id)
   }, [floor, rooms])
 
   const hasRooms = roomsOnFloor.length > 0
@@ -69,14 +69,14 @@ export function FloorDeleteDialog({
   // Get other floors for the dropdown
   const otherFloors = useMemo(() => {
     if (!floor) return []
-    return floors.filter(f => f.floor_id !== floor.floor_id)
+    return floors.filter((f) => f.floor_id !== floor.floor_id)
   }, [floor, floors])
 
   // Floor options for select
   const floorOptions = useMemo(() => {
     const options = [
       { value: '', label: t.delete.floor.unassigned },
-      ...otherFloors.map(f => ({ value: f.floor_id, label: f.name }))
+      ...otherFloors.map((f) => ({ value: f.floor_id, label: f.name })),
     ]
     return options
   }, [otherFloors])
@@ -84,7 +84,7 @@ export function FloorDeleteDialog({
   // Get destination label for confirmation message
   const destinationLabel = useMemo(() => {
     if (!targetFloorId) return t.delete.floor.unassigned.toLowerCase()
-    const targetFloor = otherFloors.find(f => f.floor_id === targetFloorId)
+    const targetFloor = otherFloors.find((f) => f.floor_id === targetFloorId)
     return targetFloor?.name || ''
   }, [targetFloorId, otherFloors])
 
@@ -97,7 +97,7 @@ export function FloorDeleteDialog({
       if (hasRooms) {
         const newFloorId = targetFloorId || null
         await Promise.all(
-          roomsOnFloor.map(room =>
+          roomsOnFloor.map((room) =>
             room.areaId ? updateArea(room.areaId, { floor_id: newFloorId }) : Promise.resolve()
           )
         )
@@ -174,7 +174,7 @@ export function FloorDeleteDialog({
                   <p className="text-xs text-muted text-center">
                     {interpolate(t.delete.floor.willMove, {
                       count: roomsOnFloor.length,
-                      destination: destinationLabel
+                      destination: destinationLabel,
                     })}
                   </p>
                 </div>

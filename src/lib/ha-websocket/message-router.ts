@@ -1,5 +1,11 @@
 import type { HAEntity } from '@/types/ha'
-import type { HAWebSocketState, MessageHandler, ConnectionHandler, RegistryHandler, OptimisticOverride } from './types'
+import type {
+  HAWebSocketState,
+  MessageHandler,
+  ConnectionHandler,
+  RegistryHandler,
+  OptimisticOverride,
+} from './types'
 
 const DEFAULT_TIMEOUT = 30000
 
@@ -87,7 +93,10 @@ export function addMessageHandler(state: HAWebSocketState, handler: MessageHandl
 }
 
 /** Subscribes to connection status. Calls handler immediately with current state. */
-export function addConnectionHandler(state: HAWebSocketState, handler: ConnectionHandler): () => void {
+export function addConnectionHandler(
+  state: HAWebSocketState,
+  handler: ConnectionHandler
+): () => void {
   state.connectionHandlers.add(handler)
   handler(state.isAuthenticated)
   return () => state.connectionHandlers.delete(handler)

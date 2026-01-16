@@ -35,11 +35,14 @@ export function IconPicker({ isOpen, value, onChange, onClose }: IconPickerProps
     return searchIcons(searchQuery)
   }, [searchQuery])
 
-  const handleSelect = useCallback((icon: string) => {
-    setSelectedIcon(icon)
-    onChange(icon)
-    onClose()
-  }, [onChange, onClose])
+  const handleSelect = useCallback(
+    (icon: string) => {
+      setSelectedIcon(icon)
+      onChange(icon)
+      onClose()
+    },
+    [onChange, onClose]
+  )
 
   const handleClear = useCallback(() => {
     setSelectedIcon('')
@@ -130,7 +133,9 @@ export function IconPicker({ isOpen, value, onChange, onClose }: IconPickerProps
                 <input
                   type="text"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value)
+                  }}
                   placeholder={t.iconPicker.search}
                   className="w-full pl-10 pr-4 py-3 bg-background border border-border rounded-xl text-foreground placeholder:text-muted focus:border-accent transition-colors"
                   autoFocus={!window.matchMedia('(pointer: coarse)').matches}
@@ -154,9 +159,7 @@ export function IconPicker({ isOpen, value, onChange, onClose }: IconPickerProps
             {/* Icon grid */}
             <div className="flex-1 overflow-y-auto px-4 pb-safe">
               {filteredIcons.length === 0 ? (
-                <div className="py-8 text-center text-muted">
-                  {t.iconPicker.noResults}
-                </div>
+                <div className="py-8 text-center text-muted">{t.iconPicker.noResults}</div>
               ) : (
                 <div className="grid grid-cols-5 gap-2 pb-4">
                   {filteredIcons.map((icon) => {
@@ -164,7 +167,9 @@ export function IconPicker({ isOpen, value, onChange, onClose }: IconPickerProps
                     return (
                       <button
                         key={icon}
-                        onClick={() => handleSelect(icon)}
+                        onClick={() => {
+                          handleSelect(icon)
+                        }}
                         className={`aspect-square flex flex-col items-center justify-center p-2 rounded-xl transition-colors touch-feedback ${
                           isSelected
                             ? 'bg-accent/20 text-accent ring-2 ring-accent'

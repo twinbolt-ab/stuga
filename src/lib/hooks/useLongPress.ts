@@ -40,30 +40,36 @@ export function useLongPress({
     }
   }, [])
 
-  const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    didLongPressRef.current = false
-    startPosRef.current = { x: e.clientX, y: e.clientY }
-    clearTimer()
-
-    if (disabled) return
-
-    timerRef.current = setTimeout(() => {
-      didLongPressRef.current = true
-      haptic.medium()
-      onLongPress()
-    }, duration)
-  }, [disabled, duration, onLongPress, clearTimer])
-
-  const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    if (!timerRef.current || !startPosRef.current) return
-
-    const dx = Math.abs(e.clientX - startPosRef.current.x)
-    const dy = Math.abs(e.clientY - startPosRef.current.y)
-
-    if (dx > moveThreshold || dy > moveThreshold) {
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      didLongPressRef.current = false
+      startPosRef.current = { x: e.clientX, y: e.clientY }
       clearTimer()
-    }
-  }, [moveThreshold, clearTimer])
+
+      if (disabled) return
+
+      timerRef.current = setTimeout(() => {
+        didLongPressRef.current = true
+        haptic.medium()
+        onLongPress()
+      }, duration)
+    },
+    [disabled, duration, onLongPress, clearTimer]
+  )
+
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      if (!timerRef.current || !startPosRef.current) return
+
+      const dx = Math.abs(e.clientX - startPosRef.current.x)
+      const dy = Math.abs(e.clientY - startPosRef.current.y)
+
+      if (dx > moveThreshold || dy > moveThreshold) {
+        clearTimer()
+      }
+    },
+    [moveThreshold, clearTimer]
+  )
 
   const handlePointerUp = useCallback(() => {
     clearTimer()

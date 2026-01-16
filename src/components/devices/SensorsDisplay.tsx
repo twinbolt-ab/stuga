@@ -38,14 +38,14 @@ function SensorItem({
     onLongPress: () => onEnterEditModeWithSelection?.(sensor.entity_id),
   })
 
-  const iconElement = customIcon ? (
-    <MdiIcon icon={customIcon} className="w-4 h-4" />
-  ) : fallbackIcon
+  const iconElement = customIcon ? <MdiIcon icon={customIcon} className="w-4 h-4" /> : fallbackIcon
 
   if (isInEditMode) {
     return (
       <button
-        onClick={() => onToggleSelection(sensor.entity_id)}
+        onClick={() => {
+          onToggleSelection(sensor.entity_id)
+        }}
         className="w-full px-3 py-2.5 rounded-xl bg-border/30 touch-feedback"
       >
         <div className="flex items-center gap-2">
@@ -71,9 +71,7 @@ function SensorItem({
       onPointerCancel={longPress.onPointerUp}
     >
       <div className="flex items-center gap-2">
-        <div className="p-1.5 rounded-lg bg-border/50 text-muted flex-shrink-0">
-          {iconElement}
-        </div>
+        <div className="p-1.5 rounded-lg bg-border/50 text-muted flex-shrink-0">{iconElement}</div>
         <span className="flex-1 text-sm font-medium text-foreground truncate">
           {getEntityDisplayName(sensor)}
         </span>

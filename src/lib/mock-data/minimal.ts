@@ -13,7 +13,8 @@ function createEntity(
     entity_id: entityId,
     state,
     attributes: {
-      friendly_name: attributes.friendly_name as string || entityId.split('.')[1].replace(/_/g, ' '),
+      friendly_name:
+        (attributes.friendly_name as string) || entityId.split('.')[1].replace(/_/g, ' '),
       ...attributes,
     },
     last_changed: MOCK_TIMESTAMP,

@@ -4,7 +4,12 @@
 import { STORAGE_KEYS } from './constants'
 import { getStorage } from './storage'
 import { DEFAULT_ENABLED_DOMAINS, type ConfigurableDomain } from '@/types/ha'
-import { getValidAccessToken, getOAuthCredentials, clearOAuthCredentials, type TokenResult } from './ha-oauth'
+import {
+  getValidAccessToken,
+  getOAuthCredentials,
+  clearOAuthCredentials,
+  type TokenResult,
+} from './ha-oauth'
 
 export interface StoredCredentials {
   url: string
@@ -71,8 +76,8 @@ export function isSetupCompleteSync(): boolean {
 // Result type for getStoredCredentials - distinguishes temporary vs permanent failures
 export type CredentialsResult =
   | { status: 'valid'; credentials: StoredCredentials }
-  | { status: 'network-error'; haUrl: string }  // Temporary - credentials exist but can't refresh
-  | { status: 'no-credentials' }  // No credentials stored
+  | { status: 'network-error'; haUrl: string } // Temporary - credentials exist but can't refresh
+  | { status: 'no-credentials' } // No credentials stored
 
 /**
  * Get stored Home Assistant credentials
@@ -239,5 +244,5 @@ export async function setEnabledDomains(domains: ConfigurableDomain[]): Promise<
  */
 export function isEntityVisible(entityId: string, enabledDomains?: ConfigurableDomain[]): boolean {
   const domains = enabledDomains ?? getEnabledDomainsSync()
-  return domains.some(domain => entityId.startsWith(`${domain}.`))
+  return domains.some((domain) => entityId.startsWith(`${domain}.`))
 }

@@ -6,7 +6,13 @@ import { ComboBox } from '@/components/ui/ComboBox'
 import { IconPickerField } from '@/components/ui/IconPickerField'
 import { useToast } from '@/providers/ToastProvider'
 import { t, interpolate } from '@/lib/i18n'
-import { updateArea, createFloor, updateEntity, createArea, setEntityHidden } from '@/lib/ha-websocket'
+import {
+  updateArea,
+  createFloor,
+  updateEntity,
+  createArea,
+  setEntityHidden,
+} from '@/lib/ha-websocket'
 import { logger } from '@/lib/logger'
 import type { RoomWithDevices, HAFloor, HAEntity } from '@/types/ha'
 
@@ -19,7 +25,14 @@ interface BulkEditRoomsModalProps {
   onFloorCreated?: (floorId: string) => void
 }
 
-export function BulkEditRoomsModal({ isOpen, rooms, floors, onClose, onComplete, onFloorCreated }: BulkEditRoomsModalProps) {
+export function BulkEditRoomsModal({
+  isOpen,
+  rooms,
+  floors,
+  onClose,
+  onComplete,
+  onFloorCreated,
+}: BulkEditRoomsModalProps) {
   const [floorId, setFloorId] = useState<string>('')
   const [isSaving, setIsSaving] = useState(false)
   const { showError } = useToast()
@@ -35,7 +48,7 @@ export function BulkEditRoomsModal({ isOpen, rooms, floors, onClose, onComplete,
   const floorOptions = [
     { value: '', label: '— No change —' },
     { value: '__none__', label: t.floors.none },
-    ...floors.map(f => ({ value: f.floor_id, label: f.name }))
+    ...floors.map((f) => ({ value: f.floor_id, label: f.name })),
   ]
 
   const handleSave = async () => {
@@ -49,8 +62,8 @@ export function BulkEditRoomsModal({ isOpen, rooms, floors, onClose, onComplete,
       const targetFloorId = floorId === '__none__' ? null : floorId
       await Promise.all(
         rooms
-          .filter(room => room.areaId)
-          .map(room => updateArea(room.areaId!, { floor_id: targetFloorId }))
+          .filter((room) => room.areaId)
+          .map((room) => updateArea(room.areaId!, { floor_id: targetFloorId }))
       )
       onComplete()
       onClose()
@@ -112,7 +125,13 @@ interface BulkEditDevicesModalProps {
   onComplete: () => void
 }
 
-export function BulkEditDevicesModal({ isOpen, devices, rooms, onClose, onComplete }: BulkEditDevicesModalProps) {
+export function BulkEditDevicesModal({
+  isOpen,
+  devices,
+  rooms,
+  onClose,
+  onComplete,
+}: BulkEditDevicesModalProps) {
   const [roomId, setRoomId] = useState<string>('')
   const [icon, setIcon] = useState<string>('')
   const [hidden, setHidden] = useState<string>('')
@@ -132,7 +151,7 @@ export function BulkEditDevicesModal({ isOpen, devices, rooms, onClose, onComple
   const roomOptions = [
     { value: '', label: '— No change —' },
     { value: '__none__', label: t.floors.none },
-    ...rooms.map(r => ({ value: r.areaId || r.id, label: r.name }))
+    ...rooms.map((r) => ({ value: r.areaId || r.id, label: r.name })),
   ]
 
   const hiddenOptions = [
@@ -152,7 +171,7 @@ export function BulkEditDevicesModal({ isOpen, devices, rooms, onClose, onComple
       // Handle entity updates (room, icon)
       const entityUpdates = devices
         .filter(() => roomId || icon)
-        .map(device => {
+        .map((device) => {
           const updates: { area_id?: string | null; icon?: string | null } = {}
 
           if (roomId) {
@@ -167,7 +186,7 @@ export function BulkEditDevicesModal({ isOpen, devices, rooms, onClose, onComple
 
       // Handle hidden state separately using the correct API
       const hiddenUpdates = hidden
-        ? devices.map(device => setEntityHidden(device.entity_id, hidden === 'hide'))
+        ? devices.map((device) => setEntityHidden(device.entity_id, hidden === 'hide'))
         : []
 
       await Promise.all([...entityUpdates, ...hiddenUpdates])
@@ -204,11 +223,7 @@ export function BulkEditDevicesModal({ isOpen, devices, rooms, onClose, onComple
         </FormField>
 
         <FormField label={t.edit.device.hidden}>
-          <Select
-            value={hidden}
-            onChange={setHidden}
-            options={hiddenOptions}
-          />
+          <Select value={hidden} onChange={setHidden} options={hiddenOptions} />
         </FormField>
 
         <div className="flex gap-3 pt-4">

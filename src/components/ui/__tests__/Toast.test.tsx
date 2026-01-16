@@ -6,7 +6,11 @@ import { ToastProvider, useToast } from '@/providers/ToastProvider'
 function TestComponent() {
   const { showError } = useToast()
   return (
-    <button onClick={() => showError('Test error message')}>
+    <button
+      onClick={() => {
+        showError('Test error message')
+      }}
+    >
       Show Error
     </button>
   )

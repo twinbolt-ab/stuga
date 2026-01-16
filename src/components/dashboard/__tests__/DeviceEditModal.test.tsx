@@ -46,9 +46,7 @@ describe('DeviceEditModal', () => {
         attributes: { friendly_name: 'Living Room Light' },
       })
 
-      renderWithProviders(
-        <DeviceEditModal device={light} rooms={rooms} onClose={mockOnClose} />
-      )
+      renderWithProviders(<DeviceEditModal device={light} rooms={rooms} onClose={mockOnClose} />)
 
       // Find name input by placeholder
       const nameInput = screen.getByPlaceholderText(/living room light/i)
@@ -75,9 +73,7 @@ describe('DeviceEditModal', () => {
       const light = createMockLight({ entity_id: 'light.living_room' })
       mockIsEntityHidden.mockReturnValue(false)
 
-      renderWithProviders(
-        <DeviceEditModal device={light} rooms={rooms} onClose={mockOnClose} />
-      )
+      renderWithProviders(<DeviceEditModal device={light} rooms={rooms} onClose={mockOnClose} />)
 
       // Find hidden toggle (uses role="switch")
       const hiddenToggle = screen.getByRole('switch')
@@ -99,9 +95,7 @@ describe('DeviceEditModal', () => {
       const light = createMockLight({ entity_id: 'light.living_room' })
       mockIsEntityHidden.mockReturnValue(true)
 
-      renderWithProviders(
-        <DeviceEditModal device={light} rooms={rooms} onClose={mockOnClose} />
-      )
+      renderWithProviders(<DeviceEditModal device={light} rooms={rooms} onClose={mockOnClose} />)
 
       const hiddenToggle = screen.getByRole('switch')
       expect(hiddenToggle).toHaveAttribute('aria-checked', 'true')
@@ -123,9 +117,7 @@ describe('DeviceEditModal', () => {
     it('should cancel without saving', async () => {
       const light = createMockLight({ entity_id: 'light.living_room' })
 
-      renderWithProviders(
-        <DeviceEditModal device={light} rooms={rooms} onClose={mockOnClose} />
-      )
+      renderWithProviders(<DeviceEditModal device={light} rooms={rooms} onClose={mockOnClose} />)
 
       const cancelButton = screen.getByRole('button', { name: /cancel/i })
       await act(async () => {
@@ -145,9 +137,7 @@ describe('DeviceEditModal', () => {
         attributes: { friendly_name: 'Living Room Light' },
       })
 
-      renderWithProviders(
-        <DeviceEditModal device={light} rooms={rooms} onClose={mockOnClose} />
-      )
+      renderWithProviders(<DeviceEditModal device={light} rooms={rooms} onClose={mockOnClose} />)
 
       // Change name to trigger save
       const nameInput = screen.getByPlaceholderText(/living room light/i)
@@ -244,9 +234,7 @@ describe('DeviceEditModal', () => {
         attributes: { friendly_name: 'Movie Time' },
       })
 
-      renderWithProviders(
-        <DeviceEditModal device={scene} rooms={rooms} onClose={mockOnClose} />
-      )
+      renderWithProviders(<DeviceEditModal device={scene} rooms={rooms} onClose={mockOnClose} />)
 
       // Delete button should exist for scenes
       const deleteButton = screen.getByRole('button', { name: /delete/i })
@@ -259,9 +247,7 @@ describe('DeviceEditModal', () => {
         attributes: { friendly_name: 'Movie Time' },
       })
 
-      renderWithProviders(
-        <DeviceEditModal device={scene} rooms={rooms} onClose={mockOnClose} />
-      )
+      renderWithProviders(<DeviceEditModal device={scene} rooms={rooms} onClose={mockOnClose} />)
 
       // Click delete button
       const deleteButton = screen.getByRole('button', { name: /delete/i })
@@ -294,9 +280,7 @@ describe('DeviceEditModal', () => {
         attributes: { friendly_name: 'Movie Time' },
       })
 
-      renderWithProviders(
-        <DeviceEditModal device={scene} rooms={rooms} onClose={mockOnClose} />
-      )
+      renderWithProviders(<DeviceEditModal device={scene} rooms={rooms} onClose={mockOnClose} />)
 
       const deleteButton = screen.getByRole('button', { name: /delete/i })
       await act(async () => {
@@ -323,14 +307,14 @@ describe('DeviceEditModal', () => {
 
   describe('Modal Behavior', () => {
     it('should be hidden when device is null', () => {
-      renderWithProviders(
-        <DeviceEditModal device={null} rooms={rooms} onClose={mockOnClose} />
-      )
+      renderWithProviders(<DeviceEditModal device={null} rooms={rooms} onClose={mockOnClose} />)
 
       // Modal is always mounted but hidden via pointer-events when closed
       const saveButton = screen.queryByRole('button', { name: /save/i })
       expect(saveButton).toBeInTheDocument()
-      expect(saveButton?.closest('[style*="pointer-events"]')).toHaveStyle({ pointerEvents: 'none' })
+      expect(saveButton?.closest('[style*="pointer-events"]')).toHaveStyle({
+        pointerEvents: 'none',
+      })
     })
   })
 })
