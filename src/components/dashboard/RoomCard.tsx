@@ -20,7 +20,8 @@ interface RoomCardProps {
   allRooms?: RoomWithDevices[]
   isExpanded: boolean
   shouldShowScenes?: boolean
-  onToggleExpand: () => void
+  /** Called with room.id when expand/collapse is toggled */
+  onToggleExpand: (roomId: string) => void
   onEnterEditModeWithSelection?: (roomId: string) => void
 }
 
@@ -208,9 +209,9 @@ export function RoomCard({
     if (isExpanded) {
       e.stopPropagation()
       if (isDeviceInEditMode) exitEditMode()
-      onToggleExpand()
+      onToggleExpand(room.id)
     }
-  }, [isInEditMode, isExpanded, isDeviceInEditMode, exitEditMode, onToggleExpand])
+  }, [isInEditMode, isExpanded, isDeviceInEditMode, exitEditMode, onToggleExpand, room.id])
 
   const handleToggleSelection = useCallback(() => {
     toggleSelection(room.id)
@@ -374,7 +375,7 @@ export function RoomCard({
               onClick={(e) => {
                 e.stopPropagation()
                 if (isExpanded && isDeviceInEditMode) exitEditMode()
-                onToggleExpand()
+                onToggleExpand(room.id)
               }}
               className="absolute inset-0 -mx-4 -my-2 px-4 py-2 flex items-center justify-end hover:bg-border/30 transition-colors touch-feedback"
               aria-label={isExpanded ? 'Collapse' : 'Expand'}

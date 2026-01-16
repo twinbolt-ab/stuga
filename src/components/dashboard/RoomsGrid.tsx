@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import { RoomCard, MemoizedRoomCard } from './RoomCard'
 import { ReorderableGrid } from './ReorderableGrid'
 import { AllDevicesView } from './AllDevicesView'
@@ -75,12 +76,17 @@ export function RoomsGrid({
             room={room}
             isExpanded={false}
             shouldShowScenes={shouldShowScenes}
-            onToggleExpand={() => {}}
+            onToggleExpand={() => {}} // no-op in edit mode
           />
         )}
       />
     )
   }
+
+  // Stable callback that delegates to onToggleExpand - avoids new function refs per card
+  const handleToggleExpand = useCallback((roomId: string) => {
+    onToggleExpand(roomId)
+  }, [onToggleExpand])
 
   // Normal grid view - use MemoizedRoomCard and skip LayoutGroup for better performance
   return (
@@ -92,7 +98,7 @@ export function RoomsGrid({
           allRooms={allRooms}
           isExpanded={expandedRoomId === room.id}
           shouldShowScenes={shouldShowScenes}
-          onToggleExpand={() => onToggleExpand(room.id)}
+          onToggleExpand={handleToggleExpand}
           onEnterEditModeWithSelection={onEnterEditModeWithSelection}
         />
       ))}

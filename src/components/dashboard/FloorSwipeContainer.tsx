@@ -89,15 +89,10 @@ export function FloorSwipeContainer({
   }, [currentIndex, width, x, prefersReducedMotion])
 
   // Track which floors are "visible" (current + adjacent) for rendering optimization
-  const [visibleRange, setVisibleRange] = useState({ start: 0, end: 0 })
-
-  // Update visible range when current index changes
-  useEffect(() => {
-    setVisibleRange({
-      start: Math.max(0, currentIndex - 1),
-      end: Math.min(floorIds.length - 1, currentIndex + 1),
-    })
-  }, [currentIndex, floorIds.length])
+  const visibleRange = useMemo(() => ({
+    start: Math.max(0, currentIndex - 1),
+    end: Math.min(floorIds.length - 1, currentIndex + 1),
+  }), [currentIndex, floorIds.length])
 
   // Handle drag end - determine target floor
   const handleDragEnd = useCallback((_: unknown, info: PanInfo) => {
