@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect, useMemo, useState } from 'react'
+import { useRef, useCallback, useEffect, useMemo, useState, memo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { clsx } from 'clsx'
 import { Lightbulb, LightbulbOff, Thermometer, ChevronDown, Home, Check } from 'lucide-react'
@@ -408,16 +408,15 @@ export function RoomCard({
   }
 
   // Normal mode: use motion.div with gesture handlers
+  // Note: Removed layout="position" for better swipe performance
   return (
     <motion.div
       ref={cardRef}
-      layout="position"
       initial={false}
       animate={{
         padding: isWidthExpanded ? '16px' : '6px 16px',
       }}
       transition={{
-        layout: { duration: 0.12, ease: [0.25, 0.1, 0.25, 1] },
         padding: { duration: 0.12, ease: [0.25, 0.1, 0.25, 1] },
       }}
       className={clsx(cardClassName, hasControllableDevices && !isExpanded && 'cursor-pointer')}
@@ -432,3 +431,14 @@ export function RoomCard({
     </motion.div>
   )
 }
+
+// Memoized export to prevent re-renders during swipe navigation
+export const MemoizedRoomCard = memo(RoomCard, (prevProps, nextProps) => {
+  // Re-render if any of these change
+  return (
+    prevProps.room === nextProps.room &&
+    prevProps.isExpanded === nextProps.isExpanded &&
+    prevProps.shouldShowScenes === nextProps.shouldShowScenes &&
+    prevProps.allRooms === nextProps.allRooms
+  )
+})

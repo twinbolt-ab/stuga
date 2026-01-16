@@ -1,5 +1,4 @@
-import { LayoutGroup } from 'framer-motion'
-import { RoomCard } from './RoomCard'
+import { RoomCard, MemoizedRoomCard } from './RoomCard'
 import { ReorderableGrid } from './ReorderableGrid'
 import { AllDevicesView } from './AllDevicesView'
 import { t } from '@/lib/i18n'
@@ -83,22 +82,20 @@ export function RoomsGrid({
     )
   }
 
-  // Normal grid view
+  // Normal grid view - use MemoizedRoomCard and skip LayoutGroup for better performance
   return (
-    <LayoutGroup>
-      <div className="grid grid-cols-2 gap-[12px]">
-        {displayRooms.map((room) => (
-          <RoomCard
-            key={room.id}
-            room={room}
-            allRooms={allRooms}
-            isExpanded={expandedRoomId === room.id}
-            shouldShowScenes={shouldShowScenes}
-            onToggleExpand={() => onToggleExpand(room.id)}
-            onEnterEditModeWithSelection={onEnterEditModeWithSelection}
-          />
-        ))}
-      </div>
-    </LayoutGroup>
+    <div className="grid grid-cols-2 gap-[12px]">
+      {displayRooms.map((room) => (
+        <MemoizedRoomCard
+          key={room.id}
+          room={room}
+          allRooms={allRooms}
+          isExpanded={expandedRoomId === room.id}
+          shouldShowScenes={shouldShowScenes}
+          onToggleExpand={() => onToggleExpand(room.id)}
+          onEnterEditModeWithSelection={onEnterEditModeWithSelection}
+        />
+      ))}
+    </div>
   )
 }

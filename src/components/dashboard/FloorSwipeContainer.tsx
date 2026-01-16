@@ -1,9 +1,21 @@
-import { useLayoutEffect, useState, useCallback, useMemo, useEffect } from 'react'
+import { useLayoutEffect, useState, useCallback, useMemo, useEffect, memo } from 'react'
 import { motion, useMotionValue, animate, useDragControls, useReducedMotion, PanInfo } from 'framer-motion'
 import type { HAFloor } from '@/types/ha'
 
 // Spring animation config for floor transitions
 const SPRING_CONFIG = { type: 'spring', stiffness: 300, damping: 30 } as const
+
+// Placeholder for non-visible floors to maintain layout
+const FloorPlaceholder = memo(function FloorPlaceholder({ width }: { width: number }) {
+  return (
+    <div
+      style={{
+        width: width > 0 ? width : '100vw',
+        flexShrink: 0,
+      }}
+    />
+  )
+})
 
 // Minimum height for swipeable area
 // Account for: safe-area-top + py-4 padding (32px top+bottom) at top, pb-nav (5rem + safe-area-bottom) at bottom
@@ -76,6 +88,17 @@ export function FloorSwipeContainer({
     }
   }, [currentIndex, width, x, prefersReducedMotion])
 
+  // Track which floors are "visible" (current + adjacent) for rendering optimization
+  const [visibleRange, setVisibleRange] = useState({ start: 0, end: 0 })
+
+  // Update visible range when current index changes
+  useEffect(() => {
+    setVisibleRange({
+      start: Math.max(0, currentIndex - 1),
+      end: Math.min(floorIds.length - 1, currentIndex + 1),
+    })
+  }, [currentIndex, floorIds.length])
+
   // Handle drag end - determine target floor
   const handleDragEnd = useCallback((_: unknown, info: PanInfo) => {
     if (width === 0) return
@@ -101,8 +124,8 @@ export function FloorSwipeContainer({
       // Navigate to new floor
       const newFloorId = floorIds[targetIndex]
       onSelectFloor(newFloorId)
-      // Scroll to top when changing floors
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+      // Scroll to top when changing floors (instant to avoid jank)
+      window.scrollTo({ top: 0 })
     } else {
       // Snap back to current floor
       const targetX = -currentIndex * width
@@ -160,18 +183,27 @@ export function FloorSwipeContainer({
         onDragEnd={handleDragEnd}
         onPointerDown={handlePointerDown}
       >
-        {floorIds.map((floorId, index) => (
-          <div
-            key={floorId ?? '__uncategorized__'}
-            style={{
-              width: width > 0 ? width : '100vw',
-              flexShrink: 0,
-              minHeight: MIN_HEIGHT,
-            }}
-          >
-            {children(floorId, index)}
-          </div>
-        ))}
+        {floorIds.map((floorId, index) => {
+          // Only render floors within visible range (current ± 1)
+          const isVisible = index >= visibleRange.start && index <= visibleRange.end
+
+          if (!isVisible) {
+            return <FloorPlaceholder key={floorId ?? '__uncategorized__'} width={width} />
+          }
+
+          return (
+            <div
+              key={floorId ?? '__uncategorized__'}
+              style={{
+                width: width > 0 ? width : '100vw',
+                flexShrink: 0,
+                minHeight: MIN_HEIGHT,
+              }}
+            >
+              {children(floorId, index)}
+            </div>
+          )
+        })}
       </motion.div>
     </div>
   )
