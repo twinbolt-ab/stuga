@@ -1,4 +1,11 @@
-import { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  useSyncExternalStore,
+} from 'react'
 
 type Theme = 'light' | 'dark' | 'system'
 type ResolvedTheme = 'light' | 'dark'
@@ -11,46 +18,45 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
-function getSystemTheme(): ResolvedTheme {
-  // Always default to dark mode
-  return 'dark'
-}
-
 function getStoredTheme(): Theme {
   if (typeof window === 'undefined') return 'dark'
   return (localStorage.getItem('theme') as Theme) || 'dark'
 }
 
+// Subscribe to system theme changes using useSyncExternalStore
+function subscribeToSystemTheme(callback: () => void) {
+  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+  mediaQuery.addEventListener('change', callback)
+  return () => mediaQuery.removeEventListener('change', callback)
+}
+
+function getSystemThemeSnapshot(): ResolvedTheme {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
+function getSystemThemeServerSnapshot(): ResolvedTheme {
+  return 'dark' // Default to dark on server
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(getStoredTheme)
-  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>(() => {
-    const stored = getStoredTheme()
-    return stored === 'system' ? getSystemTheme() : stored
-  })
 
-  const applyTheme = useCallback((resolved: ResolvedTheme) => {
+  // Use useSyncExternalStore for system theme preference
+  const systemTheme = useSyncExternalStore(
+    subscribeToSystemTheme,
+    getSystemThemeSnapshot,
+    getSystemThemeServerSnapshot
+  )
+
+  // Derive resolved theme from theme setting and system preference
+  const resolvedTheme: ResolvedTheme = theme === 'system' ? systemTheme : theme
+
+  // Apply theme class to DOM (this is the legitimate use of useEffect - DOM sync)
+  useEffect(() => {
     const root = document.documentElement
     root.classList.remove('light', 'dark')
-    root.classList.add(resolved)
-    setResolvedTheme(resolved)
-  }, [])
-
-  useEffect(() => {
-    if (theme === 'system') {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-      applyTheme(mediaQuery.matches ? 'dark' : 'light')
-
-      const handler = (e: MediaQueryListEvent) => {
-        applyTheme(e.matches ? 'dark' : 'light')
-      }
-      mediaQuery.addEventListener('change', handler)
-      return () => {
-        mediaQuery.removeEventListener('change', handler)
-      }
-    } else {
-      applyTheme(theme)
-    }
-  }, [theme, applyTheme])
+    root.classList.add(resolvedTheme)
+  }, [resolvedTheme])
 
   const setTheme = useCallback((newTheme: Theme) => {
     setThemeState(newTheme)

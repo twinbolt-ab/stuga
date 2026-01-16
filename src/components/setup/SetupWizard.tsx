@@ -609,7 +609,7 @@ export function SetupWizard() {
                     <p className="text-sm text-muted mt-1">
                       {t.setup.authMethod?.oauthHint || 'Use your existing Home Assistant account'}
                     </p>
-                    <span className="inline-block text-xs bg-accent/15 text-accent px-2 py-0.5 rounded-full mt-2 font-medium">
+                    <span className="block w-fit text-xs bg-accent/20 text-accent px-2 py-0.5 rounded-full mt-2 font-medium">
                       {t.setup.authMethod?.recommended || 'Recommended'}
                     </span>
                   </div>

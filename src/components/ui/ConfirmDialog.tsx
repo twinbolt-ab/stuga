@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { AlertTriangle } from 'lucide-react'
 import { t } from '@/lib/i18n'
 import { haptic } from '@/lib/haptics'
+import { useIsClient } from '@/lib/hooks/useIsClient'
 
 interface ConfirmDialogProps {
   isOpen: boolean
@@ -28,12 +29,7 @@ export function ConfirmDialog({
   variant = 'default',
   isLoading = false,
 }: ConfirmDialogProps) {
-  const [mounted, setMounted] = useState(false)
-
-  // Only render portal on client
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  const isClient = useIsClient()
 
   // Haptic feedback when destructive dialog opens
   useEffect(() => {
@@ -57,7 +53,7 @@ export function ConfirmDialog({
     }
   }, [isOpen, onClose, isLoading])
 
-  if (!mounted) return null
+  if (!isClient) return null
 
   const isDestructive = variant === 'destructive'
 

@@ -55,10 +55,6 @@ export default tseslint.config(
       // React Refresh (Vite HMR)
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
 
-      // React Hooks - disable the set-state-in-effect rule which is too strict for common patterns
-      // like client-only mounting (portals), syncing external state (localStorage), and initial setup
-      'react-hooks/set-state-in-effect': 'off',
-
       // Strict rules for catching bugs
       '@typescript-eslint/no-unused-vars': [
         'error',

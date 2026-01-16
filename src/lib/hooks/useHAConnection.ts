@@ -41,18 +41,20 @@ export function useHAConnection() {
         `Token expires at ${new Date(creds.expires_at).toISOString()}, scheduling refresh in ${Math.round(delay / 1000)}s`
       )
 
-      refreshTimerRef.current = setTimeout(async () => {
+      refreshTimerRef.current = setTimeout(() => {
         if (cancelled) return
         logger.debug('useHAConnection', 'Proactive token refresh triggered')
-        const result = await getValidAccessToken()
-        if (result.status === 'valid') {
-          // Update WebSocket with fresh token for next reconnect
-          ws.updateToken(result.token)
-          // Schedule next refresh
-          void scheduleTokenRefresh()
-        } else if (result.status === 'auth-error') {
-          logger.warn('useHAConnection', 'Token refresh failed permanently')
-        }
+        void (async () => {
+          const result = await getValidAccessToken()
+          if (result.status === 'valid') {
+            // Update WebSocket with fresh token for next reconnect
+            ws.updateToken(result.token)
+            // Schedule next refresh
+            void scheduleTokenRefresh()
+          } else if (result.status === 'auth-error') {
+            logger.warn('useHAConnection', 'Token refresh failed permanently')
+          }
+        })()
       }, delay)
     }
 

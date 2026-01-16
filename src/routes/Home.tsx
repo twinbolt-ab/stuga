@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { LogIn, AlertCircle, WifiOff, RefreshCw } from 'lucide-react'
@@ -9,38 +9,44 @@ import { logger } from '@/lib/logger'
 
 type HomeState = 'loading' | 'ready' | 'session-expired' | 'connection-lost' | 'needs-setup'
 
+// Async setup check function - defined outside component to avoid lint issues
+async function checkSetupStatus(
+  navigate: ReturnType<typeof useNavigate>,
+  setState: (state: HomeState) => void
+) {
+  const setupComplete = await isSetupComplete()
+  if (!setupComplete) {
+    void navigate('/setup', { replace: true })
+    return
+  }
+
+  // Check if we actually have valid credentials
+  // (setup might be marked complete but credentials could have been cleared)
+  const result = await getStoredCredentials()
+
+  if (result.status === 'valid') {
+    setState('ready')
+  } else if (result.status === 'network-error') {
+    // Credentials exist but network is down - show reconnect UI, not setup
+    logger.debug('Home', 'Network error - showing connection lost UI')
+    setState('connection-lost')
+  } else {
+    // No credentials at all
+    logger.debug('Home', 'No credentials - session expired')
+    setState('session-expired')
+  }
+}
+
 export default function Home() {
   const navigate = useNavigate()
   const [state, setState] = useState<HomeState>('loading')
   const [retrying, setRetrying] = useState(false)
 
-  const checkSetup = useCallback(async () => {
-    const setupComplete = await isSetupComplete()
-    if (!setupComplete) {
-      void navigate('/setup', { replace: true })
-      return
-    }
-
-    // Check if we actually have valid credentials
-    // (setup might be marked complete but credentials could have been cleared)
-    const result = await getStoredCredentials()
-
-    if (result.status === 'valid') {
-      setState('ready')
-    } else if (result.status === 'network-error') {
-      // Credentials exist but network is down - show reconnect UI, not setup
-      logger.debug('Home', 'Network error - showing connection lost UI')
-      setState('connection-lost')
-    } else {
-      // No credentials at all
-      logger.debug('Home', 'No credentials - session expired')
-      setState('session-expired')
-    }
-  }, [navigate])
-
+  // Run setup check on mount
   useEffect(() => {
-    void checkSetup()
-  }, [checkSetup])
+    void checkSetupStatus(navigate, setState)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleSignIn = async () => {
     // Clear credentials and redirect to setup
@@ -51,7 +57,7 @@ export default function Home() {
   const handleRetry = async () => {
     setRetrying(true)
     setState('loading')
-    await checkSetup()
+    await checkSetupStatus(navigate, setState)
     setRetrying(false)
   }
 

@@ -1,16 +1,12 @@
 import { useTheme } from '@/providers/ThemeProvider'
-import { useEffect, useState } from 'react'
 import { Moon, Sun } from 'lucide-react'
+import { useIsClient } from '@/lib/hooks/useIsClient'
 
 export function ThemeToggle() {
   const { theme: _theme, setTheme, resolvedTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
+  const isClient = useIsClient()
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  if (!mounted) {
+  if (!isClient) {
     return (
       <button className="p-2 rounded-button opacity-0" aria-label="Toggle theme">
         <Sun className="w-5 h-5" />

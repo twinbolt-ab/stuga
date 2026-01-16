@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import {
   getEnabledDomainsSync,
   setEnabledDomains as saveEnabledDomains,
@@ -11,13 +11,10 @@ import { DEFAULT_ENABLED_DOMAINS, type ConfigurableDomain } from '@/types/ha'
  * Returns the current enabled domains and utilities for checking entity visibility
  */
 export function useEnabledDomains() {
-  const [enabledDomains, setEnabledDomainsState] =
-    useState<ConfigurableDomain[]>(DEFAULT_ENABLED_DOMAINS)
-
-  // Load from localStorage on mount
-  useEffect(() => {
-    setEnabledDomainsState(getEnabledDomainsSync())
-  }, [])
+  // Initialize with stored value - getEnabledDomainsSync handles SSR by returning defaults
+  const [enabledDomains, setEnabledDomainsState] = useState<ConfigurableDomain[]>(() =>
+    getEnabledDomainsSync()
+  )
 
   // Save domains and update state
   const setEnabledDomains = useCallback((domains: ConfigurableDomain[]) => {

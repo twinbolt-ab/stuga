@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import type { RoomWithDevices, HAFloor } from '@/types/ha'
 
 interface UseFloorNavigationOptions {
@@ -38,6 +38,15 @@ export function useFloorNavigation({
     undefined
   )
 
+  // Track previous mock scenario for change detection
+  const [prevActiveMockScenario, setPrevActiveMockScenario] = useState(activeMockScenario)
+
+  // Reset user selection when mock scenario changes (render-time state update)
+  if (prevActiveMockScenario !== activeMockScenario) {
+    setPrevActiveMockScenario(activeMockScenario)
+    setUserSelectedFloorId(undefined)
+  }
+
   // Check if there are rooms without a floor that have controllable devices
   const hasUnassignedRooms = useMemo(() => {
     return rooms.some((room) => {
@@ -67,11 +76,6 @@ export function useFloorNavigation({
     }
     return null
   }, [userSelectedFloorId, floors, hasReceivedData, rooms.length])
-
-  // Reset user selection when mock scenario changes
-  useEffect(() => {
-    setUserSelectedFloorId(undefined)
-  }, [activeMockScenario])
 
   // Filter rooms by selected floor
   const filteredRooms = useMemo(() => {

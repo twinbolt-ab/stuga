@@ -44,12 +44,18 @@ export function ReorderableGrid<T>({
   const [pendingDragIndex, setPendingDragIndex] = useState<number | null>(null)
   const pendingDragPosRef = useRef({ x: 0, y: 0 })
 
+  // Track previous items for change detection
+  const [prevItems, setPrevItems] = useState(items)
+
   // Sync items when they change externally (but not while dragging)
-  useEffect(() => {
+  // React-recommended pattern: adjust state during render based on prop changes
+  // See: https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  if (prevItems !== items) {
+    setPrevItems(items)
     if (draggedIndex === null && pendingDragIndex === null) {
       setOrderedItems(items)
     }
-  }, [items, draggedIndex, pendingDragIndex])
+  }
 
   // Measure cell width
   useLayoutEffect(() => {

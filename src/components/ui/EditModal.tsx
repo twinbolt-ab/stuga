@@ -1,9 +1,10 @@
-import { useEffect, useState, useRef, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, useMotionValue, animate, PanInfo } from 'framer-motion'
 import { X } from 'lucide-react'
 import { t } from '@/lib/i18n'
 import { haptic } from '@/lib/haptics'
+import { useIsClient } from '@/lib/hooks/useIsClient'
 
 const DRAG_CLOSE_THRESHOLD = 150
 
@@ -17,14 +18,9 @@ interface EditModalProps {
 }
 
 export function EditModal({ isOpen, onClose, title, children, compact = false }: EditModalProps) {
-  const [mounted, setMounted] = useState(false)
+  const isClient = useIsClient()
   const y = useMotionValue(isOpen ? 0 : 1000)
   const sheetRef = useRef<HTMLDivElement>(null)
-
-  // Only render portal on client
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   // Animate modal in/out based on isOpen
   useEffect(() => {
@@ -80,7 +76,7 @@ export function EditModal({ isOpen, onClose, title, children, compact = false }:
     }
   }, [isOpen, onClose])
 
-  if (!mounted) return null
+  if (!isClient) return null
 
   return createPortal(
     <>

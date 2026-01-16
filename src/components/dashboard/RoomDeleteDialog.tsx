@@ -8,6 +8,7 @@ import { useToast } from '@/providers/ToastProvider'
 import { t, interpolate } from '@/lib/i18n'
 import { updateEntity, deleteArea } from '@/lib/ha-websocket'
 import { logger } from '@/lib/logger'
+import { useIsClient } from '@/lib/hooks/useIsClient'
 import type { RoomWithDevices, HAFloor } from '@/types/ha'
 
 interface RoomDeleteDialogProps {
@@ -25,23 +26,44 @@ export function RoomDeleteDialog({
   onClose,
   onDeleted,
 }: RoomDeleteDialogProps) {
-  const [mounted, setMounted] = useState(false)
-  const [targetRoomId, setTargetRoomId] = useState('')
-  const [isDeleting, setIsDeleting] = useState(false)
+  const isClient = useIsClient()
   const { showError } = useToast()
 
-  // Only render portal on client
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  // Use room.areaId as key to reset state when room changes
+  const roomKey = room?.areaId ?? ''
 
-  // Reset state when dialog opens
-  useEffect(() => {
-    if (room) {
-      setTargetRoomId('')
-      setIsDeleting(false)
-    }
-  }, [room])
+  return (
+    <RoomDeleteDialogContent
+      key={roomKey}
+      room={room}
+      allRooms={allRooms}
+      onClose={onClose}
+      onDeleted={onDeleted}
+      showError={showError}
+      isClient={isClient}
+    />
+  )
+}
+
+interface RoomDeleteDialogContentProps {
+  room: RoomWithDevices | null
+  allRooms: RoomWithDevices[]
+  onClose: () => void
+  onDeleted: () => void
+  showError: (msg: string) => void
+  isClient: boolean
+}
+
+function RoomDeleteDialogContent({
+  room,
+  allRooms,
+  onClose,
+  onDeleted,
+  showError,
+  isClient,
+}: RoomDeleteDialogContentProps) {
+  const [targetRoomId, setTargetRoomId] = useState('')
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Close on escape key
   useEffect(() => {
@@ -122,7 +144,7 @@ export function RoomDeleteDialog({
     }
   }
 
-  if (!mounted) return null
+  if (!isClient) return null
 
   return createPortal(
     <AnimatePresence>

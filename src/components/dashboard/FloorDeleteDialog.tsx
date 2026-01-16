@@ -8,6 +8,7 @@ import { useToast } from '@/providers/ToastProvider'
 import { t, interpolate } from '@/lib/i18n'
 import { deleteFloor, updateArea } from '@/lib/ha-websocket'
 import { logger } from '@/lib/logger'
+import { useIsClient } from '@/lib/hooks/useIsClient'
 import type { HAFloor, RoomWithDevices } from '@/types/ha'
 
 interface FloorDeleteDialogProps {
@@ -25,23 +26,43 @@ export function FloorDeleteDialog({
   onClose,
   onDeleted,
 }: FloorDeleteDialogProps) {
-  const [mounted, setMounted] = useState(false)
-  const [targetFloorId, setTargetFloorId] = useState('')
-  const [isDeleting, setIsDeleting] = useState(false)
+  const isClient = useIsClient()
   const { showError } = useToast()
 
-  // Only render portal on client
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  // Use floor.floor_id as key to reset state when floor changes
+  // This is cleaner than useEffect setState syncing
+  const floorKey = floor?.floor_id ?? ''
 
-  // Reset state when dialog opens
-  useEffect(() => {
-    if (floor) {
-      setTargetFloorId('')
-      setIsDeleting(false)
-    }
-  }, [floor])
+  return (
+    <FloorDeleteDialogContent
+      key={floorKey}
+      floor={floor}
+      floors={floors}
+      rooms={rooms}
+      onClose={onClose}
+      onDeleted={onDeleted}
+      showError={showError}
+      isClient={isClient}
+    />
+  )
+}
+
+interface FloorDeleteDialogContentProps extends Omit<FloorDeleteDialogProps, never> {
+  showError: (msg: string) => void
+  isClient: boolean
+}
+
+function FloorDeleteDialogContent({
+  floor,
+  floors,
+  rooms,
+  onClose,
+  onDeleted,
+  showError,
+  isClient,
+}: FloorDeleteDialogContentProps) {
+  const [targetFloorId, setTargetFloorId] = useState('')
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Close on escape key
   useEffect(() => {
@@ -113,7 +134,7 @@ export function FloorDeleteDialog({
     }
   }
 
-  if (!mounted) return null
+  if (!isClient) return null
 
   return createPortal(
     <AnimatePresence>

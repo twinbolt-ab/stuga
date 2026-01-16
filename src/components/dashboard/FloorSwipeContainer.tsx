@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState, useCallback, useMemo, useEffect, memo } from 'react'
+import { useLayoutEffect, useCallback, useMemo, memo } from 'react'
 import {
   motion,
   useMotionValue,
@@ -8,6 +8,7 @@ import {
   PanInfo,
 } from 'framer-motion'
 import type { HAFloor } from '@/types/ha'
+import { useWindowWidth } from '@/lib/hooks/useWindowWidth'
 
 // Spring animation config for floor transitions
 const SPRING_CONFIG = { type: 'spring', stiffness: 300, damping: 30 } as const
@@ -53,7 +54,7 @@ export function FloorSwipeContainer({
   disabled = false,
 }: FloorSwipeContainerProps) {
   const prefersReducedMotion = useReducedMotion()
-  const [width, setWidth] = useState(0)
+  const width = useWindowWidth()
   const x = useMotionValue(0)
   const dragControls = useDragControls()
 
@@ -75,18 +76,6 @@ export function FloorSwipeContainer({
     const idx = floorIds.indexOf(selectedFloorId)
     return idx >= 0 ? idx : 0
   }, [selectedFloorId, floorIds])
-
-  // Use window.innerWidth for width
-  useEffect(() => {
-    setWidth(window.innerWidth)
-    const handleResize = () => {
-      setWidth(window.innerWidth)
-    }
-    window.addEventListener('resize', handleResize)
-    return () => {
-      window.removeEventListener('resize', handleResize)
-    }
-  }, [])
 
   // Snap to current floor when index changes externally (tab click) or width changes
   useLayoutEffect(() => {
