@@ -85,6 +85,7 @@ export async function exchangeCodeForTokens(
     grant_type: 'authorization_code',
     code,
     client_id: getClientId(haUrl),
+    redirect_uri: getRedirectUri(haUrl),
   })
 
   // Add PKCE verifier if we used it
@@ -164,6 +165,12 @@ export async function refreshAccessToken(
   }
 
   const tokens = (await response.json()) as OAuthTokens
+  
+  // If no new refresh token is returned, keep using the old one
+  if (!tokens.refresh_token) {
+    tokens.refresh_token = refreshToken
+  }
+
   logger.debug('OAuth', 'Token refreshed successfully')
   return tokens
 }

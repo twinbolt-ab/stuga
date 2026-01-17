@@ -665,18 +665,18 @@ export function SetupWizard() {
                   </div>
                 )}
 
-                <div className="flex gap-3 mt-2">
-                  <button
-                    onClick={() => {
-                      setStep('url')
-                    }}
-                    disabled={isLoading}
-                    aria-label={t.common.back}
-                    className="py-4 px-4 bg-card border border-border text-foreground rounded-xl font-medium flex items-center justify-center hover:bg-border/30 transition-colors touch-feedback disabled:opacity-50"
-                  >
-                    <ArrowLeft className="w-5 h-5" />
-                  </button>
-                </div>
+                <button
+                  onClick={() => {
+                    setStep('url')
+                  }}
+                  disabled={isLoading}
+                  className="mt-4 text-sm text-muted hover:text-foreground transition-colors"
+                >
+                  <span className="flex items-center gap-1">
+                    <ArrowLeft className="w-4 h-4" />
+                    {t.common.back}
+                  </span>
+                </button>
               </div>
             </motion.div>
           )}

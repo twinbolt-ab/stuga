@@ -6,6 +6,7 @@ import { Dashboard } from '@/components/dashboard/Dashboard'
 import { isSetupComplete, getStoredCredentials, clearCredentials } from '@/lib/config'
 import { t } from '@/lib/i18n'
 import { logger } from '@/lib/logger'
+import { getDevModeSync } from '@/lib/hooks/useDevMode'
 
 type HomeState = 'loading' | 'ready' | 'session-expired' | 'connection-lost' | 'needs-setup'
 
@@ -14,6 +15,14 @@ async function checkSetupStatus(
   navigate: ReturnType<typeof useNavigate>,
   setState: (state: HomeState) => void
 ) {
+  // Check if demo mode is active - skip credential checks
+  const { isDevMode, activeMockScenario } = getDevModeSync()
+  if (isDevMode && activeMockScenario !== 'none') {
+    logger.debug('Home', 'Demo mode active - skipping credential checks')
+    setState('ready')
+    return
+  }
+
   const setupComplete = await isSetupComplete()
   if (!setupComplete) {
     void navigate('/setup', { replace: true })

@@ -1,4 +1,5 @@
 import { useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useMotionValue, PanInfo } from 'framer-motion'
 import {
   X,
@@ -12,6 +13,7 @@ import {
   Building2,
 } from 'lucide-react'
 import { useDevMode, type MockScenario } from '@/lib/hooks/useDevMode'
+import { isSetupComplete } from '@/lib/config'
 import { t } from '@/lib/i18n'
 import { clsx } from 'clsx'
 
@@ -73,6 +75,7 @@ const SCENARIOS: ScenarioOption[] = [
 ]
 
 export function DeveloperMenuModal({ isOpen, onClose }: DeveloperMenuModalProps) {
+  const navigate = useNavigate()
   const { activeMockScenario, setMockScenario, disableDevMode } = useDevMode()
   const y = useMotionValue(0)
   const sheetRef = useRef<HTMLDivElement>(null)
@@ -111,9 +114,14 @@ export function DeveloperMenuModal({ isOpen, onClose }: DeveloperMenuModalProps)
     setMockScenario(scenario)
   }
 
-  const handleExitDevMode = () => {
+  const handleExitDevMode = async () => {
     disableDevMode()
     onClose()
+    // If no real credentials exist, redirect to setup
+    const hasCredentials = await isSetupComplete()
+    if (!hasCredentials) {
+      navigate('/setup', { replace: true })
+    }
   }
 
   return (
