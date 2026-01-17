@@ -41,11 +41,12 @@ import Layout from '../layouts/Layout.astro';
       </div>
     </section>
 
-    <!-- Screenshots Section -->
+    <!-- Video Demo Section -->
     <section class="py-16 px-6 bg-card overflow-hidden">
       <div class="max-w-6xl mx-auto">
-        <div class="flex gap-4 md:gap-6 justify-center items-end">
-          <div class="flex-shrink-0 w-[140px] sm:w-[180px] md:w-[220px] transform -rotate-2 hover:rotate-0 transition-transform duration-300">
+        <div class="flex gap-4 md:gap-6 justify-center items-center">
+          <!-- Left screenshot -->
+          <div class="hidden sm:block flex-shrink-0 w-[140px] md:w-[180px] transform -rotate-3 opacity-60 hover:opacity-100 hover:rotate-0 transition-all duration-300">
             <picture>
               <source srcset="/screenshots-app/full/room-grid.webp" type="image/webp" />
               <img
@@ -55,21 +56,33 @@ import Layout from '../layouts/Layout.astro';
                 loading="lazy"
               />
             </picture>
-            <p class="text-xs text-muted text-center mt-3">Room Overview</p>
           </div>
-          <div class="flex-shrink-0 w-[160px] sm:w-[200px] md:w-[260px] transform scale-105 z-10">
-            <picture>
-              <source srcset="/screenshots-app/full/kitchen-expanded.webp" type="image/webp" />
-              <img
-                src="/screenshots-app/full/kitchen-expanded.jpg"
-                alt="Expanded room with device controls"
-                class="w-full rounded-2xl shadow-warm-lg border border-border/50"
-                loading="lazy"
-              />
-            </picture>
-            <p class="text-xs text-muted text-center mt-3">Device Controls</p>
+
+          <!-- Center video in phone frame -->
+          <div class="flex-shrink-0 w-[200px] sm:w-[240px] md:w-[280px] z-10">
+            <div class="relative bg-[#1a1a18] rounded-[2.5rem] p-2 shadow-warm-lg border border-border/30">
+              <!-- Phone notch -->
+              <div class="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-6 bg-[#1a1a18] rounded-b-xl z-10"></div>
+              <!-- Video container -->
+              <div class="rounded-[2rem] overflow-hidden bg-black">
+                <video
+                  autoplay
+                  muted
+                  loop
+                  playsinline
+                  poster="/video/poster.jpg"
+                  class="w-full"
+                >
+                  <source src="/video/demo.webm" type="video/webm" />
+                  <source src="/video/demo.mp4" type="video/mp4" />
+                </video>
+              </div>
+            </div>
+            <p class="text-xs text-muted text-center mt-4">See it in action</p>
           </div>
-          <div class="flex-shrink-0 w-[140px] sm:w-[180px] md:w-[220px] transform rotate-2 hover:rotate-0 transition-transform duration-300">
+
+          <!-- Right screenshot -->
+          <div class="hidden sm:block flex-shrink-0 w-[140px] md:w-[180px] transform rotate-3 opacity-60 hover:opacity-100 hover:rotate-0 transition-all duration-300">
             <picture>
               <source srcset="/screenshots-app/full/device-editor.webp" type="image/webp" />
               <img
@@ -79,7 +92,6 @@ import Layout from '../layouts/Layout.astro';
                 loading="lazy"
               />
             </picture>
-            <p class="text-xs text-muted text-center mt-3">In-Place Editing</p>
           </div>
         </div>
       </div>
