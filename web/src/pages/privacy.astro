@@ -1,0 +1,146 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Privacy Policy - Stuga" description="Privacy Policy for the Stuga Home Assistant Dashboard app.">
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
+    <div class="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-3">
+        <img src="/icon.png" alt="Stuga" class="w-8 h-8 rounded-lg" />
+        <span class="font-bold text-lg">Stuga</span>
+      </a>
+    </div>
+  </nav>
+
+  <main class="pt-32 pb-20 px-6">
+    <article class="max-w-3xl mx-auto prose prose-neutral dark:prose-invert">
+      <h1 class="text-4xl font-bold mb-2">Privacy Policy</h1>
+      <p class="text-muted mb-12">Last updated: January 2025</p>
+
+      <section class="mb-12">
+        <h2 class="text-2xl font-bold mb-4">Overview</h2>
+        <p class="text-muted leading-relaxed mb-4">
+          Stuga is a Home Assistant dashboard app developed by Twinbolt AB. We are committed to
+          protecting your privacy. This policy explains how Stuga handles your data.
+        </p>
+        <p class="text-muted leading-relaxed">
+          <strong class="text-foreground">The short version:</strong> Stuga runs entirely on your device and connects
+          directly to your Home Assistant instance. We do not collect, store, or transmit any of your personal data.
+        </p>
+      </section>
+
+      <section class="mb-12">
+        <h2 class="text-2xl font-bold mb-4">Data Collection</h2>
+        <p class="text-muted leading-relaxed mb-4">
+          <strong class="text-foreground">Stuga does not collect any data.</strong> The app operates locally on your
+          device and communicates only with your Home Assistant server.
+        </p>
+        <ul class="list-disc list-inside text-muted space-y-2">
+          <li>No analytics or tracking</li>
+          <li>No crash reporting sent to us</li>
+          <li>No usage data collection</li>
+          <li>No advertising or ad tracking</li>
+        </ul>
+      </section>
+
+      <section class="mb-12">
+        <h2 class="text-2xl font-bold mb-4">Data Storage</h2>
+        <p class="text-muted leading-relaxed mb-4">
+          All data is stored locally on your device:
+        </p>
+        <ul class="list-disc list-inside text-muted space-y-2">
+          <li><strong class="text-foreground">Home Assistant URL:</strong> Stored in local storage on your device</li>
+          <li><strong class="text-foreground">Authentication tokens:</strong> Stored securely in your device's keychain (iOS) or keystore (Android)</li>
+          <li><strong class="text-foreground">App preferences:</strong> Stored locally on your device</li>
+        </ul>
+        <p class="text-muted leading-relaxed mt-4">
+          On the web version, data is stored in your browser's local storage. No data is sent to our servers.
+        </p>
+      </section>
+
+      <section class="mb-12">
+        <h2 class="text-2xl font-bold mb-4">Network Communication</h2>
+        <p class="text-muted leading-relaxed mb-4">
+          Stuga only communicates with:
+        </p>
+        <ul class="list-disc list-inside text-muted space-y-2">
+          <li><strong class="text-foreground">Your Home Assistant instance:</strong> To fetch device states and send commands</li>
+          <li><strong class="text-foreground">Fontshare (Google CDN):</strong> To load the Satoshi font</li>
+        </ul>
+        <p class="text-muted leading-relaxed mt-4">
+          All communication with your Home Assistant server uses the authentication method you choose
+          (OAuth or long-lived access token). Your credentials are never shared with Twinbolt AB or any third party.
+        </p>
+      </section>
+
+      <section class="mb-12">
+        <h2 class="text-2xl font-bold mb-4">Third-Party Services</h2>
+        <p class="text-muted leading-relaxed">
+          Stuga does not integrate with any third-party analytics, advertising, or tracking services.
+          The only external service used is font loading from Fontshare CDN for typography.
+        </p>
+      </section>
+
+      <section class="mb-12">
+        <h2 class="text-2xl font-bold mb-4">Open Source</h2>
+        <p class="text-muted leading-relaxed">
+          Stuga is open source. You can review the complete source code at
+          <a href="https://github.com/twinbolt-ab/stuga" class="text-accent hover:underline">github.com/twinbolt-ab/stuga</a>
+          to verify our privacy practices.
+        </p>
+      </section>
+
+      <section class="mb-12">
+        <h2 class="text-2xl font-bold mb-4">Children's Privacy</h2>
+        <p class="text-muted leading-relaxed">
+          Stuga does not collect any personal information from anyone, including children under 13.
+          The app is rated 4+ and is suitable for all ages.
+        </p>
+      </section>
+
+      <section class="mb-12">
+        <h2 class="text-2xl font-bold mb-4">Changes to This Policy</h2>
+        <p class="text-muted leading-relaxed">
+          We may update this privacy policy from time to time. Any changes will be posted on this page
+          with an updated revision date.
+        </p>
+      </section>
+
+      <section class="mb-12">
+        <h2 class="text-2xl font-bold mb-4">Contact Us</h2>
+        <p class="text-muted leading-relaxed mb-4">
+          If you have questions about this privacy policy, please contact us:
+        </p>
+        <p class="text-muted">
+          <strong class="text-foreground">Twinbolt AB</strong><br />
+          Sweden<br />
+          <a href="https://github.com/twinbolt-ab/stuga/issues" class="text-accent hover:underline">GitHub Issues</a>
+        </p>
+      </section>
+    </article>
+  </main>
+
+  <!-- Footer -->
+  <footer class="py-12 px-6 border-t border-border">
+    <div class="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-3">
+        <img src="/icon.png" alt="Stuga" class="w-6 h-6 rounded-md" />
+        <span class="text-muted text-sm">&copy; 2025 Twinbolt AB</span>
+      </div>
+      <div class="flex items-center gap-6 text-sm">
+        <a href="/" class="text-muted hover:text-foreground transition-colors">Home</a>
+        <a href="https://github.com/twinbolt-ab/stuga" class="text-muted hover:text-foreground transition-colors">GitHub</a>
+      </div>
+    </div>
+  </footer>
+</Layout>
+
+<style>
+  .prose h2 {
+    @apply text-foreground;
+  }
+  .prose strong {
+    @apply text-foreground;
+  }
+</style>

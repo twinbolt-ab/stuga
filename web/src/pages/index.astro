@@ -1,0 +1,165 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Stuga - Smart Home Control Made Simple">
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
+    <div class="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-3">
+        <img src="/icon.png" alt="Stuga" class="w-8 h-8 rounded-lg" />
+        <span class="font-bold text-lg">Stuga</span>
+      </a>
+      <div class="flex items-center gap-6">
+        <a href="#features" class="text-muted hover:text-foreground transition-colors text-sm">Features</a>
+        <a href="https://github.com/twinbolt-ab/stuga" class="text-muted hover:text-foreground transition-colors text-sm">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="pt-32 pb-20 px-6">
+      <div class="max-w-4xl mx-auto text-center">
+        <img src="/icon.png" alt="Stuga" class="w-24 h-24 mx-auto mb-8 rounded-2xl shadow-warm-lg" />
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight">
+          Smart Home Control<br />
+          <span class="text-accent">Made Simple</span>
+        </h1>
+        <p class="text-xl text-muted max-w-2xl mx-auto mb-10 leading-relaxed">
+          A fast, beautiful dashboard for Home Assistant that works out of the box.
+          No YAML, no card configurations, no learning curve.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a href="https://github.com/twinbolt-ab/stuga" class="btn-primary">
+            View on GitHub
+          </a>
+          <a href="#features" class="btn-secondary">
+            Learn More
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screenshots/Video Section -->
+    <section class="py-16 px-6 bg-card">
+      <div class="max-w-5xl mx-auto">
+        <div class="aspect-video bg-border/30 rounded-2xl flex items-center justify-center overflow-hidden">
+          <!-- Placeholder for screenshots or video -->
+          <p class="text-muted">Screenshots coming soon</p>
+          <!-- Uncomment when you have a video:
+          <video autoplay muted loop playsinline class="w-full h-full object-cover rounded-2xl">
+            <source src="/demo.mp4" type="video/mp4" />
+          </video>
+          -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 px-6">
+      <div class="max-w-5xl mx-auto">
+        <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">Why Stuga?</h2>
+        <p class="text-muted text-center max-w-2xl mx-auto mb-16">
+          Home Assistant is powerful, but its dashboards weren't designed for simplicity. Stuga is.
+        </p>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="card">
+            <div class="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center mb-4">
+              <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold mb-2">Zero Configuration</h3>
+            <p class="text-muted leading-relaxed">
+              No YAML or card setup needed. Stuga automatically discovers your rooms, floors, and devices from Home Assistant.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center mb-4">
+              <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold mb-2">Mobile-First</h3>
+            <p class="text-muted leading-relaxed">
+              Built specifically for phones with large touch targets and intuitive gestures. Works beautifully on tablets and web too.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center mb-4">
+              <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold mb-2">Real-Time Updates</h3>
+            <p class="text-muted leading-relaxed">
+              WebSocket connection provides instant updates. Toggle a light and see it change immediately across all devices.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center mb-4">
+              <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold mb-2">In-Place Editing</h3>
+            <p class="text-muted leading-relaxed">
+              Rename devices, change icons, and reorder rooms directly in the app. All changes sync back to Home Assistant.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Supported Devices -->
+    <section class="py-20 px-6 bg-card">
+      <div class="max-w-5xl mx-auto text-center">
+        <h2 class="text-3xl md:text-4xl font-bold mb-4">Works With Your Devices</h2>
+        <p class="text-muted max-w-2xl mx-auto mb-12">
+          Control lights, climate, covers, fans, scenes, switches, and sensors.
+        </p>
+        <div class="flex flex-wrap justify-center gap-4">
+          {['Lights', 'Climate', 'Covers', 'Fans', 'Scenes', 'Switches', 'Sensors'].map(device => (
+            <span class="px-4 py-2 bg-background rounded-full text-sm font-medium border border-border">
+              {device}
+            </span>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="py-20 px-6">
+      <div class="max-w-3xl mx-auto text-center">
+        <h2 class="text-3xl md:text-4xl font-bold mb-4">Open Source & Free</h2>
+        <p class="text-muted leading-relaxed mb-8">
+          Stuga is open source and free to use. Your data stays on your device and connects
+          directly to your Home Assistant instance. No cloud, no tracking, no subscriptions.
+        </p>
+        <p class="text-sm text-muted">
+          Made with care in Sweden by <a href="https://twinbolt.se" class="text-accent hover:underline">Twinbolt AB</a>
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="py-12 px-6 border-t border-border">
+    <div class="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-3">
+        <img src="/icon.png" alt="Stuga" class="w-6 h-6 rounded-md" />
+        <span class="text-muted text-sm">&copy; 2025 Twinbolt AB</span>
+      </div>
+      <div class="flex items-center gap-6 text-sm">
+        <a href="/privacy" class="text-muted hover:text-foreground transition-colors">Privacy Policy</a>
+        <a href="https://github.com/twinbolt-ab/stuga" class="text-muted hover:text-foreground transition-colors">GitHub</a>
+        <a href="https://github.com/twinbolt-ab/stuga/issues" class="text-muted hover:text-foreground transition-colors">Support</a>
+      </div>
+    </div>
+  </footer>
+</Layout>
