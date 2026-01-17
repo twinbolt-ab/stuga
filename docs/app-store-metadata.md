@@ -84,7 +84,7 @@ Home Assistant,smart home,dashboard,automation,lights,climate,IoT,home control,s
 4+ (no objectionable content)
 
 ## Privacy Policy URL
-https://twinbolt.se/privacy
+https://stuga.app/privacy
 
 ## Support URL
 https://github.com/twinbolt-ab/stuga/issues

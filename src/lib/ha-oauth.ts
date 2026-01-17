@@ -44,12 +44,12 @@ export function isNativeApp(): boolean {
 }
 
 // Client ID for the app - must be a URL
-// For native apps: We use twinbolt.se/stuga which has the redirect_uri link tag
+// For native apps: We use stuga.app/oauth which has the redirect_uri link tag
 // For web: We use the current origin
 export function getClientId(_haUrl?: string): string {
   // On native, use the website that has <link rel="redirect_uri" href="com.twinbolt.stuga:/">
   if (isNativeApp()) {
-    return 'https://twinbolt.se/stuga'
+    return 'https://stuga.app/oauth'
   }
 
   // For web, use current origin
@@ -57,7 +57,7 @@ export function getClientId(_haUrl?: string): string {
     return window.location.origin
   }
 
-  return 'https://twinbolt.se/stuga'
+  return 'https://stuga.app/oauth'
 }
 
 // Get the redirect URI for OAuth callback

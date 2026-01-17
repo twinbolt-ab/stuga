@@ -211,7 +211,7 @@ export function SetupWizard() {
       if (isNativeApp()) {
         // On native, use OAuth2Client plugin which handles the browser + deep link
         // client_id must be the website with <link rel="redirect_uri"> tag
-        const clientId = 'https://twinbolt.se/stuga'
+        const clientId = 'https://stuga.app/oauth'
 
         // Check if using HTTPS - AppAuth library requires HTTPS for token endpoint
         const isHttps = url.startsWith('https://')

@@ -252,7 +252,7 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
     try {
       if (isNativeApp()) {
         // On native, use OAuth2Client plugin which handles the browser + deep link
-        const clientId = 'https://twinbolt.se/stuga'
+        const clientId = 'https://stuga.app/oauth'
         const isHttps = url.startsWith('https://')
 
         if (isHttps) {
