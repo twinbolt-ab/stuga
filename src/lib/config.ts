@@ -11,47 +11,13 @@ export interface StoredCredentials {
   token: string
 }
 
-export type AuthMethod = 'oauth' | 'token' | 'addon'
-
-// Extend Window interface for add-on mode
-declare global {
-  interface Window {
-    __HA_ADDON__?: boolean
-    __HA_URL__?: string
-    __HA_TOKEN__?: string
-  }
-}
-
-/**
- * Check if running as a Home Assistant add-on
- */
-export function isHAAddon(): boolean {
-  if (typeof window === 'undefined') return false
-  return window.__HA_ADDON__ === true
-}
-
-/**
- * Get credentials from add-on environment (injected by server)
- */
-export function getAddonCredentials(): StoredCredentials | null {
-  if (typeof window === 'undefined') return null
-  if (!window.__HA_ADDON__) return null
-
-  const url = window.__HA_URL__
-  const token = window.__HA_TOKEN__
-
-  if (!url || !token) return null
-  return { url, token }
-}
+export type AuthMethod = 'oauth' | 'token'
 
 /**
  * Check if initial setup has been completed
- * Returns true if in add-on mode (no setup needed)
  */
 export async function isSetupComplete(): Promise<boolean> {
   if (typeof window === 'undefined') return false
-  // Add-on mode is always "setup complete"
-  if (isHAAddon()) return true
 
   const storage = getStorage()
   return (await storage.getItem(STORAGE_KEYS.SETUP_COMPLETE)) === 'true'
@@ -59,11 +25,10 @@ export async function isSetupComplete(): Promise<boolean> {
 
 /**
  * Synchronous version for contexts where async isn't possible
- * Only works for addon mode check - falls back to false for native storage
+ * Falls back to false for native storage
  */
 export function isSetupCompleteSync(): boolean {
   if (typeof window === 'undefined') return false
-  if (isHAAddon()) return true
   // Fallback to localStorage for web (synchronous)
   return localStorage.getItem(STORAGE_KEYS.SETUP_COMPLETE) === 'true'
 }
@@ -76,14 +41,10 @@ export type CredentialsResult =
 
 /**
  * Get stored Home Assistant credentials
- * Returns add-on credentials if in add-on mode, then OAuth, then manual token
+ * Returns OAuth credentials if available, then manual token
  */
 export async function getStoredCredentials(): Promise<CredentialsResult> {
   if (typeof window === 'undefined') return { status: 'no-credentials' }
-
-  // Check add-on credentials first
-  const addonCreds = getAddonCredentials()
-  if (addonCreds) return { status: 'valid', credentials: addonCreds }
 
   // Check OAuth credentials
   const oauthResult = await getValidAccessToken()
@@ -110,8 +71,6 @@ export async function getStoredCredentials(): Promise<CredentialsResult> {
 export async function getAuthMethod(): Promise<AuthMethod | null> {
   if (typeof window === 'undefined') return null
 
-  if (isHAAddon()) return 'addon'
-
   const oauthCreds = await getOAuthCredentials()
   if (oauthCreds) return 'oauth'
 
@@ -124,14 +83,10 @@ export async function getAuthMethod(): Promise<AuthMethod | null> {
 
 /**
  * Synchronous version for WebSocket initialization
- * Prefers addon credentials, falls back to localStorage
+ * Falls back to localStorage
  */
 export function getStoredCredentialsSync(): StoredCredentials | null {
   if (typeof window === 'undefined') return null
-
-  // Check add-on credentials first
-  const addonCreds = getAddonCredentials()
-  if (addonCreds) return addonCreds
 
   // Fallback to localStorage (works on web, native apps init storage first)
   const url = localStorage.getItem(STORAGE_KEYS.HA_URL)

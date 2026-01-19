@@ -10,7 +10,6 @@ import {
   LogOut,
   LogIn,
   Key,
-  Server,
 } from 'lucide-react'
 import { t } from '@/lib/i18n'
 import {
@@ -45,7 +44,6 @@ interface ConnectionSettingsModalProps {
 export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsModalProps) {
   const { reconnect, isConnected } = useHAConnection()
   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null)
-  const [isLoadingCredentials, setIsLoadingCredentials] = useState(true)
   const [url, setUrl] = useState('')
   const [token, setToken] = useState('')
   const [showToken, setShowToken] = useState(false)
@@ -94,7 +92,6 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
   // Load current credentials and detect auth method when modal opens
   useEffect(() => {
     if (isOpen) {
-      setIsLoadingCredentials(true)
       const loadCredentials = async () => {
         try {
           const method = await getAuthMethod()
@@ -137,7 +134,6 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
         } catch (err) {
           logger.error('ConnectionSettings', 'Failed to load credentials:', err)
         }
-        setIsLoadingCredentials(false)
       }
       void loadCredentials()
       setError(null)
@@ -301,8 +297,6 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
     switch (authMethod) {
       case 'oauth':
         return <LogIn className="w-5 h-5 text-accent" />
-      case 'addon':
-        return <Server className="w-5 h-5 text-green-500" />
       case 'token':
       default:
         return <Key className="w-5 h-5 text-muted" />
@@ -313,8 +307,6 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
     switch (authMethod) {
       case 'oauth':
         return t.settings.connection.oauth?.label || 'Home Assistant Login'
-      case 'addon':
-        return t.settings.connection.addon?.label || 'Home Assistant Add-on'
       case 'token':
       default:
         return t.settings.connection.token?.label || 'Access Token'
@@ -328,8 +320,6 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
           t.settings.connection.oauth?.description ||
           "You're signed in with your Home Assistant account."
         )
-      case 'addon':
-        return t.settings.connection.addon?.description || 'Running as a Home Assistant add-on.'
       case 'token':
       default:
         return t.settings.connection.token?.description || 'Using a long-lived access token.'
@@ -383,12 +373,6 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
 
             {/* Content */}
             <div className="px-4 pb-safe space-y-4">
-              {isLoadingCredentials ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-muted" />
-                </div>
-              ) : (
-                <>
                   {/* Auth Method Badge */}
                   <div className="flex items-center gap-3 p-3 bg-background rounded-xl border border-border">
                     <div className="w-10 h-10 rounded-lg bg-card border border-border flex items-center justify-center flex-shrink-0">
@@ -527,9 +511,8 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
                     </button>
                   )}
 
-                  {/* Logout Section - Not shown for addon */}
-                  {authMethod !== 'addon' && (
-                    <div className="pt-4 border-t border-border mt-4">
+                  {/* Logout Section */}
+                  <div className="pt-4 border-t border-border mt-4">
                       {showLogoutConfirm ? (
                         <div className="space-y-3">
                           <p className="text-sm text-muted text-center">
@@ -565,11 +548,8 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
                         </button>
                       )}
                     </div>
-                  )}
 
                   <div className="h-4" />
-                </>
-              )}
             </div>
           </motion.div>
         </>

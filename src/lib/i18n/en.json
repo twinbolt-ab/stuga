@@ -171,10 +171,6 @@
       "token": {
         "label": "Access Token",
         "description": "Using a long-lived access token for authentication."
-      },
-      "addon": {
-        "label": "Home Assistant Add-on",
-        "description": "Running as a Home Assistant add-on. Connection is managed automatically."
       }
     },
     "developer": {

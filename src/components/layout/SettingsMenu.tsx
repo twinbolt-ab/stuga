@@ -22,7 +22,6 @@ import { DeveloperMenuModal } from '@/components/settings/DeveloperMenuModal'
 import { EditModeInfoModal } from '@/components/settings/EditModeInfoModal'
 import { useSettings, type ShowScenesOption } from '@/lib/hooks/useSettings'
 import { useDevMode } from '@/lib/hooks/useDevMode'
-import { isHAAddon } from '@/lib/config'
 import {
   getMetadataStorageMode,
   setMetadataStorageMode,
@@ -408,23 +407,21 @@ export function SettingsMenu({
                 </div>
               </button>
 
-              {/* Connection Settings - hidden in add-on mode */}
-              {!isHAAddon() && (
-                <button
-                  onClick={() => {
-                    setShowConnectionSettings(true)
-                  }}
-                  className="w-full flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-border/30 transition-colors touch-feedback"
-                >
-                  <div className="p-2.5 rounded-xl bg-border/50">
-                    <Wifi className="w-5 h-5 text-foreground" />
-                  </div>
-                  <div className="flex-1 text-left">
-                    <p className="font-medium text-foreground">{t.settings.connection.title}</p>
-                    <p className="text-sm text-muted">{t.settings.connection.description}</p>
-                  </div>
-                </button>
-              )}
+              {/* Connection Settings */}
+              <button
+                onClick={() => {
+                  setShowConnectionSettings(true)
+                }}
+                className="w-full flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-border/30 transition-colors touch-feedback"
+              >
+                <div className="p-2.5 rounded-xl bg-border/50">
+                  <Wifi className="w-5 h-5 text-foreground" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="font-medium text-foreground">{t.settings.connection.title}</p>
+                  <p className="text-sm text-muted">{t.settings.connection.description}</p>
+                </div>
+              </button>
 
               {/* Developer Menu - only shown when dev mode is active */}
               {isDevMode && (
