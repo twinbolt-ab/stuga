@@ -184,8 +184,8 @@ export async function authenticateWithInAppBrowser(haUrl: string): Promise<OAuth
       try {
         await InAppBrowser.openWebView({
           url: authUrl.toString(),
-          title: 'Login to Home Assistant',
-          toolbarType: ToolBarType.NAVIGATION,
+          title: '',
+          toolbarType: ToolBarType.BLANK, // No toolbar - full screen WebView
           preventDeeplink: false,
         })
       } catch (err) {
