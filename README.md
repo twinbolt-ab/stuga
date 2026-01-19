@@ -36,38 +36,27 @@ https://github.com/twinbolt-ab/stuga/raw/main/public/stuga-demo.mp4
 
 ---
 
-## Install
+## Get Started
 
-### iOS & Android
+### iOS
 
-Coming soon to App Store and Google Play. Free.
+Coming soon to the App Store. Free.
 
-### Home Assistant Add-on
+### Android
 
-1. **Settings → Add-ons → Add-on Store**
-2. Click ⋮ → **Repositories** → Add: `https://github.com/twinbolt-ab/stuga`
-3. Find "Stuga Dashboard" → **Install**
-4. Open `http://homeassistant.local:3001`
+Coming soon to Google Play. Free.
 
-### Docker
+### Web
+
+Visit [stuga.app](https://stuga.app) and log in with your Home Assistant account.
+
+For local/self-hosted use, you can build and deploy the web app yourself:
 
 ```bash
-docker run -d -p 3001:3001 ghcr.io/twinbolt-ab/stuga:latest
+npm install
+npm run build
+# Serve the dist/ folder with any static host
 ```
-
-<details>
-<summary>Docker Compose</summary>
-
-```yaml
-services:
-  stuga:
-    image: ghcr.io/twinbolt-ab/stuga:latest
-    ports:
-      - "3001:3001"
-    restart: unless-stopped
-```
-
-</details>
 
 ---
 
