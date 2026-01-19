@@ -27,6 +27,7 @@
     "@capacitor/core": "^8.0.0",
     "@capacitor/haptics": "^8.0.0",
     "@capacitor/ios": "^8.0.0",
+    "@capacitor/keyboard": "^8.0.0",
     "@capacitor/preferences": "^8.0.0",
     "@capgo/inappbrowser": "^8.0.6",
     "@iconify/react": "^6.0.2",

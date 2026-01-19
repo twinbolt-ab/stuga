@@ -8,8 +8,10 @@ const config: CapacitorConfig = {
     androidScheme: 'http',
   },
   ios: {
-    contentInset: 'always',
+    contentInset: 'automatic',
     backgroundColor: '#0D0D0C',
+    // Prevent keyboard from resizing the webview
+    scrollEnabled: false,
   },
   android: {
     backgroundColor: '#0D0D0C',
@@ -18,6 +20,11 @@ const config: CapacitorConfig = {
   plugins: {
     Preferences: {
       // No special config needed
+    },
+    Keyboard: {
+      // Prevent keyboard from resizing/scrolling the viewport
+      resize: 'none',
+      resizeOnFullScreen: false,
     },
   },
 }

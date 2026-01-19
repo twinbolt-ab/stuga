@@ -84,7 +84,7 @@ export function AllDevicesView() {
   return (
     <div className="space-y-4">
       {/* Sticky header with search and filters */}
-      <div className="sticky top-0 z-10 -mx-4 px-4 pt-0 pb-3 bg-background/95 backdrop-blur-sm">
+      <div className="sticky -top-4 z-10 -mx-4 px-4 pt-4 pb-3 bg-background/95 backdrop-blur-sm">
         {/* Header */}
         <div className="flex items-center gap-3 mb-3">
           <div className="p-3 rounded-xl bg-accent/10">

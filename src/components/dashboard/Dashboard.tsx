@@ -291,7 +291,7 @@ function DashboardContent() {
         <section className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden">
           {selectedFloorId === '__all_devices__' ? (
             // All devices view (not part of swipe navigation)
-            <div className="px-4 py-4 overflow-x-hidden">
+            <div className="px-4 pt-4 overflow-x-hidden">
               <AllDevicesView />
             </div>
           ) : isRoomEditMode ? (
