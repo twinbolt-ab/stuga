@@ -1,13 +1,13 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { App, type URLOpenListenerEvent } from '@capacitor/app'
+import { App } from '@capacitor/app'
 import { getValidAccessToken, isUsingOAuth } from '../ha-oauth'
 import { isConnected, configure, connect, updateToken } from '../ha-websocket'
 import { logger } from '../logger'
 
 /**
- * Hook to handle deep links on native platforms
- * Listens for stuga://auth/callback URLs and navigates to the auth callback route
+ * Hook to handle app lifecycle events on native platforms
+ * - Refreshes OAuth tokens when app resumes from background
  */
 export function useDeepLinks() {
   const navigate = useNavigate()
@@ -16,17 +16,6 @@ export function useDeepLinks() {
     // Only set up listener on native platforms
     const isNative = window.Capacitor?.isNativePlatform?.()
     if (!isNative) return
-
-    const handleDeepLink = (event: URLOpenListenerEvent) => {
-      // Parse the deep link URL
-      // Format: com.twinbolt.stuga://auth/callback?code=xxx&state=xxx
-      const url = new URL(event.url)
-
-      if (url.host === 'auth' && url.pathname === '/callback') {
-        // Navigate to auth callback with the query params
-        void navigate(`/auth/callback${url.search}`, { replace: true })
-      }
-    }
 
     // Handle app resume - proactively refresh OAuth token
     const handleAppResume = async () => {
@@ -58,9 +47,6 @@ export function useDeepLinks() {
       }
       // For network-error, we keep credentials and let normal reconnect handle it
     }
-
-    // Add listener for app URL open events
-    void App.addListener('appUrlOpen', handleDeepLink)
 
     // Add listener for app state changes (resume from background)
     void App.addListener('appStateChange', ({ isActive }) => {

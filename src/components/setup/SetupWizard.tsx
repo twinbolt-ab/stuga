@@ -322,7 +322,7 @@ export function SetupWizard() {
   }
 
   return (
-    <div className="h-screen bg-background flex items-center justify-center p-6 overflow-hidden">
+    <div className="fixed inset-0 bg-background flex items-center justify-center p-6 overflow-hidden">
       <div className="w-full max-w-md">
         <AnimatePresence mode="wait">
           {/* Welcome Step */}
