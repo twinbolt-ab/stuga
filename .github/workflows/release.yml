@@ -102,6 +102,9 @@ jobs:
       - name: Build web assets
         run: npm run build
 
+      - name: Add Android platform
+        run: npx cap add android
+
       - name: Sync Capacitor
         run: npx cap sync android
 
@@ -163,6 +166,9 @@ jobs:
 
       - name: Build web assets
         run: npm run build
+
+      - name: Add iOS platform
+        run: npx cap add ios
 
       - name: Sync Capacitor
         run: npx cap sync ios
