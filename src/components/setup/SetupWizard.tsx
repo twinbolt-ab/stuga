@@ -200,26 +200,29 @@ export function SetupWizard() {
   }, [step, probeUrls])
 
   // Verify the URL is reachable (called on blur or when user clicks connect)
-  const verifyUrl = useCallback(async (urlToVerify: string): Promise<boolean> => {
-    // Normalize URL
-    let normalizedUrl = urlToVerify.trim()
-    if (!normalizedUrl.startsWith('http')) {
-      normalizedUrl = 'http://' + normalizedUrl
-    }
-    normalizedUrl = normalizedUrl.replace(/\/+$/, '')
+  const verifyUrl = useCallback(
+    async (urlToVerify: string): Promise<boolean> => {
+      // Normalize URL
+      let normalizedUrl = urlToVerify.trim()
+      if (!normalizedUrl.startsWith('http')) {
+        normalizedUrl = 'http://' + normalizedUrl
+      }
+      normalizedUrl = normalizedUrl.replace(/\/+$/, '')
 
-    const success = await testConnection(normalizedUrl)
+      const success = await testConnection(normalizedUrl)
 
-    if (success) {
-      setUrl(normalizedUrl)
-      setUrlVerified(true)
-      setError(null)
-      return true
-    } else {
-      setUrlVerified(false)
-      return false
-    }
-  }, [testConnection])
+      if (success) {
+        setUrl(normalizedUrl)
+        setUrlVerified(true)
+        setError(null)
+        return true
+      } else {
+        setUrlVerified(false)
+        return false
+      }
+    },
+    [testConnection]
+  )
 
   // Handle connect button click
   const handleConnect = async () => {
@@ -504,7 +507,8 @@ export function SetupWizard() {
                       <p className="text-sm text-muted mt-1">
                         {!oauthAvailable
                           ? t.setup.authMethod?.oauthHttpDisabled || 'Requires HTTPS connection'
-                          : t.setup.authMethod?.oauthHint || 'Use your existing Home Assistant account'}
+                          : t.setup.authMethod?.oauthHint ||
+                            'Use your existing Home Assistant account'}
                       </p>
                     </div>
                     <div
@@ -540,7 +544,8 @@ export function SetupWizard() {
                         {t.setup.authMethod?.token || 'Use access token'}
                       </div>
                       <p className="text-sm text-muted mt-1">
-                        {t.setup.authMethod?.tokenHint || 'Enter a long-lived access token manually'}
+                        {t.setup.authMethod?.tokenHint ||
+                          'Enter a long-lived access token manually'}
                       </p>
                     </div>
                     <div
@@ -617,7 +622,9 @@ export function SetupWizard() {
                     {isLoading ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin" />
-                        {authMethod === 'oauth' ? t.setup.url.testing : t.setup.token.authenticating}
+                        {authMethod === 'oauth'
+                          ? t.setup.url.testing
+                          : t.setup.token.authenticating}
                       </>
                     ) : (
                       <>

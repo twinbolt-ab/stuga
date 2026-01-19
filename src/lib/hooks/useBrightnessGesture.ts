@@ -168,34 +168,31 @@ export function useBrightnessGesture({
     ]
   )
 
-  const onPointerUp = useCallback(
-    () => {
-      if (isDragging && dragStartRef.current) {
-        // Apply final brightness
-        const relativeBrightness = calculateRelativeBrightness(
-          dragStartRef.current.brightnessMap,
-          dragStartRef.current.brightness,
-          currentBrightness
-        )
-        setRoomBrightness(lights, relativeBrightness, true)
+  const onPointerUp = useCallback(() => {
+    if (isDragging && dragStartRef.current) {
+      // Apply final brightness
+      const relativeBrightness = calculateRelativeBrightness(
+        dragStartRef.current.brightnessMap,
+        dragStartRef.current.brightness,
+        currentBrightness
+      )
+      setRoomBrightness(lights, relativeBrightness, true)
 
-        // Release pointer capture on the same element that captured it
-        if (capturedElementRef.current && capturedPointerIdRef.current !== null) {
-          capturedElementRef.current.releasePointerCapture(capturedPointerIdRef.current)
-          capturedElementRef.current = null
-          capturedPointerIdRef.current = null
-        }
-
-        setTimeout(() => {
-          setShowOverlay(false)
-        }, OVERLAY_HIDE_DELAY)
+      // Release pointer capture on the same element that captured it
+      if (capturedElementRef.current && capturedPointerIdRef.current !== null) {
+        capturedElementRef.current.releasePointerCapture(capturedPointerIdRef.current)
+        capturedElementRef.current = null
+        capturedPointerIdRef.current = null
       }
 
-      setIsDragging(false)
-      dragStartRef.current = null
-    },
-    [isDragging, lights, currentBrightness, calculateRelativeBrightness, setRoomBrightness]
-  )
+      setTimeout(() => {
+        setShowOverlay(false)
+      }, OVERLAY_HIDE_DELAY)
+    }
+
+    setIsDragging(false)
+    dragStartRef.current = null
+  }, [isDragging, lights, currentBrightness, calculateRelativeBrightness, setRoomBrightness])
 
   return {
     isDragging,

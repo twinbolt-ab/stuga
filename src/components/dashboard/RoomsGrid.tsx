@@ -2,41 +2,43 @@ import { useCallback, Fragment, useRef, useState, useLayoutEffect } from 'react'
 import { motion } from 'framer-motion'
 import { RoomCard, MemoizedRoomCard } from './RoomCard'
 import { ReorderableGrid } from './ReorderableGrid'
-import { AllDevicesView } from './AllDevicesView'
 import { t } from '@/lib/i18n'
 import { ROOM_EXPAND_DURATION } from '@/lib/constants'
 import type { RoomWithDevices } from '@/types/ha'
 
 const GAP = 12
+const noop = () => {}
 
 interface RoomsGridProps {
-  selectedFloorId: string | null
   displayRooms: RoomWithDevices[]
-  orderedRooms: RoomWithDevices[]
-  allRooms: RoomWithDevices[]
-  expandedRoomId: string | null
   isConnected: boolean
-  isRoomEditMode: boolean
   shouldShowScenes: boolean
-  onReorder: (rooms: RoomWithDevices[]) => void
-  onToggleExpand: (roomId: string) => void
-  onClickOutside?: () => void
+  // Normal mode props
+  selectedFloorId?: string | null
+  allRooms?: RoomWithDevices[]
+  expandedRoomId?: string | null
+  onToggleExpand?: (roomId: string) => void
   onEnterEditModeWithSelection?: (roomId: string) => void
+  // Edit mode props
+  isRoomEditMode?: boolean
+  orderedRooms?: RoomWithDevices[]
+  onReorder?: (rooms: RoomWithDevices[]) => void
+  onClickOutside?: () => void
 }
 
 export function RoomsGrid({
-  selectedFloorId,
   displayRooms,
-  orderedRooms,
-  allRooms,
-  expandedRoomId,
   isConnected,
-  isRoomEditMode,
   shouldShowScenes,
-  onReorder,
-  onToggleExpand,
-  onClickOutside,
+  selectedFloorId = null,
+  allRooms = [],
+  expandedRoomId = null,
+  onToggleExpand = noop,
   onEnterEditModeWithSelection,
+  isRoomEditMode = false,
+  orderedRooms = [],
+  onReorder = noop,
+  onClickOutside,
 }: RoomsGridProps) {
   // Layout follows expanded state directly (no sequencing - animations happen together)
   const layoutExpandedId = expandedRoomId
@@ -69,11 +71,6 @@ export function RoomsGrid({
     },
     [onToggleExpand]
   )
-
-  // All devices view
-  if (selectedFloorId === '__all_devices__') {
-    return <AllDevicesView />
-  }
 
   // Empty state
   if (displayRooms.length === 0) {
@@ -138,8 +135,12 @@ export function RoomsGrid({
 
         // Use pixel width when measured, calc() fallback before measurement
         const targetWidth = containerWidth
-          ? (isLayoutExpanded ? fullWidth : singleColumnWidth)
-          : (isLayoutExpanded ? '100%' : 'calc(50% - 6px)')
+          ? isLayoutExpanded
+            ? fullWidth
+            : singleColumnWidth
+          : isLayoutExpanded
+            ? '100%'
+            : 'calc(50% - 6px)'
 
         return (
           <Fragment key={room.id}>
@@ -164,7 +165,10 @@ export function RoomsGrid({
             </motion.div>
             {/* Invisible placeholder to preserve gap when right-column card expands */}
             {needsPlaceholder && (
-              <div style={{ width: containerWidth ? singleColumnWidth : 'calc(50% - 6px)' }} className="invisible" />
+              <div
+                style={{ width: containerWidth ? singleColumnWidth : 'calc(50% - 6px)' }}
+                className="invisible"
+              />
             )}
           </Fragment>
         )

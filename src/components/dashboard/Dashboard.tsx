@@ -5,6 +5,7 @@ import { EditModeHeader } from './EditModeHeader'
 import { ConnectionBanner } from './ConnectionBanner'
 import { DemoBanner } from './DemoBanner'
 import { RoomsGrid } from './RoomsGrid'
+import { AllDevicesView } from './AllDevicesView'
 import { FloorSwipeContainer } from './FloorSwipeContainer'
 import { RoomEditModal } from './RoomEditModal'
 import { DeviceEditModal } from './DeviceEditModal'
@@ -22,7 +23,7 @@ import { useFloorNavigation } from '@/lib/hooks/useFloorNavigation'
 import { useModalState } from '@/lib/hooks/useModalState'
 import { saveFloorOrderBatch } from '@/lib/ha-websocket'
 import { ORDER_GAP } from '@/lib/constants'
-import type { RoomWithDevices, HAEntity, HAFloor } from '@/types/ha'
+import type { HAEntity, HAFloor } from '@/types/ha'
 
 // Auto threshold for showing scenes
 const AUTO_SCENES_ROOM_THRESHOLD = 16
@@ -52,8 +53,6 @@ function DashboardContent() {
     enterDeviceEdit,
     enterAllDevicesEdit,
     exitEditMode,
-    clearSelection: _clearSelection,
-    toggleSelection: _toggleSelection,
     reorderRooms,
   } = useEditMode()
 
@@ -114,26 +113,17 @@ function DashboardContent() {
   // Display rooms
   const displayRooms = isRoomEditMode ? orderedRooms : filteredRooms
 
-  // Handle reorder during drag
-  const handleReorder = useCallback(
-    (newOrder: RoomWithDevices[]) => {
-      reorderRooms(newOrder)
-    },
-    [reorderRooms]
-  )
-
-  // Compute shouldShowScenes based on setting, room count, and whether any room has scenes
+  // Compute shouldShowScenes for edit mode (normal mode computes per-floor in FloorSwipeContainer)
   const shouldShowScenes = useMemo(() => {
+    if (!isRoomEditMode) return false // Only used in edit mode
     if (showScenes === 'off') return false
-    // Check if any room on this floor has scenes
     const floorHasScenes = displayRooms.some((room) =>
       room.devices.some((d) => d.entity_id.startsWith('scene.'))
     )
     if (!floorHasScenes) return false
     if (showScenes === 'on') return true
-    // Auto: show if fewer than threshold rooms
     return displayRooms.length < AUTO_SCENES_ROOM_THRESHOLD
-  }, [showScenes, displayRooms])
+  }, [isRoomEditMode, showScenes, displayRooms])
 
   const handleToggleExpand = useCallback(
     (roomId: string) => {
@@ -302,37 +292,19 @@ function DashboardContent() {
           {selectedFloorId === '__all_devices__' ? (
             // All devices view (not part of swipe navigation)
             <div className="px-4 py-4 overflow-x-hidden">
-              <RoomsGrid
-                selectedFloorId={selectedFloorId}
-                displayRooms={[]}
-                orderedRooms={[]}
-                allRooms={rooms}
-                expandedRoomId={expandedRoomId}
-                isConnected={isConnected}
-                isRoomEditMode={false}
-                shouldShowScenes={false}
-                onReorder={() => {}}
-                onToggleExpand={handleToggleExpand}
-                onClickOutside={handleExitEditMode}
-                onEnterEditModeWithSelection={handleEnterEditModeWithSelection}
-              />
+              <AllDevicesView />
             </div>
           ) : isRoomEditMode ? (
             // Edit mode: show only current floor in ReorderableGrid
             <div className="px-4 py-4">
               <RoomsGrid
-                selectedFloorId={selectedFloorId}
                 displayRooms={displayRooms}
-                orderedRooms={orderedRooms}
-                allRooms={rooms}
-                expandedRoomId={expandedRoomId}
                 isConnected={isConnected}
-                isRoomEditMode={isRoomEditMode}
                 shouldShowScenes={shouldShowScenes}
-                onReorder={handleReorder}
-                onToggleExpand={handleToggleExpand}
+                isRoomEditMode
+                orderedRooms={orderedRooms}
+                onReorder={reorderRooms}
                 onClickOutside={handleExitEditMode}
-                onEnterEditModeWithSelection={handleEnterEditModeWithSelection}
               />
             </div>
           ) : (
@@ -357,17 +329,13 @@ function DashboardContent() {
                   return (
                     <div className="px-4">
                       <RoomsGrid
-                        selectedFloorId={floorId}
                         displayRooms={floorRooms}
-                        orderedRooms={[]}
+                        isConnected={isConnected}
+                        shouldShowScenes={floorShowScenes}
+                        selectedFloorId={floorId}
                         allRooms={rooms}
                         expandedRoomId={expandedRoomId}
-                        isConnected={isConnected}
-                        isRoomEditMode={false}
-                        shouldShowScenes={floorShowScenes}
-                        onReorder={() => {}}
                         onToggleExpand={handleToggleExpand}
-                        onClickOutside={handleExitEditMode}
                         onEnterEditModeWithSelection={handleEnterEditModeWithSelection}
                       />
                     </div>

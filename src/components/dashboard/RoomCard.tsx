@@ -14,7 +14,13 @@ import { useBrightnessGesture } from '@/lib/hooks/useBrightnessGesture'
 import { useHAConnection } from '@/lib/hooks/useHAConnection'
 import { haptic } from '@/lib/haptics'
 import { t, interpolate } from '@/lib/i18n'
-import { LONG_PRESS_DURATION, OPTIMISTIC_DURATION, ROOM_EXPAND_DURATION, getScrollTop, scrollTo } from '@/lib/constants'
+import {
+  LONG_PRESS_DURATION,
+  OPTIMISTIC_DURATION,
+  ROOM_EXPAND_DURATION,
+  getScrollTop,
+  scrollTo,
+} from '@/lib/constants'
 
 interface RoomCardProps {
   room: RoomWithDevices
@@ -155,7 +161,8 @@ export function RoomCard({
         }
       } else {
         // When collapsing, scroll if card is above viewport
-        if (rect.top < 80) { // Account for header
+        if (rect.top < 80) {
+          // Account for header
           scrollTo({
             top: Math.max(0, cardTop - 80),
             behavior: 'smooth',
@@ -186,15 +193,12 @@ export function RoomCard({
     [longPress, brightnessGesture]
   )
 
-  const handlePointerUp = useCallback(
-    () => {
-      longPress.onPointerUp()
-      if (!longPress.didLongPress) {
-        brightnessGesture.onPointerUp()
-      }
-    },
-    [longPress, brightnessGesture]
-  )
+  const handlePointerUp = useCallback(() => {
+    longPress.onPointerUp()
+    if (!longPress.didLongPress) {
+      brightnessGesture.onPointerUp()
+    }
+  }, [longPress, brightnessGesture])
 
   // Card click - toggle lights (or exit edit mode if blurred)
   const handleCardClick = useCallback(
@@ -441,7 +445,10 @@ export function RoomCard({
               className="absolute inset-0 -mx-4 -my-2 px-4 py-2 flex items-center justify-end hover:bg-border/30 transition-colors touch-feedback"
               aria-label={isExpanded ? 'Collapse' : 'Expand'}
             >
-              <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: ROOM_EXPAND_DURATION }}>
+              <motion.div
+                animate={{ rotate: isExpanded ? 180 : 0 }}
+                transition={{ duration: ROOM_EXPAND_DURATION }}
+              >
                 <ChevronDown className="w-4 h-4 text-muted" />
               </motion.div>
             </button>

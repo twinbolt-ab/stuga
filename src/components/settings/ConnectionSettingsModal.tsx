@@ -1,16 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence, useMotionValue, PanInfo } from 'framer-motion'
-import {
-  X,
-  Check,
-  Loader2,
-  AlertCircle,
-  Eye,
-  EyeOff,
-  LogOut,
-  LogIn,
-  Key,
-} from 'lucide-react'
+import { X, Check, Loader2, AlertCircle, Eye, EyeOff, LogOut, LogIn, Key } from 'lucide-react'
 import { t } from '@/lib/i18n'
 import { updateUrl, updateToken, clearCredentials } from '@/lib/config'
 import { getStorage } from '@/lib/storage'
@@ -265,156 +255,155 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
 
             {/* Content */}
             <div className="px-4 pb-safe space-y-4">
-                  {/* Auth Method Badge */}
-                  <div className="flex items-center gap-3 p-3 bg-background rounded-xl border border-border">
-                    <div className="w-10 h-10 rounded-lg bg-card border border-border flex items-center justify-center flex-shrink-0">
-                      {getAuthIcon()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-foreground">{getAuthLabel()}</div>
-                      <p className="text-sm text-muted">
-                        {isOAuth ? formatUrlForDisplay(connectedUrl) : getAuthDescription()}
-                      </p>
+              {/* Auth Method Badge */}
+              <div className="flex items-center gap-3 p-3 bg-background rounded-xl border border-border">
+                <div className="w-10 h-10 rounded-lg bg-card border border-border flex items-center justify-center flex-shrink-0">
+                  {getAuthIcon()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-foreground">{getAuthLabel()}</div>
+                  <p className="text-sm text-muted">
+                    {isOAuth ? formatUrlForDisplay(connectedUrl) : getAuthDescription()}
+                  </p>
+                </div>
+              </div>
+
+              {/* URL Field - Only for Token auth */}
+              {!isOAuth && (
+                <div>
+                  <label
+                    htmlFor="connection-url"
+                    className="block text-sm font-medium text-foreground mb-2"
+                  >
+                    {t.settings.connection.urlLabel}
+                  </label>
+                  <input
+                    id="connection-url"
+                    type="url"
+                    value={url}
+                    onChange={(e) => {
+                      setUrl(e.target.value)
+                      setError(null)
+                      setSuccess(false)
+                    }}
+                    placeholder="http://homeassistant.local:8123"
+                    className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
+                  />
+                </div>
+              )}
+
+              {/* Token Field - Only for token auth */}
+              {!isOAuth && (
+                <div>
+                  <label
+                    htmlFor="connection-token"
+                    className="block text-sm font-medium text-foreground mb-2"
+                  >
+                    {t.settings.connection.tokenLabel}
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="connection-token"
+                      type={showToken ? 'text' : 'password'}
+                      value={token}
+                      onChange={(e) => {
+                        setToken(e.target.value)
+                        setError(null)
+                        setSuccess(false)
+                      }}
+                      className="w-full px-4 py-3 pr-12 bg-background border border-border rounded-xl text-foreground font-mono text-sm focus:outline-none focus:border-accent transition-colors"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowToken(!showToken)
+                      }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted hover:text-foreground transition-colors"
+                    >
+                      {showToken ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Error Message */}
+              {error && (
+                <div className="flex items-center gap-2 text-red-500 text-sm">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              {/* Success Message */}
+              {success && (
+                <div className="flex items-center gap-2 text-green-500 text-sm">
+                  <Check className="w-4 h-4 flex-shrink-0" />
+                  <span>{t.settings.connection.success}</span>
+                </div>
+              )}
+
+              {/* Action Button - Different for each auth type */}
+              {!isOAuth && (
+                <button
+                  onClick={handleSave}
+                  disabled={!url.trim() || !token.trim() || isLoading}
+                  className="w-full py-4 px-6 bg-accent text-white rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      {t.settings.connection.testing}
+                    </>
+                  ) : success ? (
+                    <>
+                      <Check className="w-5 h-5" />
+                      {t.settings.connection.saved}
+                    </>
+                  ) : (
+                    t.settings.connection.save
+                  )}
+                </button>
+              )}
+
+              {/* Logout Section */}
+              <div className="pt-4 border-t border-border mt-4">
+                {showLogoutConfirm ? (
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted text-center">
+                      {t.settings.connection.logoutConfirm}
+                    </p>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => {
+                          setShowLogoutConfirm(false)
+                        }}
+                        className="flex-1 py-3 px-4 bg-border/50 text-foreground rounded-xl font-medium hover:bg-border transition-colors"
+                      >
+                        {t.common.cancel}
+                      </button>
+                      <button
+                        onClick={handleLogout}
+                        className="flex-1 py-3 px-4 bg-red-500 text-white rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-red-600 transition-colors"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        {t.settings.connection.logout}
+                      </button>
                     </div>
                   </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setShowLogoutConfirm(true)
+                    }}
+                    className="w-full py-3 px-4 text-red-500 rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-red-500/10 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    {t.settings.connection.logout}
+                  </button>
+                )}
+              </div>
 
-                  {/* URL Field - Only for Token auth */}
-                  {!isOAuth && (
-                    <div>
-                      <label
-                        htmlFor="connection-url"
-                        className="block text-sm font-medium text-foreground mb-2"
-                      >
-                        {t.settings.connection.urlLabel}
-                      </label>
-                      <input
-                        id="connection-url"
-                        type="url"
-                        value={url}
-                        onChange={(e) => {
-                          setUrl(e.target.value)
-                          setError(null)
-                          setSuccess(false)
-                        }}
-                        placeholder="http://homeassistant.local:8123"
-                        className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
-                      />
-                    </div>
-                  )}
-
-                  {/* Token Field - Only for token auth */}
-                  {!isOAuth && (
-                    <div>
-                      <label
-                        htmlFor="connection-token"
-                        className="block text-sm font-medium text-foreground mb-2"
-                      >
-                        {t.settings.connection.tokenLabel}
-                      </label>
-                      <div className="relative">
-                        <input
-                          id="connection-token"
-                          type={showToken ? 'text' : 'password'}
-                          value={token}
-                          onChange={(e) => {
-                            setToken(e.target.value)
-                            setError(null)
-                            setSuccess(false)
-                          }}
-                          className="w-full px-4 py-3 pr-12 bg-background border border-border rounded-xl text-foreground font-mono text-sm focus:outline-none focus:border-accent transition-colors"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setShowToken(!showToken)
-                          }}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted hover:text-foreground transition-colors"
-                        >
-                          {showToken ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Error Message */}
-                  {error && (
-                    <div className="flex items-center gap-2 text-red-500 text-sm">
-                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                      <span>{error}</span>
-                    </div>
-                  )}
-
-                  {/* Success Message */}
-                  {success && (
-                    <div className="flex items-center gap-2 text-green-500 text-sm">
-                      <Check className="w-4 h-4 flex-shrink-0" />
-                      <span>{t.settings.connection.success}</span>
-                    </div>
-                  )}
-
-                  {/* Action Button - Different for each auth type */}
-                  {!isOAuth && (
-                    <button
-                      onClick={handleSave}
-                      disabled={!url.trim() || !token.trim() || isLoading}
-                      className="w-full py-4 px-6 bg-accent text-white rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          {t.settings.connection.testing}
-                        </>
-                      ) : success ? (
-                        <>
-                          <Check className="w-5 h-5" />
-                          {t.settings.connection.saved}
-                        </>
-                      ) : (
-                        t.settings.connection.save
-                      )}
-                    </button>
-                  )}
-
-
-                  {/* Logout Section */}
-                  <div className="pt-4 border-t border-border mt-4">
-                      {showLogoutConfirm ? (
-                        <div className="space-y-3">
-                          <p className="text-sm text-muted text-center">
-                            {t.settings.connection.logoutConfirm}
-                          </p>
-                          <div className="flex gap-3">
-                            <button
-                              onClick={() => {
-                                setShowLogoutConfirm(false)
-                              }}
-                              className="flex-1 py-3 px-4 bg-border/50 text-foreground rounded-xl font-medium hover:bg-border transition-colors"
-                            >
-                              {t.common.cancel}
-                            </button>
-                            <button
-                              onClick={handleLogout}
-                              className="flex-1 py-3 px-4 bg-red-500 text-white rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-red-600 transition-colors"
-                            >
-                              <LogOut className="w-4 h-4" />
-                              {t.settings.connection.logout}
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            setShowLogoutConfirm(true)
-                          }}
-                          className="w-full py-3 px-4 text-red-500 rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-red-500/10 transition-colors"
-                        >
-                          <LogOut className="w-4 h-4" />
-                          {t.settings.connection.logout}
-                        </button>
-                      )}
-                    </div>
-
-                  <div className="h-4" />
+              <div className="h-4" />
             </div>
           </motion.div>
         </>

@@ -165,7 +165,7 @@ export async function refreshAccessToken(
   }
 
   const tokens = (await response.json()) as OAuthTokens
-  
+
   // If no new refresh token is returned, keep using the old one
   if (!tokens.refresh_token) {
     tokens.refresh_token = refreshToken

@@ -26,7 +26,6 @@ const FloorPlaceholder = memo(function FloorPlaceholder({ width }: { width: numb
   )
 })
 
-
 interface FloorSwipeContainerProps {
   /** All floors in order */
   floors: HAFloor[]
