@@ -8,7 +8,7 @@ const config: CapacitorConfig = {
     androidScheme: 'http',
   },
   ios: {
-    contentInset: 'automatic',
+    contentInset: 'always',
     backgroundColor: '#0D0D0C',
   },
   android: {
