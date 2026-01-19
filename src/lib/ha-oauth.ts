@@ -336,3 +336,38 @@ export async function getValidAccessToken(): Promise<TokenResult> {
 export async function isUsingOAuth(): Promise<boolean> {
   return await hasOAuthCredentials()
 }
+
+// PKCE Utilities for OAuth flow
+
+/**
+ * Generate a cryptographically random code verifier for PKCE
+ */
+export function generateCodeVerifier(): string {
+  const array = new Uint8Array(32)
+  crypto.getRandomValues(array)
+  return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('')
+}
+
+/**
+ * Generate a code challenge from the verifier using SHA-256
+ */
+export async function generateCodeChallenge(verifier: string): Promise<string> {
+  const encoder = new TextEncoder()
+  const data = encoder.encode(verifier)
+  const hashed = await crypto.subtle.digest('SHA-256', data)
+  const bytes = new Uint8Array(hashed)
+  let binary = ''
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte)
+  }
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '')
+}
+
+/**
+ * Generate a random state value for CSRF protection
+ */
+export function generateState(): string {
+  const array = new Uint8Array(16)
+  crypto.getRandomValues(array)
+  return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('')
+}

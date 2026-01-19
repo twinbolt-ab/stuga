@@ -51,6 +51,7 @@
       "subtitle": "How would you like to authenticate?",
       "oauth": "Login with Home Assistant",
       "oauthHint": "Use your existing Home Assistant account",
+      "oauthHttpDisabled": "Not available for HTTP connections",
       "token": "Use access token",
       "tokenHint": "Enter a long-lived access token manually",
       "recommended": "Recommended"

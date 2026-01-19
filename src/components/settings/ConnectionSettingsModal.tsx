@@ -27,24 +27,15 @@ import {
   getClientId,
   getRedirectUri,
   storeOAuthCredentials,
+  generateCodeVerifier,
+  generateCodeChallenge,
+  generateState,
 } from '@/lib/ha-oauth'
 import { getStorage } from '@/lib/storage'
 import { STORAGE_KEYS } from '@/lib/constants'
 import { useHAConnection } from '@/lib/hooks/useHAConnection'
-import { OAuth2Client } from '@byteowls/capacitor-oauth2'
+import { authenticateWithInAppBrowser } from '@/lib/oauth-browser'
 import { logger } from '@/lib/logger'
-import type { OAuthTokens } from '@/lib/ha-oauth'
-
-// Type for OAuth2Client response with access token
-interface OAuth2Response {
-  access_token?: string
-  refresh_token?: string
-  expires_in?: number
-  authorization_response?: {
-    code?: string
-    code_verifier?: string
-  }
-}
 
 interface ConnectionSettingsModalProps {
   isOpen: boolean
@@ -251,137 +242,33 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
 
     try {
       if (isNativeApp()) {
-        // On native, use OAuth2Client plugin which handles the browser + deep link
-        const clientId = 'https://stuga.app/oauth'
-        const isHttps = url.startsWith('https://')
+        // On native, use in-app browser for OAuth (works for both HTTP and HTTPS)
+        const result = await authenticateWithInAppBrowser(url)
 
-        if (isHttps) {
-          const response = (await OAuth2Client.authenticate({
-            authorizationBaseUrl: `${url}/auth/authorize`,
-            accessTokenEndpoint: `${url}/auth/token`,
-            scope: '',
-            pkceEnabled: true,
-            logsEnabled: true,
-            web: {
-              appId: clientId,
-              responseType: 'code',
-              redirectUrl: `${window.location.origin}/auth/callback`,
-            },
-            android: {
-              appId: clientId,
-              responseType: 'code',
-              redirectUrl: 'com.twinbolt.stuga:/',
-              handleResultOnNewIntent: true,
-              handleResultOnActivityResult: true,
-            },
-            ios: {
-              appId: clientId,
-              responseType: 'code',
-              redirectUrl: 'com.twinbolt.stuga:/',
-            },
-          })) as OAuth2Response
-
-          if (response.access_token) {
-            await storeOAuthCredentials(url, {
-              access_token: response.access_token,
-              refresh_token: response.refresh_token ?? '',
-              expires_in: response.expires_in ?? 1800,
-              token_type: 'Bearer',
-            })
-            void reconnect()
-            setSuccess(true)
-            setTimeout(() => {
-              onClose()
-            }, 1500)
-          } else {
-            throw new Error('No access token received')
-          }
-        } else {
-          // For HTTP (local HA), handle token exchange manually
-          const response = (await OAuth2Client.authenticate({
-            authorizationBaseUrl: `${url}/auth/authorize`,
-            scope: '',
-            pkceEnabled: true,
-            logsEnabled: true,
-            web: {
-              appId: clientId,
-              responseType: 'code',
-              redirectUrl: `${window.location.origin}/auth/callback`,
-            },
-            android: {
-              appId: clientId,
-              responseType: 'code',
-              redirectUrl: 'com.twinbolt.stuga:/',
-              handleResultOnNewIntent: true,
-              handleResultOnActivityResult: true,
-            },
-            ios: {
-              appId: clientId,
-              responseType: 'code',
-              redirectUrl: 'com.twinbolt.stuga:/',
-            },
-          })) as OAuth2Response
-
-          const authCode = response.authorization_response?.code
-          const codeVerifier = response.authorization_response?.code_verifier
-
-          if (!authCode) {
-            throw new Error('No authorization code received')
-          }
-
-          const tokenBody = new URLSearchParams({
-            grant_type: 'authorization_code',
-            code: authCode,
-            client_id: clientId,
-          })
-          if (codeVerifier) {
-            tokenBody.set('code_verifier', codeVerifier)
-          }
-
-          const tokenResponse = await fetch(`${url}/auth/token`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: tokenBody.toString(),
-          })
-
-          if (!tokenResponse.ok) {
-            const errorText = await tokenResponse.text()
-            throw new Error(`Token exchange failed: ${errorText}`)
-          }
-
-          const tokens = (await tokenResponse.json()) as OAuthTokens
-          await storeOAuthCredentials(url, {
-            access_token: tokens.access_token,
-            refresh_token: tokens.refresh_token,
-            expires_in: tokens.expires_in ?? 1800,
-            token_type: 'Bearer',
-          })
-          void reconnect()
-          setSuccess(true)
-          setTimeout(() => {
-            onClose()
-          }, 1500)
+        if (!result.success) {
+          throw new Error(result.error || 'Authentication failed')
         }
+
+        if (!result.tokens) {
+          throw new Error('No tokens received')
+        }
+
+        await storeOAuthCredentials(url, {
+          access_token: result.tokens.access_token,
+          refresh_token: result.tokens.refresh_token,
+          expires_in: result.tokens.expires_in,
+          token_type: 'Bearer',
+        })
+        void reconnect()
+        setSuccess(true)
+        setTimeout(() => {
+          onClose()
+        }, 1500)
       } else {
-        // On web, use manual redirect flow
-        const array = new Uint8Array(32)
-        crypto.getRandomValues(array)
-        const verifier = Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('')
-        const encoder = new TextEncoder()
-        const data = encoder.encode(verifier)
-        const hashed = await crypto.subtle.digest('SHA-256', data)
-        const bytes = new Uint8Array(hashed)
-        let binary = ''
-        for (const byte of bytes) {
-          binary += String.fromCharCode(byte)
-        }
-        const challenge = btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
-
-        const stateArray = new Uint8Array(16)
-        crypto.getRandomValues(stateArray)
-        const state = Array.from(stateArray, (byte) => byte.toString(16).padStart(2, '0')).join('')
+        // On web, use redirect-based OAuth flow
+        const verifier = generateCodeVerifier()
+        const challenge = await generateCodeChallenge(verifier)
+        const state = generateState()
 
         await storePendingOAuth(state, verifier, url)
 

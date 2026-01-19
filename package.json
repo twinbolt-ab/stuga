@@ -4,7 +4,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "postinstall": "patch-package",
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
@@ -22,7 +21,6 @@
     "android:bundle": "npm run build && cap sync android && cd android && ./gradlew bundleRelease"
   },
   "dependencies": {
-    "@byteowls/capacitor-oauth2": "^5.0.0",
     "@capacitor/android": "^8.0.0",
     "@capacitor/app": "^8.0.0",
     "@capacitor/browser": "^8.0.0",
@@ -30,6 +28,7 @@
     "@capacitor/haptics": "^8.0.0",
     "@capacitor/ios": "^8.0.0",
     "@capacitor/preferences": "^8.0.0",
+    "@capgo/inappbrowser": "^8.0.6",
     "@iconify/react": "^6.0.2",
     "capacitor-secure-storage-plugin": "^0.13.0",
     "clsx": "^2.1.1",
@@ -58,7 +57,6 @@
     "eslint-plugin-react-refresh": "^0.4.26",
     "globals": "^17.0.0",
     "jsdom": "^26.0.0",
-    "patch-package": "^8.0.1",
     "postcss": "^8.4.0",
     "prettier": "^3.8.0",
     "tailwindcss": "^3.4.0",

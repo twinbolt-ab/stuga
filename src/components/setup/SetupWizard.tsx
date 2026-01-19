@@ -22,25 +22,21 @@ import {
   isNativeApp,
   getClientId,
   getRedirectUri,
+  generateCodeVerifier,
+  generateCodeChallenge,
+  generateState,
 } from '@/lib/ha-oauth'
-import { OAuth2Client } from '@byteowls/capacitor-oauth2'
-import type { OAuthTokens } from '@/lib/ha-oauth'
-
-// Type for OAuth2Client response with access token
-interface OAuth2Response {
-  access_token?: string
-  refresh_token?: string
-  expires_in?: number
-  authorization_response?: {
-    code?: string
-    code_verifier?: string
-  }
-}
+import { authenticateWithInAppBrowser } from '@/lib/oauth-browser'
 import { logger } from '@/lib/logger'
 
 type Step = 'welcome' | 'connect' | 'complete'
 
 type AuthMethod = 'oauth' | 'token'
+
+// OAuth is always available - we handle HTTP via manual token exchange
+function isOAuthAvailable(_urlToCheck: string): boolean {
+  return true
+}
 
 type UrlStatus = 'idle' | 'checking' | 'success' | 'failed'
 
@@ -71,6 +67,16 @@ export function SetupWizard() {
   const [isProbing, setIsProbing] = useState(false)
   const [urlVerified, setUrlVerified] = useState(false)
   const hasProbed = useRef(false)
+
+  // Check if OAuth is available for current URL
+  const oauthAvailable = isOAuthAvailable(url)
+
+  // Auto-switch to token auth when OAuth becomes unavailable
+  useEffect(() => {
+    if (!oauthAvailable && authMethod === 'oauth') {
+      setAuthMethod('token')
+    }
+  }, [oauthAvailable, authMethod])
 
   // Start demo mode with sample data
   const startDemo = useCallback(() => {
@@ -241,154 +247,33 @@ export function SetupWizard() {
   const handleOAuthLogin = async () => {
     try {
       if (isNativeApp()) {
-        // On native, use OAuth2Client plugin which handles the browser + deep link
-        // client_id must be the website with <link rel="redirect_uri"> tag
-        const clientId = 'https://stuga.app/oauth'
+        // On native, use in-app browser for OAuth (works for both HTTP and HTTPS)
+        const result = await authenticateWithInAppBrowser(url)
 
-        // Check if using HTTPS - AppAuth library requires HTTPS for token endpoint
-        const isHttps = url.startsWith('https://')
-
-        if (isHttps) {
-          // Use OAuth2Client plugin for HTTPS (handles everything automatically)
-          const response = (await OAuth2Client.authenticate({
-            authorizationBaseUrl: `${url}/auth/authorize`,
-            accessTokenEndpoint: `${url}/auth/token`,
-            scope: '',
-            pkceEnabled: true,
-            logsEnabled: true,
-            web: {
-              appId: clientId,
-              responseType: 'code',
-              redirectUrl: `${window.location.origin}/auth/callback`,
-            },
-            android: {
-              appId: clientId,
-              responseType: 'code',
-              redirectUrl: 'com.twinbolt.stuga:/',
-              handleResultOnNewIntent: true,
-              handleResultOnActivityResult: true,
-            },
-            ios: {
-              appId: clientId,
-              responseType: 'code',
-              redirectUrl: 'com.twinbolt.stuga:/',
-            },
-          })) as OAuth2Response
-
-          // Store the tokens
-          logger.debug(
-            'OAuth',
-            'HTTPS response received, has access_token:',
-            !!response.access_token
-          )
-          if (response.access_token) {
-            logger.debug('OAuth', 'Storing credentials for URL:', url)
-            await storeOAuthCredentials(url, {
-              access_token: response.access_token,
-              refresh_token: response.refresh_token ?? '',
-              expires_in: response.expires_in ?? 1800,
-              token_type: 'Bearer',
-            })
-            logger.debug('OAuth', 'Credentials stored successfully')
-
-            // Navigate to home
-            void navigate('/', { replace: true })
-          } else {
-            throw new Error('No access token received')
-          }
-        } else {
-          // For HTTP (local HA), use OAuth2Client for auth only, then manual token exchange
-          // AppAuth doesn't support HTTP token endpoints, so we handle that ourselves
-          const response = (await OAuth2Client.authenticate({
-            authorizationBaseUrl: `${url}/auth/authorize`,
-            // Don't set accessTokenEndpoint - we'll do the token exchange manually
-            scope: '',
-            pkceEnabled: true,
-            logsEnabled: true,
-            web: {
-              appId: clientId,
-              responseType: 'code',
-              redirectUrl: `${window.location.origin}/auth/callback`,
-            },
-            android: {
-              appId: clientId,
-              responseType: 'code',
-              redirectUrl: 'com.twinbolt.stuga:/',
-              handleResultOnNewIntent: true,
-              handleResultOnActivityResult: true,
-            },
-            ios: {
-              appId: clientId,
-              responseType: 'code',
-              redirectUrl: 'com.twinbolt.stuga:/',
-            },
-          })) as OAuth2Response
-
-          // We should get back the authorization code
-          const authCode = response.authorization_response?.code
-          const codeVerifier = response.authorization_response?.code_verifier
-
-          if (!authCode) {
-            throw new Error('No authorization code received')
-          }
-
-          // Manually exchange the code for tokens via fetch (works with HTTP)
-          const tokenBody = new URLSearchParams({
-            grant_type: 'authorization_code',
-            code: authCode,
-            client_id: clientId,
-          })
-          if (codeVerifier) {
-            tokenBody.set('code_verifier', codeVerifier)
-          }
-
-          const tokenResponse = await fetch(`${url}/auth/token`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: tokenBody.toString(),
-          })
-
-          if (!tokenResponse.ok) {
-            const errorText = await tokenResponse.text()
-            throw new Error(`Token exchange failed: ${errorText}`)
-          }
-
-          const tokens = (await tokenResponse.json()) as OAuthTokens
-
-          logger.debug('OAuth', 'HTTP tokens received, expires_in:', tokens.expires_in)
-          logger.debug('OAuth', 'Storing credentials for URL:', url)
-          await storeOAuthCredentials(url, {
-            access_token: tokens.access_token,
-            refresh_token: tokens.refresh_token,
-            expires_in: tokens.expires_in ?? 1800,
-            token_type: 'Bearer',
-          })
-          logger.debug('OAuth', 'Credentials stored successfully')
-
-          // Navigate to home
-          void navigate('/', { replace: true })
+        if (!result.success) {
+          throw new Error(result.error || 'Authentication failed')
         }
+
+        if (!result.tokens) {
+          throw new Error('No tokens received')
+        }
+
+        logger.debug('OAuth', 'Storing credentials for URL:', url)
+        await storeOAuthCredentials(url, {
+          access_token: result.tokens.access_token,
+          refresh_token: result.tokens.refresh_token,
+          expires_in: result.tokens.expires_in,
+          token_type: 'Bearer',
+        })
+        logger.debug('OAuth', 'Credentials stored successfully')
+
+        // Navigate to home
+        void navigate('/', { replace: true })
       } else {
-        // On web, use manual redirect flow
-        // Generate PKCE values manually for web
-        const array = new Uint8Array(32)
-        crypto.getRandomValues(array)
-        const verifier = Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('')
-        const encoder = new TextEncoder()
-        const data = encoder.encode(verifier)
-        const hashed = await crypto.subtle.digest('SHA-256', data)
-        const bytes = new Uint8Array(hashed)
-        let binary = ''
-        for (const byte of bytes) {
-          binary += String.fromCharCode(byte)
-        }
-        const challenge = btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
-
-        const stateArray = new Uint8Array(16)
-        crypto.getRandomValues(stateArray)
-        const state = Array.from(stateArray, (byte) => byte.toString(16).padStart(2, '0')).join('')
+        // On web, use redirect-based OAuth flow
+        const verifier = generateCodeVerifier()
+        const challenge = await generateCodeChallenge(verifier)
+        const state = generateState()
 
         // Store pending OAuth data for validation after redirect
         await storePendingOAuth(state, verifier, url)
@@ -591,13 +476,13 @@ export function SetupWizard() {
 
                   {/* OAuth Option */}
                   <button
-                    onClick={() => setAuthMethod('oauth')}
-                    disabled={isLoading}
+                    onClick={() => oauthAvailable && setAuthMethod('oauth')}
+                    disabled={isLoading || !oauthAvailable}
                     className={`w-full p-4 bg-card rounded-xl flex items-start gap-4 transition-colors touch-feedback disabled:opacity-50 ${
                       authMethod === 'oauth'
                         ? 'border-2 border-accent'
                         : 'border border-border hover:bg-border/30'
-                    }`}
+                    } ${!oauthAvailable ? 'cursor-not-allowed' : ''}`}
                   >
                     <div
                       className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
@@ -611,12 +496,16 @@ export function SetupWizard() {
                     <div className="text-left flex-1 min-w-0">
                       <div className="font-medium text-foreground flex items-center gap-2">
                         {t.setup.authMethod?.oauth || 'Login with Home Assistant'}
-                        <span className="text-xs text-accent font-medium">
-                          {t.setup.authMethod?.recommended || 'Recommended'}
-                        </span>
+                        {oauthAvailable && (
+                          <span className="text-xs text-accent font-medium">
+                            {t.setup.authMethod?.recommended || 'Recommended'}
+                          </span>
+                        )}
                       </div>
                       <p className="text-sm text-muted mt-1">
-                        {t.setup.authMethod?.oauthHint || 'Use your existing Home Assistant account'}
+                        {!oauthAvailable
+                          ? t.setup.authMethod?.oauthHttpDisabled || 'Requires HTTPS connection'
+                          : t.setup.authMethod?.oauthHint || 'Use your existing Home Assistant account'}
                       </p>
                     </div>
                     <div
