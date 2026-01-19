@@ -14,7 +14,7 @@ import { useBrightnessGesture } from '@/lib/hooks/useBrightnessGesture'
 import { useHAConnection } from '@/lib/hooks/useHAConnection'
 import { haptic } from '@/lib/haptics'
 import { t, interpolate } from '@/lib/i18n'
-import { LONG_PRESS_DURATION, OPTIMISTIC_DURATION, ROOM_EXPAND_DURATION } from '@/lib/constants'
+import { LONG_PRESS_DURATION, OPTIMISTIC_DURATION, ROOM_EXPAND_DURATION, getScrollTop, scrollTo } from '@/lib/constants'
 
 interface RoomCardProps {
   room: RoomWithDevices
@@ -143,12 +143,12 @@ export function RoomCard({
     const adjustScroll = () => {
       const rect = card.getBoundingClientRect()
       const visibleHeight = window.innerHeight - 80 // Account for bottom nav
-      const cardTop = window.scrollY + rect.top
+      const cardTop = getScrollTop() + rect.top
 
       if (isExpanded) {
         // When expanding, scroll if card would extend below visible area
         if (rect.bottom > visibleHeight) {
-          window.scrollTo({
+          scrollTo({
             top: Math.max(0, cardTop - 16),
             behavior: 'smooth',
           })
@@ -156,7 +156,7 @@ export function RoomCard({
       } else {
         // When collapsing, scroll if card is above viewport
         if (rect.top < 80) { // Account for header
-          window.scrollTo({
+          scrollTo({
             top: Math.max(0, cardTop - 80),
             behavior: 'smooth',
           })
@@ -187,10 +187,10 @@ export function RoomCard({
   )
 
   const handlePointerUp = useCallback(
-    (e: React.PointerEvent) => {
+    () => {
       longPress.onPointerUp()
       if (!longPress.didLongPress) {
-        brightnessGesture.onPointerUp(e)
+        brightnessGesture.onPointerUp()
       }
     },
     [longPress, brightnessGesture]

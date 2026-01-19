@@ -9,6 +9,7 @@ import {
 } from 'framer-motion'
 import type { HAFloor } from '@/types/ha'
 import { useWindowWidth } from '@/lib/hooks/useWindowWidth'
+import { scrollTo } from '@/lib/constants'
 
 // Spring animation config for floor transitions
 const SPRING_CONFIG = { type: 'spring', stiffness: 300, damping: 30 } as const
@@ -125,7 +126,7 @@ export function FloorSwipeContainer({
         const newFloorId = floorIds[targetIndex]
         onSelectFloor(newFloorId)
         // Scroll to top when changing floors (instant to avoid jank)
-        window.scrollTo({ top: 0 })
+        scrollTo({ top: 0 })
       } else {
         // Snap back to current floor
         const targetX = -currentIndex * width

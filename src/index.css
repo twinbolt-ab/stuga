@@ -102,6 +102,24 @@ html, body, #root {
   overscroll-behavior: none;
 }
 
+/* Prevent iOS viewport scrolling - use fixed layout with internal scroll container */
+html, body {
+  overflow: hidden;
+  height: 100%;
+  height: 100dvh;
+  position: fixed;
+  width: 100%;
+  top: 0;
+  left: 0;
+}
+
+#root {
+  overflow: auto;
+  height: 100%;
+  height: 100dvh;
+  -webkit-overflow-scrolling: touch;
+}
+
 html:not(.dark), html:not(.dark) body, html:not(.dark) #root {
   background-color: #FAFAF9;
 }

@@ -53,7 +53,7 @@ interface UseBrightnessGestureReturn {
   /** Handler for pointer move event */
   onPointerMove: (e: React.PointerEvent) => void
   /** Handler for pointer up event */
-  onPointerUp: (e: React.PointerEvent) => void
+  onPointerUp: () => void
 }
 
 export function useBrightnessGesture({
@@ -71,6 +71,8 @@ export function useBrightnessGesture({
 
   const dragStartRef = useRef<DragState | null>(null)
   const didDragRef = useRef(false)
+  const capturedElementRef = useRef<HTMLElement | null>(null)
+  const capturedPointerIdRef = useRef<number | null>(null)
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent) => {
@@ -115,7 +117,11 @@ export function useBrightnessGesture({
           didDragRef.current = true
           setIsDragging(true)
           setShowOverlay(true)
-          ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+          // Use currentTarget (the element with the handler) for reliable pointer capture
+          const element = e.currentTarget as HTMLElement
+          element.setPointerCapture(e.pointerId)
+          capturedElementRef.current = element
+          capturedPointerIdRef.current = e.pointerId
         }
         return
       }
@@ -163,7 +169,7 @@ export function useBrightnessGesture({
   )
 
   const onPointerUp = useCallback(
-    (e: React.PointerEvent) => {
+    () => {
       if (isDragging && dragStartRef.current) {
         // Apply final brightness
         const relativeBrightness = calculateRelativeBrightness(
@@ -172,7 +178,13 @@ export function useBrightnessGesture({
           currentBrightness
         )
         setRoomBrightness(lights, relativeBrightness, true)
-        ;(e.target as HTMLElement).releasePointerCapture(e.pointerId)
+
+        // Release pointer capture on the same element that captured it
+        if (capturedElementRef.current && capturedPointerIdRef.current !== null) {
+          capturedElementRef.current.releasePointerCapture(capturedPointerIdRef.current)
+          capturedElementRef.current = null
+          capturedPointerIdRef.current = null
+        }
 
         setTimeout(() => {
           setShowOverlay(false)

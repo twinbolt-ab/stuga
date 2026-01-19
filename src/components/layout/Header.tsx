@@ -6,7 +6,7 @@ import { MdiIcon } from '@/components/ui/MdiIcon'
 import { saveFloorOrderBatch } from '@/lib/ha-websocket'
 import { useLongPress } from '@/lib/hooks/useLongPress'
 import { useEditMode } from '@/lib/contexts/EditModeContext'
-import { LONG_PRESS_DURATION } from '@/lib/constants'
+import { LONG_PRESS_DURATION, scrollTo } from '@/lib/constants'
 import { t } from '@/lib/i18n'
 import { haptic } from '@/lib/haptics'
 import type { HAFloor } from '@/types/ha'
@@ -155,7 +155,7 @@ export function BottomNav({
         const newFloorId = floorId === '__other__' ? null : floorId
         if (newFloorId !== selectedFloorId) {
           onSelectFloor(newFloorId)
-          window.scrollTo({ top: 0, behavior: 'smooth' })
+          scrollTo({ top: 0, behavior: 'smooth' })
         }
       }
     },

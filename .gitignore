@@ -36,3 +36,4 @@ yarn-error.log*
 .private
 CLAUDE.md
 *.jks
+android/fastlane/play-store-credentials.json

@@ -46,3 +46,24 @@ export const STORAGE_KEYS = {
   STRUCTURE_HINT_DISMISSED: 'stuga-structure-hint-dismissed',
   FLOORS_HINT_DISMISSED: 'stuga-floors-hint-dismissed',
 } as const
+
+/**
+ * Get the scroll container element (#root on iOS to prevent viewport scrolling)
+ */
+export function getScrollContainer(): HTMLElement {
+  return document.getElementById('root') || document.documentElement
+}
+
+/**
+ * Get the current scroll position
+ */
+export function getScrollTop(): number {
+  return getScrollContainer().scrollTop
+}
+
+/**
+ * Scroll to a position within the app container
+ */
+export function scrollTo(options: { top: number; behavior?: ScrollBehavior }): void {
+  getScrollContainer().scrollTo(options)
+}
