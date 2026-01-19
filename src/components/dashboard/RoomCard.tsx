@@ -1,17 +1,15 @@
-import { useRef, useCallback, useEffect, useMemo, memo } from 'react'
+import { useRef, useCallback, useEffect, memo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { clsx } from 'clsx'
 import { Lightbulb, LightbulbOff, Thermometer, ChevronDown, Home, Check } from 'lucide-react'
-import type { RoomWithDevices, HAEntity } from '@/types/ha'
+import type { RoomWithDevices } from '@/types/ha'
 import { RoomExpanded } from './RoomExpanded'
-import { RoomCardScenes } from './RoomCardScenes'
 import { MdiIcon } from '@/components/ui/MdiIcon'
 import { useLightControl } from '@/lib/hooks/useLightControl'
 import { useEditMode } from '@/lib/contexts/EditModeContext'
 import { useLongPress } from '@/lib/hooks/useLongPress'
 import { useOptimisticState } from '@/lib/hooks/useOptimisticState'
 import { useBrightnessGesture } from '@/lib/hooks/useBrightnessGesture'
-import { useHAConnection } from '@/lib/hooks/useHAConnection'
 import { haptic } from '@/lib/haptics'
 import { t, interpolate } from '@/lib/i18n'
 import {
@@ -26,7 +24,6 @@ interface RoomCardProps {
   room: RoomWithDevices
   allRooms?: RoomWithDevices[]
   isExpanded: boolean
-  shouldShowScenes?: boolean
   /** Called with room.id when expand/collapse is toggled */
   onToggleExpand: (roomId: string) => void
   onEnterEditModeWithSelection?: (roomId: string) => void
@@ -36,7 +33,6 @@ export function RoomCard({
   room,
   allRooms = [],
   isExpanded,
-  shouldShowScenes = false,
   onToggleExpand,
   onEnterEditModeWithSelection,
 }: RoomCardProps) {
@@ -47,7 +43,6 @@ export function RoomCard({
     getLightBrightnessMap,
     calculateRelativeBrightness,
   } = useLightControl()
-  const { callService } = useHAConnection()
 
   // Get edit mode state from context
   const { mode, isRoomEditMode, isDeviceEditMode, isSelected, toggleSelection, exitEditMode } =
@@ -74,23 +69,6 @@ export function RoomCard({
   const hasSwitchesOn = switches.some((s) => s.state === 'on')
   const hasDevicesOn = hasLightsOn || hasSwitchesOn
   const initialBrightness = getAverageBrightness(lights)
-
-  // Scenes for collapsed card view
-  const scenes = useMemo(
-    () => room.devices.filter((d) => d.entity_id.startsWith('scene.')),
-    [room.devices]
-  )
-  // Show scenes row when shouldShowScenes is enabled and not expanded
-  const showScenesRow = shouldShowScenes && !isExpanded
-
-  // Scene activation handler
-  const handleSceneActivate = useCallback(
-    (scene: HAEntity, e: React.MouseEvent) => {
-      e.stopPropagation()
-      void callService('scene', 'turn_on', { entity_id: scene.entity_id })
-    },
-    [callService]
-  )
 
   // Refs
   const cardRef = useRef<HTMLDivElement>(null)
@@ -395,15 +373,6 @@ export function RoomCard({
           </h3>
         </div>
 
-        {/* Scenes row - shows for all cards when enabled to maintain consistent height */}
-        {showScenesRow && (
-          <RoomCardScenes
-            scenes={scenes}
-            isInEditMode={isInEditMode}
-            onSceneActivate={handleSceneActivate}
-          />
-        )}
-
         {/* Status row */}
         <div className="relative flex items-center justify-between">
           <div className="flex items-center gap-3 text-sm text-muted pointer-events-none">
@@ -504,7 +473,6 @@ export const MemoizedRoomCard = memo(RoomCard, (prevProps, nextProps) => {
   return (
     prevProps.room === nextProps.room &&
     prevProps.isExpanded === nextProps.isExpanded &&
-    prevProps.shouldShowScenes === nextProps.shouldShowScenes &&
     prevProps.allRooms === nextProps.allRooms
   )
 })

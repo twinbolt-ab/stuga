@@ -12,7 +12,6 @@ const noop = () => {}
 interface RoomsGridProps {
   displayRooms: RoomWithDevices[]
   isConnected: boolean
-  shouldShowScenes: boolean
   // Normal mode props
   selectedFloorId?: string | null
   allRooms?: RoomWithDevices[]
@@ -29,7 +28,6 @@ interface RoomsGridProps {
 export function RoomsGrid({
   displayRooms,
   isConnected,
-  shouldShowScenes,
   selectedFloorId = null,
   allRooms = [],
   expandedRoomId = null,
@@ -108,7 +106,6 @@ export function RoomsGrid({
           <RoomCard
             room={room}
             isExpanded={false}
-            shouldShowScenes={shouldShowScenes}
             onToggleExpand={() => {}} // no-op in edit mode
           />
         )}
@@ -158,7 +155,6 @@ export function RoomsGrid({
                 room={room}
                 allRooms={allRooms}
                 isExpanded={isExpanded}
-                shouldShowScenes={shouldShowScenes}
                 onToggleExpand={handleToggleExpand}
                 onEnterEditModeWithSelection={onEnterEditModeWithSelection}
               />

@@ -17,7 +17,6 @@ import { useHAConnection } from '@/lib/hooks/useHAConnection'
 import { useRooms } from '@/lib/hooks/useRooms'
 import { useRoomOrder } from '@/lib/hooks/useRoomOrder'
 import { useEnabledDomains } from '@/lib/hooks/useEnabledDomains'
-import { useSettings } from '@/lib/hooks/useSettings'
 import { useDevMode } from '@/lib/hooks/useDevMode'
 import { useFloorNavigation } from '@/lib/hooks/useFloorNavigation'
 import { useModalState } from '@/lib/hooks/useModalState'
@@ -25,15 +24,11 @@ import { saveFloorOrderBatch } from '@/lib/ha-websocket'
 import { ORDER_GAP } from '@/lib/constants'
 import type { HAEntity, HAFloor } from '@/types/ha'
 
-// Auto threshold for showing scenes
-const AUTO_SCENES_ROOM_THRESHOLD = 16
-
 // Inner component that uses the context
 function DashboardContent() {
   const { rooms, floors, isConnected, hasReceivedData } = useRooms()
   const { entities } = useHAConnection()
   const { isEntityVisible } = useEnabledDomains()
-  const { showScenes } = useSettings()
   const { setAreaOrder } = useRoomOrder()
   const { activeMockScenario, isDevMode } = useDevMode()
 
@@ -112,18 +107,6 @@ function DashboardContent() {
 
   // Display rooms
   const displayRooms = isRoomEditMode ? orderedRooms : filteredRooms
-
-  // Compute shouldShowScenes for edit mode (normal mode computes per-floor in FloorSwipeContainer)
-  const shouldShowScenes = useMemo(() => {
-    if (!isRoomEditMode) return false // Only used in edit mode
-    if (showScenes === 'off') return false
-    const floorHasScenes = displayRooms.some((room) =>
-      room.devices.some((d) => d.entity_id.startsWith('scene.'))
-    )
-    if (!floorHasScenes) return false
-    if (showScenes === 'on') return true
-    return displayRooms.length < AUTO_SCENES_ROOM_THRESHOLD
-  }, [isRoomEditMode, showScenes, displayRooms])
 
   const handleToggleExpand = useCallback(
     (roomId: string) => {
@@ -300,7 +283,6 @@ function DashboardContent() {
               <RoomsGrid
                 displayRooms={displayRooms}
                 isConnected={isConnected}
-                shouldShowScenes={shouldShowScenes}
                 isRoomEditMode
                 orderedRooms={orderedRooms}
                 onReorder={reorderRooms}
@@ -318,20 +300,12 @@ function DashboardContent() {
               >
                 {(floorId) => {
                   const floorRooms = getRoomsForFloor(floorId)
-                  const floorShowScenes =
-                    showScenes === 'on' ||
-                    (showScenes === 'auto' &&
-                      floorRooms.length < AUTO_SCENES_ROOM_THRESHOLD &&
-                      floorRooms.some((room) =>
-                        room.devices.some((d) => d.entity_id.startsWith('scene.'))
-                      ))
 
                   return (
                     <div className="px-4">
                       <RoomsGrid
                         displayRooms={floorRooms}
                         isConnected={isConnected}
-                        shouldShowScenes={floorShowScenes}
                         selectedFloorId={floorId}
                         allRooms={rooms}
                         expandedRoomId={expandedRoomId}

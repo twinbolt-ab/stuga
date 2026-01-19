@@ -8,7 +8,6 @@ import {
   X,
   Wifi,
   Layers,
-  Sparkles,
   Beaker,
   ChevronDown,
   Palette,
@@ -20,7 +19,6 @@ import { ConnectionSettingsModal } from '@/components/settings/ConnectionSetting
 import { DomainConfigModal } from '@/components/settings/DomainConfigModal'
 import { DeveloperMenuModal } from '@/components/settings/DeveloperMenuModal'
 import { EditModeInfoModal } from '@/components/settings/EditModeInfoModal'
-import { useSettings, type ShowScenesOption } from '@/lib/hooks/useSettings'
 import { useDevMode } from '@/lib/hooks/useDevMode'
 import {
   getMetadataStorageMode,
@@ -53,7 +51,6 @@ export function SettingsMenu({
   const [showDeveloperMenu, setShowDeveloperMenu] = useState(false)
   const [showEditModeInfo, setShowEditModeInfo] = useState(false)
   const [displayOptionsOpen, setDisplayOptionsOpen] = useState(false)
-  const { showScenes, setShowScenes } = useSettings()
   const { isDevMode, enableDevMode } = useDevMode()
   const [syncToHA, setSyncToHA] = useState(() => getMetadataStorageMode() === 'ha-labels')
   const [isMigrating, setIsMigrating] = useState(false)
@@ -89,8 +86,6 @@ export function SettingsMenu({
       }, 2000)
     }
   }, [devModeClickCount, isDevMode, enableDevMode])
-
-  const showScenesOptions: ShowScenesOption[] = ['auto', 'on', 'off']
 
   const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     // Release any pointer capture to prevent blocking subsequent touches
@@ -320,37 +315,6 @@ export function SettingsMenu({
                             <p className="text-xs text-muted">{t.settings.domains.description}</p>
                           </div>
                         </button>
-
-                        {/* Show Scenes */}
-                        <div className="w-full flex items-center gap-3 px-3 py-3 rounded-xl">
-                          <div className="p-2 rounded-lg bg-border/50">
-                            <Sparkles className="w-4 h-4 text-foreground" />
-                          </div>
-                          <div className="flex-1 text-left">
-                            <p className="text-sm font-medium text-foreground">
-                              {t.settings.showScenes.title}
-                            </p>
-                          </div>
-                          {/* 3-option segmented control */}
-                          <div className="flex bg-border/50 rounded-lg p-0.5">
-                            {showScenesOptions.map((option) => (
-                              <button
-                                key={option}
-                                onClick={() => {
-                                  setShowScenes(option)
-                                }}
-                                className={clsx(
-                                  'px-2 py-0.5 text-xs font-medium rounded-md transition-colors',
-                                  showScenes === option
-                                    ? 'bg-accent text-white'
-                                    : 'text-muted hover:text-foreground'
-                                )}
-                              >
-                                {t.settings.showScenes[option]}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
 
                         {/* Sync to Home Assistant */}
                         <button

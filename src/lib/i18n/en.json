@@ -116,7 +116,7 @@
     "close": "Close",
     "display": {
       "title": "Display",
-      "description": "Theme, visible devices & scenes"
+      "description": "Theme and visible devices"
     },
     "theme": {
       "title": "Theme",
@@ -139,13 +139,6 @@
     "showHidden": {
       "title": "Show hidden items",
       "description": "Display entities hidden in Home Assistant"
-    },
-    "showScenes": {
-      "title": "Show scenes",
-      "description": "Display scene shortcuts on room cards",
-      "auto": "Auto",
-      "on": "On",
-      "off": "Off"
     },
     "connection": {
       "title": "Connection",

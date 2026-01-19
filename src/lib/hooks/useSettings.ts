@@ -2,16 +2,12 @@ import { useEffect, useCallback, useSyncExternalStore } from 'react'
 
 const SETTINGS_KEY = 'stuga-settings'
 
-export type ShowScenesOption = 'auto' | 'on' | 'off'
-
 interface Settings {
   groupByFloors: boolean
-  showScenes: ShowScenesOption
 }
 
 const defaultSettings: Settings = {
   groupByFloors: true,
-  showScenes: 'off',
 }
 
 // Shared settings store
@@ -92,15 +88,9 @@ export function useSettings() {
     updateSettingsStore({ groupByFloors: value })
   }, [])
 
-  const setShowScenes = useCallback((value: ShowScenesOption) => {
-    updateSettingsStore({ showScenes: value })
-  }, [])
-
   return {
     groupByFloors: settings.groupByFloors,
     setGroupByFloors,
-    showScenes: settings.showScenes,
-    setShowScenes,
     isLoaded: initialized,
   }
 }
