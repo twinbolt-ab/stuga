@@ -334,12 +334,13 @@ export function BottomNav({
         </nav>
       )}
 
-      {/* Floating settings button - always visible */}
+      {/* Floating settings button - positioned to align with nav */}
       <button
         onClick={() => {
           setIsSettingsOpen(true)
         }}
-        className="fixed bottom-4 right-4 z-10 w-12 h-12 rounded-full bg-card border border-border shadow-warm flex items-center justify-center text-muted hover:text-foreground hover:shadow-warm-lg transition-all touch-feedback mb-safe"
+        className="fixed z-10 w-12 h-12 rounded-full bg-card border border-border shadow-warm flex items-center justify-center text-muted hover:text-foreground hover:shadow-warm-lg transition-all touch-feedback right-4"
+        style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.5rem)' }}
         aria-label={t.nav.settings}
       >
         <Settings className="w-5 h-5" />

@@ -88,7 +88,7 @@ export default function AuthCallback() {
   }, [searchParams, navigate])
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-6">
+    <div className="flex-1 bg-background flex items-center justify-center p-6 overflow-hidden">
       <div className="w-full max-w-md text-center">
         {status === 'processing' && (
           <div className="space-y-4">

@@ -15,7 +15,7 @@ function App() {
     <ErrorBoundary>
       <ThemeProvider>
         <ToastProvider>
-          <main className="min-h-screen min-h-[100dvh] bg-background">
+          <main className="h-full bg-background flex flex-col overflow-hidden">
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/setup" element={<Setup />} />

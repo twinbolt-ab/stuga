@@ -20,7 +20,7 @@ export default function Setup() {
   }, [navigate])
 
   if (!isReady) {
-    return <div className="min-h-screen bg-background" />
+    return <div className="flex-1 bg-background" />
   }
 
   return <SetupWizard />

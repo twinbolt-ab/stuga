@@ -72,13 +72,13 @@ export default function Home() {
 
   // Loading state - minimal blank screen
   if (state === 'loading') {
-    return <div className="min-h-screen bg-background" />
+    return <div className="flex-1 bg-background" />
   }
 
   // Session expired - friendly message with sign in button
   if (state === 'session-expired') {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+      <div className="flex-1 bg-background flex items-center justify-center p-6 overflow-hidden">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -117,7 +117,7 @@ export default function Home() {
   // Connection lost - temporary network issue, just need to reconnect WiFi
   if (state === 'connection-lost') {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+      <div className="flex-1 bg-background flex items-center justify-center p-6 overflow-hidden">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

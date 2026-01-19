@@ -322,7 +322,7 @@ export function SetupWizard() {
   }
 
   return (
-    <div className="fixed inset-0 bg-background flex items-center justify-center p-6 overflow-hidden">
+    <div className="flex-1 bg-background flex items-center justify-center p-6 overflow-hidden">
       <div className="w-full max-w-md">
         <AnimatePresence mode="wait">
           {/* Welcome Step */}
@@ -406,7 +406,6 @@ export function SetupWizard() {
                       }}
                       placeholder={t.setup.url.placeholder}
                       className="w-full px-4 py-3 bg-card border border-border rounded-xl text-foreground placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
-                      autoFocus
                       autoComplete="url"
                     />
                   </div>

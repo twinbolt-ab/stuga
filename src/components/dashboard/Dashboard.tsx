@@ -283,7 +283,7 @@ function DashboardContent() {
   ])
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-background pt-safe pb-nav">
+    <div className="flex-1 flex flex-col bg-background pt-safe overflow-hidden">
       {/* Demo mode banner */}
       <DemoBanner isVisible={isDevMode && activeMockScenario !== 'none'} />
 
@@ -297,8 +297,8 @@ function DashboardContent() {
         )}
       </AnimatePresence>
 
-      <div onClick={handleBackgroundClick}>
-        <section>
+      <div onClick={handleBackgroundClick} className="flex-1 flex flex-col overflow-hidden pb-nav">
+        <section className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden">
           {selectedFloorId === '__all_devices__' ? (
             // All devices view (not part of swipe navigation)
             <div className="px-4 py-4 overflow-x-hidden">
@@ -337,7 +337,7 @@ function DashboardContent() {
             </div>
           ) : (
             // Normal mode: swipeable floor container
-            <div className="py-4">
+            <div className="pt-4 flex-1 flex flex-col">
               <FloorSwipeContainer
                 floors={floors}
                 hasUncategorized={hasUnassignedRooms}

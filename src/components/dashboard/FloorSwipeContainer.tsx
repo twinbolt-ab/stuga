@@ -26,10 +26,6 @@ const FloorPlaceholder = memo(function FloorPlaceholder({ width }: { width: numb
   )
 })
 
-// Minimum height for swipeable area
-// Account for: safe-area-top + py-4 padding (32px top+bottom) at top, pb-nav (5rem + safe-area-bottom) at bottom
-const MIN_HEIGHT =
-  'calc(100vh - env(safe-area-inset-top, 0px) - 32px - 5rem - env(safe-area-inset-bottom, 0px))'
 
 interface FloorSwipeContainerProps {
   /** All floors in order */
@@ -140,14 +136,14 @@ export function FloorSwipeContainer({
     [width, currentIndex, floorIds, onSelectFloor, x, prefersReducedMotion]
   )
 
-  // Handle pointer down - only start drag on empty areas
+  // Handle pointer down - start drag for horizontal swipes on empty areas only
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
       if (disabled) return
 
       const target = e.target as HTMLElement
-      // Don't start drag if touching a card or interactive element
-      if (target.closest('.card, button, input, nav, [role="button"], a')) {
+      // Don't start drag if touching cards, buttons, or any interactive elements
+      if (target.closest('.card, button, input, nav, [role="button"], a, [data-no-swipe]')) {
         return
       }
 
@@ -174,10 +170,10 @@ export function FloorSwipeContainer({
   }
 
   return (
-    <div className="overflow-hidden" style={{ touchAction: 'pan-y', minHeight: MIN_HEIGHT }}>
+    <div className="flex-1 flex flex-col overflow-hidden" style={{ touchAction: 'pan-y' }}>
       <motion.div
-        className="flex h-full"
-        style={{ x, minHeight: MIN_HEIGHT }}
+        className="flex flex-1"
+        style={{ x }}
         drag={disabled ? false : 'x'}
         dragControls={dragControls}
         dragListener={false}
@@ -197,13 +193,15 @@ export function FloorSwipeContainer({
           return (
             <div
               key={floorId ?? '__uncategorized__'}
+              className="flex flex-col"
               style={{
                 width: width > 0 ? width : '100vw',
                 flexShrink: 0,
-                minHeight: MIN_HEIGHT,
               }}
             >
               {children(floorId, index)}
+              {/* Invisible swipe area that fills remaining space */}
+              <div className="flex-1 min-h-[100px]" />
             </div>
           )
         })}

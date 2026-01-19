@@ -43,7 +43,7 @@ interface ConnectionSettingsModalProps {
 }
 
 export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsModalProps) {
-  const { reconnect } = useHAConnection()
+  const { reconnect, isConnected } = useHAConnection()
   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null)
   const [isLoadingCredentials, setIsLoadingCredentials] = useState(true)
   const [url, setUrl] = useState('')
@@ -422,9 +422,9 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
                         className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
                       />
                     ) : (
-                      <div className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground font-mono text-sm">
+                      <p className="text-foreground font-mono text-sm break-all">
                         {url || '—'}
-                      </div>
+                      </p>
                     )}
                   </div>
 
@@ -501,7 +501,7 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
                     </button>
                   )}
 
-                  {authMethod === 'oauth' && (
+                  {authMethod === 'oauth' && !isConnected && (
                     <button
                       onClick={handleOAuthReauth}
                       disabled={isLoading}
