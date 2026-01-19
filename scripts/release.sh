@@ -190,7 +190,12 @@ fi
 # Commit with changelog in message body
 # Using a special format that GHA can parse
 git add package.json
-git commit -m "Release $NEW_TAG" -m "CHANGELOG_START" -m "$CHANGELOG" -m "CHANGELOG_END"
+if git diff --cached --quiet; then
+  echo -e "${YELLOW}No changes to commit (version files may already be updated)${NC}"
+  echo "Proceeding with tag creation..."
+else
+  git commit -m "Release $NEW_TAG" -m "CHANGELOG_START" -m "$CHANGELOG" -m "CHANGELOG_END"
+fi
 
 # Create annotated tag
 echo -e "${GREEN}Creating tag $NEW_TAG...${NC}"
