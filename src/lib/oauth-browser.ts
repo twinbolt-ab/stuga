@@ -1,6 +1,7 @@
 // In-app browser OAuth handler for native apps
 // Uses @capgo/inappbrowser to handle OAuth flow without relying on AppAuth library
 
+import { App } from '@capacitor/app'
 import { InAppBrowser, ToolBarType } from '@capgo/inappbrowser'
 import {
   generateCodeVerifier,
@@ -50,8 +51,10 @@ export async function authenticateWithInAppBrowser(haUrl: string): Promise<OAuth
 
   return new Promise((resolve) => {
     let resolved = false
+    let processingRedirect = false
     let urlChangeListener: { remove: () => Promise<void> } | null = null
     let closeListener: { remove: () => Promise<void> } | null = null
+    let appUrlListener: { remove: () => Promise<void> } | null = null
 
     const cleanup = async () => {
       if (urlChangeListener) {
@@ -62,6 +65,10 @@ export async function authenticateWithInAppBrowser(haUrl: string): Promise<OAuth
         await closeListener.remove()
         closeListener = null
       }
+      if (appUrlListener) {
+        await appUrlListener.remove()
+        appUrlListener = null
+      }
     }
 
     const handleResult = async (result: OAuthResult) => {
@@ -71,147 +78,130 @@ export async function authenticateWithInAppBrowser(haUrl: string): Promise<OAuth
       resolve(result)
     }
 
-    // Listen for URL changes to detect redirect
-    InAppBrowser.addListener('urlChangeEvent', async (event) => {
-      if (resolved) return
+    // Helper to process the OAuth callback URL
+    const processCallback = async (url: string) => {
+      processingRedirect = true
+      logger.debug('OAuth', 'Processing callback URL:', url)
 
-      const url = event.url
-      logger.debug('OAuth', 'URL changed:', url)
-
-      // Check if this is our redirect
-      if (url.startsWith(redirectUri) || url.startsWith('com.twinbolt.stuga:')) {
-        logger.debug('OAuth', 'Detected redirect, processing...')
-
-        try {
-          // Close the browser first
-          await InAppBrowser.close()
-        } catch {
-          // Ignore close errors
-        }
-
-        // Parse the callback URL
-        let callbackUrl: URL
-        try {
-          // Handle both formats: com.twinbolt.stuga:/?code=xxx and com.twinbolt.stuga:/auth/callback?code=xxx
-          callbackUrl = new URL(url)
-        } catch {
-          // URL parsing might fail for custom schemes, try to extract params manually
-          const queryStart = url.indexOf('?')
-          if (queryStart === -1) {
-            await handleResult({ success: false, error: 'Invalid callback URL' })
-            return
-          }
-          const queryString = url.substring(queryStart + 1)
-          const params = new URLSearchParams(queryString)
-
-          const error = params.get('error')
-          if (error) {
-            await handleResult({ success: false, error })
-            return
-          }
-
-          const code = params.get('code')
-          const returnedState = params.get('state')
-
-          if (returnedState !== state) {
-            logger.error('OAuth', 'State mismatch', { expected: state, got: returnedState })
-            await handleResult({ success: false, error: 'State mismatch - possible CSRF attack' })
-            return
-          }
-
-          if (!code) {
-            await handleResult({ success: false, error: 'No authorization code received' })
-            return
-          }
-
-          // Exchange code for tokens
-          try {
-            logger.debug('OAuth', 'Exchanging code for tokens...')
-            const tokens = await exchangeCodeForTokens(haUrl, code, codeVerifier)
-            logger.debug('OAuth', 'Token exchange successful')
-            await handleResult({
-              success: true,
-              tokens: {
-                access_token: tokens.access_token,
-                refresh_token: tokens.refresh_token,
-                expires_in: tokens.expires_in,
-              },
-            })
-          } catch (err) {
-            logger.error('OAuth', 'Token exchange failed:', err)
-            await handleResult({
-              success: false,
-              error: err instanceof Error ? err.message : 'Token exchange failed',
-            })
-          }
-          return
-        }
-
-        // If URL parsing succeeded
-        const error = callbackUrl.searchParams.get('error')
-        if (error) {
-          await handleResult({ success: false, error })
-          return
-        }
-
-        const returnedState = callbackUrl.searchParams.get('state')
-        if (returnedState !== state) {
-          logger.error('OAuth', 'State mismatch', { expected: state, got: returnedState })
-          await handleResult({ success: false, error: 'State mismatch - possible CSRF attack' })
-          return
-        }
-
-        const code = callbackUrl.searchParams.get('code')
-        if (!code) {
-          await handleResult({ success: false, error: 'No authorization code received' })
-          return
-        }
-
-        // Exchange code for tokens
-        try {
-          logger.debug('OAuth', 'Exchanging code for tokens...')
-          const tokens = await exchangeCodeForTokens(haUrl, code, codeVerifier)
-          logger.debug('OAuth', 'Token exchange successful')
-          await handleResult({
-            success: true,
-            tokens: {
-              access_token: tokens.access_token,
-              refresh_token: tokens.refresh_token,
-              expires_in: tokens.expires_in,
-            },
-          })
-        } catch (err) {
-          logger.error('OAuth', 'Token exchange failed:', err)
-          await handleResult({
-            success: false,
-            error: err instanceof Error ? err.message : 'Token exchange failed',
-          })
-        }
+      try {
+        // Close the browser first
+        await InAppBrowser.close()
+      } catch {
+        // Ignore close errors
       }
-    }).then((listener) => {
-      urlChangeListener = listener
-    })
 
-    // Listen for browser close (user cancelled)
-    InAppBrowser.addListener('closeEvent', async () => {
-      if (!resolved) {
-        logger.debug('OAuth', 'User closed browser')
-        await handleResult({ success: false, error: 'User cancelled' })
+      // Parse the callback URL - try to extract params manually since custom schemes may fail URL parsing
+      const queryStart = url.indexOf('?')
+      if (queryStart === -1) {
+        await handleResult({ success: false, error: 'Invalid callback URL - no query params' })
+        return
       }
-    }).then((listener) => {
-      closeListener = listener
-    })
+      const queryString = url.substring(queryStart + 1)
+      const params = new URLSearchParams(queryString)
 
-    // Open the in-app browser
-    InAppBrowser.openWebView({
-      url: authUrl.toString(),
-      title: 'Login to Home Assistant',
-      toolbarType: ToolBarType.NAVIGATION,
-    }).catch(async (err) => {
-      logger.error('OAuth', 'Failed to open browser:', err)
+      const error = params.get('error')
+      if (error) {
+        await handleResult({ success: false, error })
+        return
+      }
+
+      const code = params.get('code')
+      const returnedState = params.get('state')
+
+      if (returnedState !== state) {
+        logger.error('OAuth', 'State mismatch', { expected: state, got: returnedState })
+        await handleResult({ success: false, error: 'State mismatch - possible CSRF attack' })
+        return
+      }
+
+      if (!code) {
+        await handleResult({ success: false, error: 'No authorization code received' })
+        return
+      }
+
+      // Exchange code for tokens
+      try {
+        logger.debug('OAuth', 'Exchanging code for tokens...')
+        const tokens = await exchangeCodeForTokens(haUrl, code, codeVerifier)
+        logger.debug('OAuth', 'Token exchange successful')
+        await handleResult({
+          success: true,
+          tokens: {
+            access_token: tokens.access_token,
+            refresh_token: tokens.refresh_token,
+            expires_in: tokens.expires_in,
+          },
+        })
+      } catch (err) {
+        logger.error('OAuth', 'Token exchange failed:', err)
+        await handleResult({
+          success: false,
+          error: err instanceof Error ? err.message : 'Token exchange failed',
+        })
+      }
+    }
+
+    // Set up listeners BEFORE opening the browser to avoid race conditions
+    const setupAndOpen = async () => {
+      // Listen for deep links (app URL open) - this catches the custom scheme redirect
+      // when the OS intercepts com.twinbolt.stuga:/ and opens the app
+      appUrlListener = await App.addListener('appUrlOpen', async (event) => {
+        if (resolved) return
+
+        const url = event.url
+        logger.debug('OAuth', 'App URL opened:', url)
+
+        // Check if this is our OAuth redirect
+        if (url.startsWith('com.twinbolt.stuga:')) {
+          await processCallback(url)
+        }
+      })
+
+      // Listen for URL changes in WebView (backup, may not fire for custom schemes)
+      urlChangeListener = await InAppBrowser.addListener('urlChangeEvent', async (event) => {
+        if (resolved) return
+
+        const url = event.url
+        logger.debug('OAuth', 'URL changed:', url)
+
+        // Check if this is our redirect
+        if (url.startsWith(redirectUri) || url.startsWith('com.twinbolt.stuga:')) {
+          await processCallback(url)
+        }
+      })
+
+      // Listen for browser close (user cancelled)
+      closeListener = await InAppBrowser.addListener('closeEvent', async () => {
+        // Ignore close if we're already processing a redirect
+        if (!resolved && !processingRedirect) {
+          logger.debug('OAuth', 'User closed browser without completing auth')
+          await handleResult({ success: false, error: 'User cancelled' })
+        }
+      })
+
+      // Now open the in-app browser
+      // preventDeeplink: false allows deep links to be handled by the OS
+      try {
+        await InAppBrowser.openWebView({
+          url: authUrl.toString(),
+          title: 'Login to Home Assistant',
+          toolbarType: ToolBarType.NAVIGATION,
+          preventDeeplink: false,
+        })
+      } catch (err) {
+        logger.error('OAuth', 'Failed to open browser:', err)
+        await handleResult({
+          success: false,
+          error: err instanceof Error ? err.message : 'Failed to open browser',
+        })
+      }
+    }
+
+    setupAndOpen().catch(async (err) => {
+      logger.error('OAuth', 'Setup failed:', err)
       await handleResult({
         success: false,
-        error: err instanceof Error ? err.message : 'Failed to open browser',
+        error: err instanceof Error ? err.message : 'Failed to setup OAuth',
       })
     })
   })
