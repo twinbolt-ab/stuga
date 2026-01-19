@@ -263,7 +263,7 @@ export function RoomCard({
   const cardContent = (
     <>
       {/* Brightness fill background */}
-      {hasLights && displayLightsOn && !isExpanded && (
+      {hasLights && (displayLightsOn || brightnessGesture.isDragging) && !isExpanded && (
         <motion.div
           className="absolute inset-0 origin-left pointer-events-none rounded-card"
           style={{ backgroundColor: 'var(--brightness-fill)' }}
