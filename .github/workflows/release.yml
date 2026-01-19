@@ -1,0 +1,215 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  # Create GitHub release with changelog
+  github-release:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag_info.outputs.tag }}
+      changelog: ${{ steps.tag_info.outputs.changelog }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get tag info
+        id: tag_info
+        run: |
+          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          echo "tag=$TAG_NAME" >> $GITHUB_OUTPUT
+
+          # Get the tag message (contains changelog from local script)
+          TAG_MESSAGE=$(git tag -l --format='%(contents)' "$TAG_NAME")
+          echo "$TAG_MESSAGE" > /tmp/tag_message.txt
+
+          # Extract changelog (skip first line "Release vX.X.X")
+          CHANGELOG=$(tail -n +3 /tmp/tag_message.txt)
+
+          # Save changelog to file for other jobs
+          echo "$CHANGELOG" > /tmp/changelog.txt
+
+          # Set multiline output
+          {
+            echo 'changelog<<EOF'
+            echo "$CHANGELOG"
+            echo 'EOF'
+          } >> $GITHUB_OUTPUT
+
+      - name: Get previous tag
+        id: prev_tag
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 "${{ steps.tag_info.outputs.tag }}^" 2>/dev/null || echo "")
+          echo "tag=$PREV_TAG" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.tag_info.outputs.tag }}"
+          PREV_TAG="${{ steps.prev_tag.outputs.tag }}"
+          CHANGELOG=$(tail -n +3 /tmp/tag_message.txt)
+
+          if [[ -n "$PREV_TAG" ]]; then
+            COMPARE_URL="**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${TAG}"
+          else
+            COMPARE_URL=""
+          fi
+
+          cat > /tmp/release_body.md << EOF
+          ## What's Changed
+
+          $CHANGELOG
+
+          $COMPARE_URL
+          EOF
+
+          gh release create "$TAG" \
+            --title "$TAG" \
+            --notes-file /tmp/release_body.md
+
+  # Build and release Android to Play Store
+  android:
+    needs: github-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Ruby (for fastlane)
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: android
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web assets
+        run: npm run build
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Decode keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/stuga_keystore.jks
+
+      - name: Decode Play Store credentials
+        run: |
+          echo "${{ secrets.PLAY_STORE_CREDENTIALS_BASE64 }}" | base64 -d > android/fastlane/play-store-credentials.json
+
+      - name: Build and upload to Play Store
+        working-directory: android
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          bundle install
+          bundle exec fastlane internal
+
+      - name: Upload AAB to GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ needs.github-release.outputs.tag }}" \
+            android/app/build/outputs/bundle/release/app-release.aab \
+            --clobber
+
+  # Build and release iOS to App Store
+  # Disabled until iOS Developer enrollment is approved
+  ios:
+    needs: github-release
+    runs-on: macos-latest
+    if: false  # TODO: Enable when iOS secrets are configured
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup Ruby (for fastlane)
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: ios/App
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web assets
+        run: npm run build
+
+      - name: Sync Capacitor
+        run: npx cap sync ios
+
+      - name: Install CocoaPods
+        working-directory: ios/App
+        run: pod install
+
+      - name: Setup App Store Connect API key
+        run: |
+          mkdir -p ~/private_keys
+          echo "${{ secrets.APP_STORE_CONNECT_API_KEY }}" > ~/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_KEY_ID }}.p8
+
+      - name: Install certificates
+        env:
+          CERTIFICATE_BASE64: ${{ secrets.IOS_CERTIFICATE_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.IOS_KEYCHAIN_PASSWORD }}
+        run: |
+          # Create temp keychain
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # Import certificate
+          echo "$CERTIFICATE_BASE64" | base64 -d > $RUNNER_TEMP/certificate.p12
+          security import $RUNNER_TEMP/certificate.p12 -P "$CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+      - name: Install provisioning profile
+        run: |
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}" | base64 -d > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+
+      - name: Build and upload to App Store
+        working-directory: ios/App
+        env:
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_PATH: ~/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_KEY_ID }}.p8
+        run: |
+          bundle install
+          bundle exec fastlane release
+
+      - name: Cleanup keychain
+        if: always()
+        run: |
+          security delete-keychain $RUNNER_TEMP/app-signing.keychain-db || true

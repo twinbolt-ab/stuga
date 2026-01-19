@@ -18,7 +18,11 @@
     "ios:dev": "npm run build && cap sync ios && cap run ios",
     "android": "npm run build && cap sync android && cap open android",
     "android:dev": "npm run build && cap sync android && cap run android",
-    "android:bundle": "npm run build && cap sync android && cd android && ./gradlew bundleRelease"
+    "android:bundle": "npm run build && cap sync android && cd android && ./gradlew bundleRelease",
+    "release": "./scripts/release.sh",
+    "release:patch": "./scripts/release.sh patch",
+    "release:minor": "./scripts/release.sh minor",
+    "release:major": "./scripts/release.sh major"
   },
   "dependencies": {
     "@capacitor/android": "^8.0.0",
