@@ -13,20 +13,9 @@ import {
 } from 'lucide-react'
 import { t } from '@/lib/i18n'
 import { updateUrl, updateToken, clearCredentials } from '@/lib/config'
-import {
-  storePendingOAuth,
-  isNativeApp,
-  getClientId,
-  getRedirectUri,
-  storeOAuthCredentials,
-  generateCodeVerifier,
-  generateCodeChallenge,
-  generateState,
-} from '@/lib/ha-oauth'
 import { getStorage } from '@/lib/storage'
 import { STORAGE_KEYS } from '@/lib/constants'
 import { useHAConnection } from '@/lib/hooks/useHAConnection'
-import { authenticateWithInAppBrowser } from '@/lib/oauth-browser'
 import { logger } from '@/lib/logger'
 
 interface ConnectionSettingsModalProps {
@@ -35,7 +24,7 @@ interface ConnectionSettingsModalProps {
 }
 
 export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsModalProps) {
-  const { reconnect, isConnected, url: connectedUrl, isOAuth } = useHAConnection()
+  const { reconnect, url: connectedUrl, isOAuth } = useHAConnection()
   const [url, setUrl] = useState('')
   const [token, setToken] = useState('')
   const [showToken, setShowToken] = useState(false)
@@ -190,64 +179,18 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
     setIsLoading(false)
   }
 
-  const handleOAuthReauth = async () => {
-    setIsLoading(true)
-    setError(null)
-
-    try {
-      if (isNativeApp()) {
-        // On native, use in-app browser for OAuth (works for both HTTP and HTTPS)
-        const result = await authenticateWithInAppBrowser(url)
-
-        if (!result.success) {
-          throw new Error(result.error || 'Authentication failed')
-        }
-
-        if (!result.tokens) {
-          throw new Error('No tokens received')
-        }
-
-        await storeOAuthCredentials(url, {
-          access_token: result.tokens.access_token,
-          refresh_token: result.tokens.refresh_token,
-          expires_in: result.tokens.expires_in,
-          token_type: 'Bearer',
-        })
-        void reconnect()
-        setSuccess(true)
-        setTimeout(() => {
-          onClose()
-        }, 1500)
-      } else {
-        // On web, use redirect-based OAuth flow
-        const verifier = generateCodeVerifier()
-        const challenge = await generateCodeChallenge(verifier)
-        const state = generateState()
-
-        await storePendingOAuth(state, verifier, url)
-
-        const params = new URLSearchParams({
-          client_id: getClientId(url),
-          redirect_uri: getRedirectUri(url),
-          state,
-          response_type: 'code',
-          code_challenge: challenge,
-          code_challenge_method: 'S256',
-        })
-
-        window.location.href = `${url}/auth/authorize?${params.toString()}`
-      }
-    } catch (err) {
-      logger.error('OAuth', 'Re-auth failed:', err)
-      const errorMessage = err instanceof Error ? err.message : String(err)
-      setError(errorMessage || 'Failed to re-authenticate')
-      setIsLoading(false)
-    }
-  }
-
   const handleLogout = async () => {
     await clearCredentials()
     window.location.reload()
+  }
+
+  // Format URL for display (remove ws:// prefix and /api/websocket suffix)
+  const formatUrlForDisplay = (url: string) => {
+    return url
+      .replace(/^wss?:\/\//, '')
+      .replace(/^https?:\/\//, '')
+      .replace(/\/api\/websocket$/, '')
+      .replace(/\/$/, '')
   }
 
   // Auth method icon and label
@@ -329,23 +272,21 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-foreground">{getAuthLabel()}</div>
-                      <p className="text-sm text-muted">{getAuthDescription()}</p>
+                      <p className="text-sm text-muted">
+                        {isOAuth ? formatUrlForDisplay(connectedUrl) : getAuthDescription()}
+                      </p>
                     </div>
                   </div>
 
-                  {/* URL Field - Read-only for OAuth/Addon, Editable for Token */}
-                  <div>
-                    <label
-                      htmlFor="connection-url"
-                      className="block text-sm font-medium text-foreground mb-2"
-                    >
-                      {t.settings.connection.urlLabel}
-                    </label>
-                    {isOAuth ? (
-                      <p className="text-foreground font-mono text-sm break-all">
-                        {connectedUrl || '—'}
-                      </p>
-                    ) : (
+                  {/* URL Field - Only for Token auth */}
+                  {!isOAuth && (
+                    <div>
+                      <label
+                        htmlFor="connection-url"
+                        className="block text-sm font-medium text-foreground mb-2"
+                      >
+                        {t.settings.connection.urlLabel}
+                      </label>
                       <input
                         id="connection-url"
                         type="url"
@@ -358,8 +299,8 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
                         placeholder="http://homeassistant.local:8123"
                         className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
                       />
-                    )}
-                  </div>
+                    </div>
+                  )}
 
                   {/* Token Field - Only for token auth */}
                   {!isOAuth && (
@@ -434,31 +375,6 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
                     </button>
                   )}
 
-                  {isOAuth && !isConnected && (
-                    <button
-                      onClick={handleOAuthReauth}
-                      disabled={isLoading}
-                      className="w-full py-4 px-6 bg-accent text-white rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          {t.settings.connection.oauth?.reauthenticating ||
-                            'Opening Home Assistant...'}
-                        </>
-                      ) : success ? (
-                        <>
-                          <Check className="w-5 h-5" />
-                          {t.settings.connection.saved}
-                        </>
-                      ) : (
-                        <>
-                          <LogIn className="w-5 h-5" />
-                          {t.settings.connection.oauth?.reauthenticate || 'Sign In Again'}
-                        </>
-                      )}
-                    </button>
-                  )}
 
                   {/* Logout Section */}
                   <div className="pt-4 border-t border-border mt-4">
