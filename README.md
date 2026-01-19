@@ -79,9 +79,18 @@ Built with Vite, React, Tailwind, Framer Motion, and Capacitor.
 
 ## Roadmap
 
-**Now:** Polish, stability, community feedback
+**Now:**
+- Polish based on community feedback
+- Custom tabs (favorite rooms and devices)
+- More languages
 
-**Later:** Widgets, Apple Watch, themes, multi-instance support
+**Later:**
+- Add new devices through the app
+- Automations workflow / custom scripts
+- Widgets
+- More themes
+- Multi-instance support
+- Apple Watch / Wear OS
 
 ---
 
