@@ -81,16 +81,27 @@ Built with Vite, React, Tailwind, Framer Motion, and Capacitor.
 
 **Now:**
 - Polish based on community feedback
+
+**Soon:**
+- Light temperature support
 - Custom tabs (favorite rooms and devices)
-- More languages
 
 **Later:**
 - Add new devices through the app
 - Automations workflow / custom scripts
+- Languages
 - Widgets
 - More themes
 - Multi-instance support
 - Apple Watch / Wear OS
+
+---
+
+## Feedback
+
+Have ideas or questions? Join the [Discussions](https://github.com/twinbolt-ab/stuga/discussions).
+
+Found a bug? Open an [Issue](https://github.com/twinbolt-ab/stuga/issues).
 
 ---
 
