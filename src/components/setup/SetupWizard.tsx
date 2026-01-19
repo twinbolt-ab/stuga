@@ -67,6 +67,7 @@ export function SetupWizard() {
   const [isProbing, setIsProbing] = useState(false)
   const [urlVerified, setUrlVerified] = useState(false)
   const hasProbed = useRef(false)
+  const userHasTyped = useRef(false)
 
   // Check if OAuth is available for current URL
   const oauthAvailable = isOAuthAvailable(url)
@@ -84,6 +85,7 @@ export function SetupWizard() {
     setMockScenario('apartment')
     navigate('/')
   }, [enableDevMode, setMockScenario, navigate])
+
 
   // Test WebSocket connection to HA (with shorter timeout for probing)
   const testConnection = useCallback(
@@ -185,12 +187,12 @@ export function SetupWizard() {
     setSuggestions(results)
     setIsProbing(false)
 
-    // Auto-fill the first successful URL
+    // Auto-fill the first successful URL only if user hasn't started typing
     const firstSuccess = results.find((r) => r.status === 'success')
-    if (firstSuccess && !url) {
+    if (firstSuccess && !userHasTyped.current) {
       setUrl(firstSuccess.url)
     }
-  }, [testConnection, url])
+  }, [testConnection])
 
   // Start probing when entering connect step
   useEffect(() => {
@@ -226,6 +228,12 @@ export function SetupWizard() {
 
   // Handle connect button click
   const handleConnect = async () => {
+    // Check for demo mode
+    if (url.toLowerCase().trim() === 'demo') {
+      startDemo()
+      return
+    }
+
     setIsLoading(true)
     setError(null)
 
@@ -325,8 +333,18 @@ export function SetupWizard() {
   }
 
   return (
-    <div className="flex-1 bg-background flex items-center justify-center p-6 overflow-hidden">
-      <div className="w-full max-w-md">
+    <div className="flex-1 bg-background flex items-center justify-center p-6 overflow-hidden relative">
+      {/* Subtle glow effects */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Primary warm glow - center */}
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-accent/[0.07] dark:bg-accent/[0.05] blur-[100px]" />
+        {/* Secondary subtle glow - bottom right */}
+        <div className="absolute bottom-0 right-0 w-[300px] h-[300px] rounded-full bg-amber/[0.04] dark:bg-amber/[0.03] blur-[80px] translate-x-1/4 translate-y-1/4" />
+        {/* Tertiary subtle glow - top left */}
+        <div className="absolute top-0 left-0 w-[250px] h-[250px] rounded-full bg-accent/[0.04] dark:bg-accent/[0.03] blur-[60px] -translate-x-1/4 -translate-y-1/4" />
+      </div>
+
+      <div className="w-full max-w-md relative z-10">
         <AnimatePresence mode="wait">
           {/* Welcome Step */}
           {step === 'welcome' && (
@@ -339,33 +357,30 @@ export function SetupWizard() {
               transition={{ duration: 0.2 }}
               className="text-center"
             >
-              <div className="mb-8">
-                <img
-                  src="/icon.png"
-                  alt="Stuga"
-                  width={120}
-                  height={180}
-                  className="mx-auto mb-6"
-                />
-                <h1 className="text-3xl font-bold text-foreground mb-2">{t.setup.welcome.title}</h1>
-                <p className="text-muted">{t.setup.welcome.subtitle}</p>
+              <div className="mb-10">
+                {/* Logo with subtle glow */}
+                <div className="relative inline-block mb-8">
+                  <div className="absolute inset-0 blur-2xl bg-accent/20 scale-150" />
+                  <img
+                    src="/icon.png"
+                    alt="Stuga"
+                    width={120}
+                    height={180}
+                    className="relative mx-auto drop-shadow-lg"
+                  />
+                </div>
+                <h1 className="text-3xl font-bold text-foreground mb-3">{t.setup.welcome.title}</h1>
+                <p className="text-muted text-lg">{t.setup.welcome.subtitle}</p>
               </div>
 
               <button
                 onClick={() => {
                   setStep('connect')
                 }}
-                className="w-full py-4 px-6 bg-accent text-white rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-accent/90 transition-colors touch-feedback"
+                className="w-full py-4 px-6 bg-accent text-warm-brown rounded-xl text-lg font-semibold flex items-center justify-center gap-2 hover:bg-brass-hover transition-colors touch-feedback btn-accent-glow"
               >
                 {t.setup.welcome.getStarted}
                 <ArrowRight className="w-5 h-5" />
-              </button>
-
-              <button
-                onClick={startDemo}
-                className="mt-6 text-sm text-muted hover:text-accent transition-colors underline underline-offset-2"
-              >
-                {t.setup.welcome.tryDemo}
               </button>
             </motion.div>
           )}
@@ -398,6 +413,7 @@ export function SetupWizard() {
                       type="url"
                       value={url}
                       onChange={(e) => {
+                        userHasTyped.current = true
                         setUrl(e.target.value)
                         setUrlVerified(false)
                         setError(null)
@@ -617,7 +633,7 @@ export function SetupWizard() {
                   <button
                     onClick={handleConnect}
                     disabled={!url.trim() || (authMethod === 'token' && !token.trim()) || isLoading}
-                    className="flex-1 py-4 px-6 bg-accent text-white rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-accent/90 transition-colors touch-feedback disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 py-4 px-6 bg-accent text-warm-brown rounded-xl text-lg font-semibold flex items-center justify-center gap-2 hover:bg-brass-hover transition-colors touch-feedback btn-accent-glow disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isLoading ? (
                       <>
@@ -661,7 +677,7 @@ export function SetupWizard() {
 
               <button
                 onClick={handleComplete}
-                className="w-full py-4 px-6 bg-accent text-white rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-accent/90 transition-colors touch-feedback"
+                className="w-full py-4 px-6 bg-accent text-warm-brown rounded-xl text-lg font-semibold flex items-center justify-center gap-2 hover:bg-brass-hover transition-colors touch-feedback btn-accent-glow"
               >
                 {t.setup.complete.goToDashboard}
                 <ArrowRight className="w-5 h-5" />
