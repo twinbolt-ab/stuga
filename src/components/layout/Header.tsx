@@ -102,9 +102,7 @@ function ReorderableFloorTab({ floor, isActive, isSelected, onTap }: Reorderable
         onClick={() => {
           if (!didDragRef.current) onTap()
         }}
-        className={`flex flex-col items-center gap-1 px-4 py-2 min-w-[72px] transition-colors ${
-          isSelected ? 'text-accent' : isActive ? 'text-accent/60' : 'text-muted'
-        }`}
+        className="flex flex-col items-center gap-1 px-4 py-2 min-w-[72px] transition-colors text-foreground"
       >
         {floor.icon ? (
           <MdiIcon icon={floor.icon} className="w-6 h-6" />
