@@ -20,6 +20,7 @@ type EditModeAction =
   | { type: 'CLEAR_SELECTION' }
   | { type: 'REORDER_ROOMS'; rooms: RoomWithDevices[] }
   | { type: 'REORDER_FLOORS'; floors: HAFloor[] }
+  | { type: 'SWITCH_FLOOR_ROOMS'; rooms: RoomWithDevices[] }
 
 // Reducer - exported for testing
 export function editModeReducer(state: EditMode, action: EditModeAction): EditMode {
@@ -97,6 +98,14 @@ export function editModeReducer(state: EditMode, action: EditModeAction): EditMo
       }
       return state
 
+    case 'SWITCH_FLOOR_ROOMS':
+      // Switch to a new floor's rooms during cross-floor drag
+      // Preserve selection so the dragged room stays selected
+      if (state.type === 'edit-rooms') {
+        return { ...state, orderedRooms: action.rooms }
+      }
+      return state
+
     default:
       return state
   }
@@ -130,6 +139,7 @@ interface EditModeContextValue {
   clearSelection: () => void
   reorderRooms: (rooms: RoomWithDevices[]) => void
   reorderFloors: (floors: HAFloor[]) => void
+  switchFloorRooms: (rooms: RoomWithDevices[]) => void
 }
 
 const EditModeContext = createContext<EditModeContextValue | null>(null)
@@ -218,6 +228,9 @@ export function EditModeProvider({ children }: EditModeProviderProps) {
   const reorderFloors = useCallback((floors: HAFloor[]) => {
     dispatch({ type: 'REORDER_FLOORS', floors })
   }, [])
+  const switchFloorRooms = useCallback((rooms: RoomWithDevices[]) => {
+    dispatch({ type: 'SWITCH_FLOOR_ROOMS', rooms })
+  }, [])
 
   const value = useMemo<EditModeContextValue>(
     () => ({
@@ -242,6 +255,7 @@ export function EditModeProvider({ children }: EditModeProviderProps) {
       clearSelection,
       reorderRooms,
       reorderFloors,
+      switchFloorRooms,
     }),
     [
       mode,
@@ -265,6 +279,7 @@ export function EditModeProvider({ children }: EditModeProviderProps) {
       clearSelection,
       reorderRooms,
       reorderFloors,
+      switchFloorRooms,
     ]
   )
 

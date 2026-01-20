@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react'
-import { AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Header } from '@/components/layout/Header'
 import { EditModeHeader } from './EditModeHeader'
 import { ConnectionBanner } from './ConnectionBanner'
@@ -20,9 +20,10 @@ import { useEnabledDomains } from '@/lib/hooks/useEnabledDomains'
 import { useDevMode } from '@/lib/hooks/useDevMode'
 import { useFloorNavigation } from '@/lib/hooks/useFloorNavigation'
 import { useModalState } from '@/lib/hooks/useModalState'
-import { saveFloorOrderBatch } from '@/lib/ha-websocket'
-import { ORDER_GAP } from '@/lib/constants'
-import type { HAEntity, HAFloor } from '@/types/ha'
+import { useCrossFloorDrag } from '@/lib/hooks/useCrossFloorDrag'
+import { saveFloorOrderBatch, updateArea } from '@/lib/ha-websocket'
+import { ORDER_GAP, DEFAULT_ORDER } from '@/lib/constants'
+import type { HAEntity, HAFloor, RoomWithDevices } from '@/types/ha'
 
 // Inner component that uses the context
 function DashboardContent() {
@@ -49,6 +50,7 @@ function DashboardContent() {
     enterAllDevicesEdit,
     exitEditMode,
     reorderRooms,
+    switchFloorRooms,
   } = useEditMode()
 
   // State for floor edit modal
@@ -93,17 +95,56 @@ function DashboardContent() {
     closeBulkDevices,
   } = useModalState()
 
+  // Handler to move a room to a different floor
+  // Note: Only updates the floor assignment, NOT the order.
+  // Order is set when edit mode exits based on final drag position.
+  const handleMoveRoomToFloor = useCallback(
+    async (room: RoomWithDevices, targetFloorId: string | null) => {
+      if (!room.areaId) return
+
+      // Update room's floor in Home Assistant (order will be set on edit mode exit)
+      await updateArea(room.areaId, { floor_id: targetFloorId })
+    },
+    []
+  )
+
+  // Cross-floor drag state and handlers
+  const {
+    draggedRoom,
+    dragPosition,
+    hoveredFloorId,
+    isTransitioning,
+    handleDragStart,
+    handleDragMove,
+    handleDragEnd,
+    handleDragCancel,
+    handleFloorTabEnter,
+    handleFloorTabLeave,
+    handleEdgeHover,
+  } = useCrossFloorDrag({
+    floors,
+    selectedFloorId,
+    hasUnassignedRooms,
+    onSelectFloor: handleSelectFloor,
+    onMoveRoomToFloor: handleMoveRoomToFloor,
+    onSwitchFloorRooms: switchFloorRooms,
+    getRoomsForFloor,
+  })
+
   // Sync room data changes (name/icon updates) while preserving order - replaces useEffect
+  // During cross-floor drag, rawOrderedRooms may contain rooms not yet in filteredRooms
+  // (because HA hasn't updated yet), so we use 'rooms' (all rooms) for freshening
   const orderedRooms = useMemo(() => {
     if (!isRoomEditMode || rawOrderedRooms.length === 0) return rawOrderedRooms
 
-    const freshRoomsByAreaId = new Map(filteredRooms.map((r) => [r.areaId, r]))
+    // Use all rooms for freshening data, not just filtered rooms
+    // This ensures rooms being dragged cross-floor are still found
+    const freshRoomsByAreaId = new Map(rooms.map((r) => [r.areaId, r]))
 
-    // Filter out deleted rooms and update data for existing ones
-    return rawOrderedRooms
-      .filter((r) => freshRoomsByAreaId.has(r.areaId))
-      .map((ordered) => freshRoomsByAreaId.get(ordered.areaId) || ordered)
-  }, [isRoomEditMode, rawOrderedRooms, filteredRooms])
+    // Update data for existing ones, keep rooms even if not in fresh data
+    // (they might be mid-cross-floor-drag before HA updates)
+    return rawOrderedRooms.map((ordered) => freshRoomsByAreaId.get(ordered.areaId) || ordered)
+  }, [isRoomEditMode, rawOrderedRooms, rooms])
 
   // Display rooms
   const displayRooms = isRoomEditMode ? orderedRooms : filteredRooms
@@ -263,9 +304,9 @@ function DashboardContent() {
       {/* Connection status banner */}
       <ConnectionBanner isConnected={isConnected} hasReceivedData={hasReceivedData} />
 
-      {/* Edit mode header bar */}
+      {/* Edit mode header bar - hidden while dragging a room */}
       <AnimatePresence>
-        {isEditMode && (
+        {isEditMode && !draggedRoom && (
           <EditModeHeader onEditClick={handleEditButtonClick} onDone={handleExitEditMode} />
         )}
       </AnimatePresence>
@@ -279,7 +320,12 @@ function DashboardContent() {
             </div>
           ) : isRoomEditMode ? (
             // Edit mode: show only current floor in ReorderableGrid
-            <div className="px-4 py-4">
+            <motion.div
+              className="px-4 py-4"
+              initial={false}
+              animate={{ opacity: isTransitioning ? 0.3 : 1 }}
+              transition={{ duration: 0.15 }}
+            >
               <RoomsGrid
                 displayRooms={displayRooms}
                 isConnected={isConnected}
@@ -287,8 +333,14 @@ function DashboardContent() {
                 orderedRooms={orderedRooms}
                 onReorder={reorderRooms}
                 onClickOutside={handleExitEditMode}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+                onDragPosition={handleDragMove}
+                onEdgeHover={handleEdgeHover}
+                activeDragRoomId={draggedRoom?.id}
+                activeDragPosition={dragPosition}
               />
-            </div>
+            </motion.div>
           ) : (
             // Normal mode: swipeable floor container
             <div className="pt-4 flex-1 flex flex-col">
@@ -338,6 +390,10 @@ function DashboardContent() {
         onViewAllDevices={handleViewAllDevices}
         onEditFloor={setEditingFloor}
         editingFloorId={editingFloor?.floor_id}
+        dragPosition={dragPosition}
+        hoveredFloorId={hoveredFloorId}
+        onDragEnterFloor={handleFloorTabEnter}
+        onDragLeaveFloor={handleFloorTabLeave}
       />
 
       <RoomEditModal

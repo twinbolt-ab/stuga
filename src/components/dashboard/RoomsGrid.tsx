@@ -23,6 +23,14 @@ interface RoomsGridProps {
   orderedRooms?: RoomWithDevices[]
   onReorder?: (rooms: RoomWithDevices[]) => void
   onClickOutside?: () => void
+  // Cross-floor drag callbacks
+  onDragStart?: (room: RoomWithDevices) => void
+  onDragEnd?: (room: RoomWithDevices) => Promise<boolean>
+  onDragPosition?: (clientX: number, clientY: number) => void
+  onEdgeHover?: (edge: 'left' | 'right' | null) => void
+  // Cross-floor drag continuation (when room moved to this floor mid-drag)
+  activeDragRoomId?: string | null
+  activeDragPosition?: { x: number; y: number } | null
 }
 
 export function RoomsGrid({
@@ -37,6 +45,12 @@ export function RoomsGrid({
   orderedRooms = [],
   onReorder = noop,
   onClickOutside,
+  onDragStart,
+  onDragEnd,
+  onDragPosition,
+  onEdgeHover,
+  activeDragRoomId,
+  activeDragPosition,
 }: RoomsGridProps) {
   // Layout follows expanded state directly (no sequencing - animations happen together)
   const layoutExpandedId = expandedRoomId
@@ -99,6 +113,12 @@ export function RoomsGrid({
         items={orderedRooms}
         onReorder={onReorder}
         onClickOutside={onClickOutside}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+        onDragPosition={onDragPosition}
+        onEdgeHover={onEdgeHover}
+        externalDragKey={activeDragRoomId}
+        externalDragPosition={activeDragPosition}
         getKey={(room) => room.id}
         columns={2}
         gap={12}

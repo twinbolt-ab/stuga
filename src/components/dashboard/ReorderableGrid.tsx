@@ -14,6 +14,22 @@ interface ReorderableGridProps<T> {
   onClickOutside?: () => void
   /** Callback when dragging near screen edge (for cross-floor navigation) */
   onEdgeHover?: ((edge: 'left' | 'right' | null) => void) | null
+  /** Called when a drag starts, with the item being dragged */
+  onDragStart?: (item: T, index: number) => void
+  /** Called when drag ends (after onReorder if applicable) */
+  onDragEnd?: (item: T) => void
+  /** Called continuously during drag with current pointer position */
+  onDragPosition?: (clientX: number, clientY: number) => void
+  /**
+   * Key of item being dragged externally (e.g., cross-floor drag continuation).
+   * When set, the grid will initialize drag state for this item at externalDragPosition.
+   */
+  externalDragKey?: string | null
+  /**
+   * Current drag position when continuing an external drag.
+   * Used with externalDragKey to position the item under the user's finger.
+   */
+  externalDragPosition?: { x: number; y: number } | null
   getKey: (item: T) => string
   columns?: number
   gap?: number
@@ -26,6 +42,11 @@ export function ReorderableGrid<T>({
   onReorder,
   onClickOutside,
   onEdgeHover,
+  onDragStart: onDragStartCallback,
+  onDragEnd: onDragEndCallback,
+  onDragPosition,
+  externalDragKey,
+  externalDragPosition,
   getKey,
   columns = 2,
   gap = 12,
@@ -52,8 +73,17 @@ export function ReorderableGrid<T>({
   // See: https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
   if (prevItems !== items) {
     setPrevItems(items)
+    const isExternalDrag = externalDragKey !== null && externalDragKey !== undefined
     if (draggedIndex === null && pendingDragIndex === null) {
       setOrderedItems(items)
+    } else if (isExternalDrag) {
+      // External drag sync (cross-floor continuation):
+      // When items change during an external drag (externalDragKey is set), we must:
+      // 1. Sync the new items (e.g., new floor's rooms)
+      // 2. Reset draggedIndex to null so the useEffect can re-initialize drag state
+      // This makes the dragged item appear under the user's finger on the new floor.
+      setOrderedItems(items)
+      setDraggedIndex(null)
     }
   }
 
@@ -133,6 +163,39 @@ export function ReorderableGrid<T>({
     [columns, gap, cellSize, orderedItems.length]
   )
 
+  // Handle external drag continuation (e.g., cross-floor drag):
+  // When externalDragKey matches an item, initialize drag state to make the item appear under the finger
+  useEffect(() => {
+    if (!externalDragKey || !externalDragPosition || draggedIndex !== null) return
+
+    // Find the item with the matching key
+    const itemIndex = orderedItems.findIndex((item) => getKey(item) === externalDragKey)
+    if (itemIndex === -1) return
+
+    // Get container position to calculate relative coordinates
+    const container = containerRef.current
+    if (!container) return
+    const rect = container.getBoundingClientRect()
+
+    // Calculate where the finger is relative to the container
+    const fingerX = externalDragPosition.x - rect.left
+    const fingerY = externalDragPosition.y - rect.top
+
+    // Calculate the grid position of the item
+    const gridPos = getPositionFromIndex(itemIndex)
+
+    // The offset is the difference between finger position and item's grid center
+    // This makes the item appear centered under the finger
+    const offsetX = fingerX - gridPos.x - cellSize.width / 2
+    const offsetY = fingerY - gridPos.y - cellSize.height / 2
+
+    // Set up the drag state so the item appears under the finger
+    // dragOffset = fingerPos - gridPos - center => item appears at fingerPos - center
+    setDraggedIndex(itemIndex)
+    setDragStartPos({ x: externalDragPosition.x - offsetX, y: externalDragPosition.y - offsetY })
+    setDragOffset({ x: offsetX, y: offsetY })
+  }, [externalDragKey, externalDragPosition, orderedItems, getKey, draggedIndex, getPositionFromIndex, cellSize])
+
   // Clear long-press timer
   const clearLongPressTimer = useCallback(() => {
     if (longPressTimerRef.current) {
@@ -143,12 +206,18 @@ export function ReorderableGrid<T>({
   }, [])
 
   // Handle drag start (called after long-press completes)
-  const handleDragStart = useCallback((index: number, clientX: number, clientY: number) => {
-    haptic.medium()
-    setDraggedIndex(index)
-    setDragStartPos({ x: clientX, y: clientY })
-    setDragOffset({ x: 0, y: 0 })
-  }, [])
+  const handleDragStart = useCallback(
+    (index: number, clientX: number, clientY: number) => {
+      haptic.medium()
+      setDraggedIndex(index)
+      setDragStartPos({ x: clientX, y: clientY })
+      setDragOffset({ x: 0, y: 0 })
+
+      // Notify parent of drag start
+      onDragStartCallback?.(orderedItems[index], index)
+    },
+    [orderedItems, onDragStartCallback]
+  )
 
   // Handle pointer down - start long-press timer
   const handlePointerDown = useCallback(
@@ -198,6 +267,9 @@ export function ReorderableGrid<T>({
         y: clientY - dragStartPos.y,
       })
 
+      // Notify parent of drag position (for floor tab hit testing)
+      onDragPosition?.(clientX, clientY)
+
       // Edge detection for cross-floor navigation
       if (onEdgeHover) {
         let currentEdge: 'left' | 'right' | null = null
@@ -240,12 +312,15 @@ export function ReorderableGrid<T>({
       orderedItems,
       getPositionFromIndex,
       onEdgeHover,
+      onDragPosition,
     ]
   )
 
   // Handle drag end
   const handleDragEnd = useCallback(() => {
     clearLongPressTimer()
+    const draggedItem = draggedIndex !== null ? orderedItems[draggedIndex] : null
+
     if (draggedIndex !== null) {
       onReorder(orderedItems)
     }
@@ -256,7 +331,12 @@ export function ReorderableGrid<T>({
       lastEdgeRef.current = null
       onEdgeHover(null)
     }
-  }, [draggedIndex, orderedItems, onReorder, clearLongPressTimer, onEdgeHover])
+
+    // Notify parent of drag end
+    if (draggedItem) {
+      onDragEndCallback?.(draggedItem)
+    }
+  }, [draggedIndex, orderedItems, onReorder, clearLongPressTimer, onEdgeHover, onDragEndCallback])
 
   // Touch handlers
   const handleTouchStart = useCallback(

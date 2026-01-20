@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { Reorder } from 'framer-motion'
 import { Settings } from 'lucide-react'
 import { SettingsMenu } from './SettingsMenu'
@@ -21,6 +21,14 @@ interface BottomNavProps {
   onViewAllDevices?: () => void
   onEditFloor?: (floor: HAFloor | null) => void
   editingFloorId?: string | null
+  /** Current drag position (for floor tab hit detection during room drag) */
+  dragPosition?: { x: number; y: number } | null
+  /** Floor ID being hovered over during drag (for visual feedback) */
+  hoveredFloorId?: string | null | undefined
+  /** Callback when drag enters a floor tab */
+  onDragEnterFloor?: (floorId: string | null) => void
+  /** Callback when drag leaves floor tabs */
+  onDragLeaveFloor?: () => void
 }
 
 // Floor tab for normal mode - supports long-press to enter floor edit mode
@@ -127,8 +135,16 @@ export function BottomNav({
   onViewAllDevices,
   onEditFloor,
   editingFloorId,
+  dragPosition,
+  hoveredFloorId,
+  onDragEnterFloor,
+  onDragLeaveFloor,
 }: BottomNavProps) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+
+  // Refs for floor tab hit detection
+  const floorTabsContainerRef = useRef<HTMLDivElement>(null)
+  const floorTabRefs = useRef<Map<string, HTMLElement>>(new Map())
 
   // Get floor edit mode from context
   const {
@@ -203,6 +219,55 @@ export function BottomNav({
     }
   }, [isFloorEditMode, handleSaveFloorOrder, exitEditMode])
 
+  // Build list of floor IDs for hit detection (matching useCrossFloorDrag)
+  const floorIdsForHitTest = useMemo((): (string | null)[] => {
+    const ids: (string | null)[] = floors.map((f) => f.floor_id)
+    if (hasUnassignedRooms) {
+      ids.push(null) // null represents "Other" tab
+    }
+    return ids
+  }, [floors, hasUnassignedRooms])
+
+  // Track last hit floor to avoid repeated callbacks
+  const lastHitFloorRef = useRef<string | null | undefined>(undefined)
+
+  // Hit detection for floor tabs during room drag
+  useEffect(() => {
+    if (!dragPosition || !isRoomEditMode || !onDragEnterFloor || !onDragLeaveFloor) {
+      // Reset tracking when drag ends
+      lastHitFloorRef.current = undefined
+      return
+    }
+
+    const { x, y } = dragPosition
+
+    // Check each floor tab for hit
+    let hitFloorId: string | null | undefined = undefined
+
+    for (const floorId of floorIdsForHitTest) {
+      const key = floorId ?? '__other__'
+      const tabElement = floorTabRefs.current.get(key)
+      if (!tabElement) continue
+
+      const rect = tabElement.getBoundingClientRect()
+      if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+        hitFloorId = floorId
+        break
+      }
+    }
+
+    // Only fire callbacks on change
+    if (hitFloorId !== lastHitFloorRef.current) {
+      lastHitFloorRef.current = hitFloorId
+
+      if (hitFloorId !== undefined) {
+        onDragEnterFloor(hitFloorId)
+      } else {
+        onDragLeaveFloor()
+      }
+    }
+  }, [dragPosition, isRoomEditMode, floorIdsForHitTest, onDragEnterFloor, onDragLeaveFloor])
+
   const showBottomNav = floors.length > 0
 
   return (
@@ -241,55 +306,49 @@ export function BottomNav({
                 })}
               </Reorder.Group>
             ) : isRoomEditMode ? (
-              // Room edit mode - floors are reorderable (existing behavior)
-              <Reorder.Group
-                axis="x"
-                values={displayFloors}
-                onReorder={handleReorder}
-                className="flex items-center overflow-x-auto list-none p-0 m-0 border-0 hide-scrollbar"
+              // Room edit mode - floors show drag targets for cross-floor moves
+              <div
+                ref={floorTabsContainerRef}
+                className="flex items-center overflow-x-auto hide-scrollbar"
               >
                 {displayFloors.map((floor) => {
                   const isActive = selectedFloorId === floor.floor_id
+                  const isDragTarget = hoveredFloorId === floor.floor_id
                   return (
-                    <Reorder.Item
+                    <div
                       key={floor.floor_id}
-                      value={floor}
-                      onPointerDown={(e: React.PointerEvent) => {
-                        e.stopPropagation()
+                      ref={(el) => {
+                        if (el) {
+                          floorTabRefs.current.set(floor.floor_id, el)
+                        } else {
+                          floorTabRefs.current.delete(floor.floor_id)
+                        }
                       }}
-                      onPointerUp={handleSaveFloorOrder}
-                      className="flex-shrink-0 cursor-grab active:cursor-grabbing list-none"
-                      style={{
-                        border: 'none',
-                        outline: 'none',
-                        boxShadow: 'none',
-                        background: 'transparent',
+                      className={`flex flex-col items-center gap-1 px-4 py-2 min-w-[72px] flex-shrink-0 transition-all rounded-xl ${
+                        isDragTarget
+                          ? 'text-accent bg-accent/20 scale-110 ring-2 ring-accent'
+                          : isActive
+                            ? 'text-accent'
+                            : 'text-muted'
+                      }`}
+                      onClick={() => {
+                        handleFloorClick(floor, floor.floor_id)
                       }}
-                      whileDrag={{ scale: 1.1, zIndex: 50 }}
                     >
-                      <div
-                        className={`flex flex-col items-center gap-1 px-4 py-2 min-w-[72px] transition-colors ${
-                          isActive ? 'text-accent' : 'text-muted'
-                        }`}
-                        onClick={() => {
-                          handleFloorClick(floor, floor.floor_id)
-                        }}
-                      >
-                        {floor.icon ? (
-                          <MdiIcon icon={floor.icon} className="w-6 h-6" />
-                        ) : (
-                          <div className="w-6 h-6 flex items-center justify-center">
-                            <div className="w-2 h-2 rounded-full bg-current" />
-                          </div>
-                        )}
-                        <span className="text-xs font-medium truncate max-w-[64px]">
-                          {floor.name}
-                        </span>
-                      </div>
-                    </Reorder.Item>
+                      {floor.icon ? (
+                        <MdiIcon icon={floor.icon} className="w-6 h-6" />
+                      ) : (
+                        <div className="w-6 h-6 flex items-center justify-center">
+                          <div className="w-2 h-2 rounded-full bg-current" />
+                        </div>
+                      )}
+                      <span className="text-xs font-medium truncate max-w-[64px]">
+                        {floor.name}
+                      </span>
+                    </div>
                   )
                 })}
-              </Reorder.Group>
+              </div>
             ) : (
               // Normal mode - long-press to enter floor edit mode
               <div className="flex items-center overflow-x-auto">
@@ -314,19 +373,30 @@ export function BottomNav({
 
             {/* "Other" tab (non-reorderable) - only show when floors exist and there are unassigned rooms */}
             {hasUnassignedRooms && !isFloorEditMode && (
-              <button
+              <div
+                ref={(el) => {
+                  if (el) {
+                    floorTabRefs.current.set('__other__', el)
+                  } else {
+                    floorTabRefs.current.delete('__other__')
+                  }
+                }}
                 onClick={() => {
                   handleFloorClick(null, '__other__')
                 }}
-                className={`flex flex-col items-center gap-1 px-4 py-2 min-w-[72px] flex-shrink-0 transition-colors touch-feedback ${
-                  selectedFloorId === null ? 'text-accent' : 'text-muted hover:text-foreground'
+                className={`flex flex-col items-center gap-1 px-4 py-2 min-w-[72px] flex-shrink-0 transition-all cursor-pointer rounded-xl ${
+                  isRoomEditMode && hoveredFloorId === null
+                    ? 'text-accent bg-accent/20 scale-110 ring-2 ring-accent'
+                    : selectedFloorId === null
+                      ? 'text-accent'
+                      : 'text-muted hover:text-foreground'
                 }`}
               >
                 <div className="w-6 h-6 flex items-center justify-center">
                   <div className="w-2 h-2 rounded-full bg-current" />
                 </div>
                 <span className="text-xs font-medium">{t.floors.other}</span>
-              </button>
+              </div>
             )}
           </div>
         </nav>
