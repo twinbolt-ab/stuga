@@ -25,6 +25,8 @@ interface RoomsGridProps {
   onClickOutside?: () => void
   /** When true, disables drag-to-reorder in edit mode (items are static) */
   reorderingDisabled?: boolean
+  /** Selected room IDs for multi-drag support */
+  selectedIds?: Set<string>
   // Cross-floor drag callbacks
   onDragStart?: (room: RoomWithDevices) => void
   onDragEnd?: (room: RoomWithDevices) => Promise<boolean>
@@ -48,6 +50,7 @@ export function RoomsGrid({
   onReorder = noop,
   onClickOutside,
   reorderingDisabled = false,
+  selectedIds,
   onDragStart,
   onDragEnd,
   onDragPosition,
@@ -117,6 +120,7 @@ export function RoomsGrid({
         onReorder={onReorder}
         onClickOutside={onClickOutside}
         reorderingDisabled={reorderingDisabled}
+        selectedKeys={selectedIds}
         onDragStart={reorderingDisabled ? undefined : onDragStart}
         onDragEnd={reorderingDisabled ? undefined : onDragEnd}
         onDragPosition={reorderingDisabled ? undefined : onDragPosition}

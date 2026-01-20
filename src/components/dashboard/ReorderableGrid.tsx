@@ -202,7 +202,32 @@ export function ReorderableGrid<T>({
     setDraggedIndex(itemIndex)
     setDragStartPos({ x: externalDragPosition.x - offsetX, y: externalDragPosition.y - offsetY })
     setDragOffset({ x: offsetX, y: offsetY })
-  }, [externalDragKey, externalDragPosition, orderedItems, getKey, draggedIndex, getPositionFromIndex, cellSize])
+
+    // Rebuild draggedIndices for multi-drag after floor switch
+    if (selectedKeys && selectedKeys.size > 1) {
+      const newDraggedIndices = orderedItems
+        .map((item, i) => ({ key: getKey(item), index: i }))
+        .filter(({ key }) => selectedKeys.has(key))
+        .map(({ index }) => index)
+        .sort((a, b) => a - b)
+      if (newDraggedIndices.length > 1) {
+        setDraggedIndices(newDraggedIndices)
+      } else {
+        setDraggedIndices([itemIndex])
+      }
+    } else {
+      setDraggedIndices([itemIndex])
+    }
+  }, [
+    externalDragKey,
+    externalDragPosition,
+    orderedItems,
+    getKey,
+    draggedIndex,
+    getPositionFromIndex,
+    cellSize,
+    selectedKeys,
+  ])
 
   // Clear long-press timer
   const clearLongPressTimer = useCallback(() => {
@@ -317,21 +342,38 @@ export function ReorderableGrid<T>({
       const newTargetIndex = getIndexFromPointer(clientX, clientY)
       const isMultiDrag = draggedIndices.length > 1
 
-      if (isMultiDrag) {
+      if (isMultiDrag && draggedIndex !== null) {
         // Multi-drag: move all selected items as a contiguous block
         // Find the position of the primary dragged item within the selection
         const primaryPositionInSelection = draggedIndices.indexOf(draggedIndex)
+
+        // Safety check: if primary item isn't in draggedIndices or indices are out of bounds,
+        // skip multi-drag reordering for this frame (keep visual stacking)
+        if (primaryPositionInSelection === -1) {
+          return
+        }
+
+        // Validate all indices are within bounds
+        const allIndicesValid = draggedIndices.every((i) => i >= 0 && i < orderedItems.length)
+        if (!allIndicesValid) {
+          // Indices are stale (e.g., after floor switch), skip reordering for this frame
+          return
+        }
+
         // Calculate where the block should start
-        const blockStartIndex = Math.max(0, Math.min(
-          orderedItems.length - draggedIndices.length,
-          newTargetIndex - primaryPositionInSelection
-        ))
+        const blockStartIndex = Math.max(
+          0,
+          Math.min(
+            orderedItems.length - draggedIndices.length,
+            newTargetIndex - primaryPositionInSelection
+          )
+        )
 
         // Check if block position has changed
         const currentBlockStart = draggedIndices[0]
         if (blockStartIndex !== currentBlockStart) {
           // Extract the dragged items (in their current order within draggedIndices)
-          const draggedItems = draggedIndices.map(i => orderedItems[i])
+          const draggedItems = draggedIndices.map((i) => orderedItems[i])
           // Create new array without the dragged items
           const newItems = orderedItems.filter((_, i) => !draggedIndices.includes(i))
           // Insert the block at the new position
@@ -342,17 +384,18 @@ export function ReorderableGrid<T>({
           const newDraggedIndices = draggedIndices.map((_, i) => blockStartIndex + i)
           setDraggedIndices(newDraggedIndices)
           // Update the primary dragged index
-          setDraggedIndex(blockStartIndex + primaryPositionInSelection)
+          const newPrimaryIndex = blockStartIndex + primaryPositionInSelection
+          setDraggedIndex(newPrimaryIndex)
 
           // Adjust drag start position so the item stays under the cursor
           const oldPos = getPositionFromIndex(draggedIndex)
-          const newPos = getPositionFromIndex(blockStartIndex + primaryPositionInSelection)
+          const newPos = getPositionFromIndex(newPrimaryIndex)
           setDragStartPos((prev) => ({
             x: prev.x + (newPos.x - oldPos.x),
             y: prev.y + (newPos.y - oldPos.y),
           }))
         }
-      } else if (newTargetIndex !== draggedIndex) {
+      } else if (newTargetIndex !== draggedIndex && draggedIndex !== null) {
         // Single item drag (original behavior)
         const newItems = [...orderedItems]
         const [draggedItem] = newItems.splice(draggedIndex, 1)
@@ -505,6 +548,10 @@ export function ReorderableGrid<T>({
   const containerHeight = rows * cellSize.height + (rows - 1) * gap
   const isReady = cellSize.width > 0 && cellSize.height > 0
 
+  // Multi-drag state
+  const isMultiDrag = draggedIndices.length > 1
+  const primaryDragPosition = draggedIndex !== null ? getPositionFromIndex(draggedIndex) : null
+
   return (
     <div
       ref={containerRef}
@@ -518,17 +565,61 @@ export function ReorderableGrid<T>({
         // First item always renders for measurement, others wait until ready
         if (index > 0 && !isReady) return null
         const key = getKey(item)
-        const isDragging = draggedIndex === index
+        const isPrimaryDrag = draggedIndex === index
+        const isSecondaryDrag = isMultiDrag && draggedIndices.includes(index) && !isPrimaryDrag
+        const isDragging = isPrimaryDrag || isSecondaryDrag
         const position = getPositionFromIndex(index)
-        // Apply wiggle to non-dragged items when something is being dragged
+
+        // Calculate stacking offset for secondary dragged items (Finder-style)
+        let stackOffset = { x: 0, y: 0 }
+        let stackScale = 1
+        let stackZIndex = 0
+        if (isSecondaryDrag && primaryDragPosition) {
+          const stackPosition = draggedIndices.indexOf(index)
+          // Offset each secondary item by 5px in both directions (cascading stack)
+          stackOffset = {
+            x: (stackPosition + 1) * 5,
+            y: (stackPosition + 1) * 5,
+          }
+          // Slightly smaller scale for stacked items
+          stackScale = 0.98 - stackPosition * 0.01
+          // Lower z-index than primary (50), decreasing for each item in stack
+          stackZIndex = 45 - stackPosition
+        }
+
+        // Apply wiggle only to non-dragged items when something is being dragged
         const shouldWiggle = draggedIndex !== null && !isDragging
+
+        // Calculate target position
+        let targetX = position.x
+        let targetY = position.y
+        let targetScale = 1
+        let targetShadow = '0 0 0 rgba(0,0,0,0)'
+
+        if (isPrimaryDrag) {
+          // Primary dragged item follows the finger
+          targetX = position.x + dragOffset.x
+          targetY = position.y + dragOffset.y
+          targetScale = 1.05
+          targetShadow = '0 20px 40px rgba(0,0,0,0.2)'
+        } else if (isSecondaryDrag && primaryDragPosition) {
+          // Secondary items animate to stack behind the primary
+          targetX = primaryDragPosition.x + dragOffset.x + stackOffset.x
+          targetY = primaryDragPosition.y + dragOffset.y + stackOffset.y
+          targetScale = stackScale
+          targetShadow = '0 10px 20px rgba(0,0,0,0.15)'
+        }
 
         return (
           <motion.div
             key={key}
             ref={index === 0 ? measureRef : undefined}
             data-grid-item
-            className={clsx('absolute', isDragging && 'z-50')}
+            className={clsx(
+              'absolute',
+              isPrimaryDrag && 'z-50',
+              isSecondaryDrag && `z-[${stackZIndex}]`
+            )}
             style={{
               top: 0,
               left: 0,
@@ -537,13 +628,14 @@ export function ReorderableGrid<T>({
                   ? cellSize.width
                   : `calc((100% - ${gap * (columns - 1)}px) / ${columns})`,
               visibility: isReady ? 'visible' : 'hidden',
+              zIndex: isPrimaryDrag ? 50 : isSecondaryDrag ? stackZIndex : undefined,
             }}
             initial={false}
             animate={{
-              x: position.x + (isDragging ? dragOffset.x : 0),
-              y: position.y + (isDragging ? dragOffset.y : 0),
-              scale: isDragging ? 1.05 : 1,
-              boxShadow: isDragging ? '0 20px 40px rgba(0,0,0,0.2)' : '0 0 0 rgba(0,0,0,0)',
+              x: targetX,
+              y: targetY,
+              scale: targetScale,
+              boxShadow: targetShadow,
             }}
             transition={{
               x: isDragging

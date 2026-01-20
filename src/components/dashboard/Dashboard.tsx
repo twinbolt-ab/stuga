@@ -110,6 +110,12 @@ function DashboardContent() {
     []
   )
 
+  // Get selected rooms for multi-drag support
+  const getSelectedRooms = useCallback(() => {
+    if (selectedIds.size === 0) return []
+    return rawOrderedRooms.filter((room) => selectedIds.has(room.id))
+  }, [selectedIds, rawOrderedRooms])
+
   // Cross-floor drag state and handlers
   const {
     draggedRoom,
@@ -131,6 +137,7 @@ function DashboardContent() {
     onMoveRoomToFloor: handleMoveRoomToFloor,
     onSwitchFloorRooms: switchFloorRooms,
     getRoomsForFloor,
+    getSelectedRooms,
   })
 
   // Sync room data changes (name/icon updates) while preserving order - replaces useEffect
@@ -341,6 +348,7 @@ function DashboardContent() {
                 onReorder={reorderRooms}
                 onClickOutside={handleExitEditMode}
                 reorderingDisabled={!roomOrderingEnabled}
+                selectedIds={selectedIds}
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
                 onDragPosition={handleDragMove}

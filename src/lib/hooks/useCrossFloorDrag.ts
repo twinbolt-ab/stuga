@@ -14,6 +14,8 @@ interface UseCrossFloorDragOptions {
   onSwitchFloorRooms?: (rooms: RoomWithDevices[]) => void
   /** Get rooms for a specific floor */
   getRoomsForFloor?: (floorId: string | null) => RoomWithDevices[]
+  /** Get all currently selected rooms (for multi-drag support) */
+  getSelectedRooms?: () => RoomWithDevices[]
 }
 
 interface UseCrossFloorDragReturn {
@@ -49,6 +51,7 @@ export function useCrossFloorDrag({
   onMoveRoomToFloor,
   onSwitchFloorRooms,
   getRoomsForFloor,
+  getSelectedRooms,
 }: UseCrossFloorDragOptions): UseCrossFloorDragReturn {
   const [draggedRoom, setDraggedRoom] = useState<RoomWithDevices | null>(null)
   const [dragPosition, setDragPosition] = useState<{ x: number; y: number } | null>(null)
@@ -98,17 +101,30 @@ export function useCrossFloorDrag({
       if (targetFloorId === selectedFloorId) return
 
       holdTimerRef.current = setTimeout(() => {
-        // Move room to target floor and navigate there
+        // Move room(s) to target floor and navigate there
         setIsTransitioning(true)
+
+        // Get all rooms to move: selected rooms if multi-select, otherwise just the dragged room
+        const selectedRooms = getSelectedRooms ? getSelectedRooms() : []
+        const roomsToMove =
+          selectedRooms.length > 1 &&
+          draggedRoom &&
+          selectedRooms.some((r) => r.id === draggedRoom.id)
+            ? selectedRooms
+            : draggedRoom
+              ? [draggedRoom]
+              : []
 
         // Get target floor's rooms BEFORE the HA update
         const targetFloorRooms = getRoomsForFloor ? getRoomsForFloor(targetFloorId) : []
 
-        // Create combined list with dragged room added at the end
-        // (it won't be in the registry yet since HA hasn't updated)
+        // Create combined list with dragged rooms added at the end
+        // (they won't be in the registry yet since HA hasn't updated)
         const combinedRooms = [...targetFloorRooms]
-        if (draggedRoom && !combinedRooms.some((r) => r.id === draggedRoom.id)) {
-          combinedRooms.push(draggedRoom)
+        for (const room of roomsToMove) {
+          if (!combinedRooms.some((r) => r.id === room.id)) {
+            combinedRooms.push(room)
+          }
         }
 
         // Switch floor rooms immediately (before HA updates) so UI shows all rooms
@@ -116,9 +132,9 @@ export function useCrossFloorDrag({
           onSwitchFloorRooms(combinedRooms)
         }
 
-        // Move room in HA (background, don't block UI)
-        if (draggedRoom) {
-          void onMoveRoomToFloor(draggedRoom, targetFloorId)
+        // Move all rooms in HA (background, don't block UI)
+        for (const room of roomsToMove) {
+          void onMoveRoomToFloor(room, targetFloorId)
         }
 
         // Navigate to target floor
@@ -141,6 +157,7 @@ export function useCrossFloorDrag({
       onSelectFloor,
       onSwitchFloorRooms,
       getRoomsForFloor,
+      getSelectedRooms,
     ]
   )
 
@@ -170,9 +187,7 @@ export function useCrossFloorDrag({
       // Check if we should move room to a different floor
       const targetFloorId = hoveredFloorId
       const shouldMove =
-        targetFloorId !== undefined &&
-        targetFloorId !== selectedFloorId &&
-        !isTransitioning
+        targetFloorId !== undefined && targetFloorId !== selectedFloorId && !isTransitioning
 
       if (shouldMove) {
         // Move room to target floor (at end position)
@@ -182,7 +197,14 @@ export function useCrossFloorDrag({
       resetDragState()
       return shouldMove
     },
-    [hoveredFloorId, selectedFloorId, isTransitioning, clearHoldTimer, onMoveRoomToFloor, resetDragState]
+    [
+      hoveredFloorId,
+      selectedFloorId,
+      isTransitioning,
+      clearHoldTimer,
+      onMoveRoomToFloor,
+      resetDragState,
+    ]
   )
 
   // Handle floor tab enter (when dragging over a floor tab)
