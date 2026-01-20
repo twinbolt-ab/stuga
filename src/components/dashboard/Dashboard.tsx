@@ -202,11 +202,16 @@ function DashboardContent() {
   ])
 
   // Callback for RoomCard long-press to enter edit mode with room selected
+  // Uses getRoomsForFloor to get the correct floor's rooms (not filteredRooms which may be stale
+  // when FloorSwipeContainer preloads adjacent floors)
   const handleEnterEditModeWithSelection = useCallback(
     (roomId: string) => {
-      enterRoomEdit(filteredRooms, roomId)
+      // Find the room to determine its floor
+      const room = rooms.find((r) => r.id === roomId)
+      const roomsForFloor = room ? getRoomsForFloor(room.floorId ?? null) : filteredRooms
+      enterRoomEdit(roomsForFloor, roomId)
     },
-    [filteredRooms, enterRoomEdit]
+    [rooms, getRoomsForFloor, filteredRooms, enterRoomEdit]
   )
 
   // Handle clicks on empty area (gaps between cards)

@@ -102,6 +102,12 @@ export function FloorSwipeContainer({
       const velocity = info.velocity.x
       const offset = info.offset.x
 
+      // Ignore tiny drags (likely from long-press without significant movement)
+      // This prevents accidental floor changes when long-pressing a room
+      if (Math.abs(offset) < 20 && Math.abs(velocity) < 100) {
+        return
+      }
+
       let targetIndex = currentIndex
 
       // Velocity-based navigation (fast swipe)
