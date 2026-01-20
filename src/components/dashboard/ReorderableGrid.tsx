@@ -32,6 +32,8 @@ interface ReorderableGridProps<T> {
    * Used with externalDragKey to position the item under the user's finger.
    */
   externalDragPosition?: { x: number; y: number } | null
+  /** Keys of selected items for multi-drag support */
+  selectedKeys?: Set<string>
   getKey: (item: T) => string
   columns?: number
   gap?: number
@@ -50,6 +52,7 @@ export function ReorderableGrid<T>({
   onDragPosition,
   externalDragKey,
   externalDragPosition,
+  selectedKeys,
   getKey,
   columns = 2,
   gap = 12,
@@ -62,6 +65,8 @@ export function ReorderableGrid<T>({
   const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 })
   const [orderedItems, setOrderedItems] = useState<T[]>(items)
   const [cellSize, setCellSize] = useState({ width: 0, height: 0 })
+  // Multi-drag state: indices of all items being dragged together (sorted by position)
+  const [draggedIndices, setDraggedIndices] = useState<number[]>([])
 
   // Long-press state for drag activation
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -216,10 +221,27 @@ export function ReorderableGrid<T>({
       setDragStartPos({ x: clientX, y: clientY })
       setDragOffset({ x: 0, y: 0 })
 
+      // Check if this item is part of a multi-selection
+      const itemKey = getKey(orderedItems[index])
+      const isPartOfMultiSelection = selectedKeys?.has(itemKey) && selectedKeys.size > 1
+
+      if (isPartOfMultiSelection) {
+        // Get all selected items in their current order (by index)
+        const selectedIndices = orderedItems
+          .map((item, i) => ({ key: getKey(item), index: i }))
+          .filter(({ key }) => selectedKeys!.has(key))
+          .map(({ index }) => index)
+          .sort((a, b) => a - b)
+        setDraggedIndices(selectedIndices)
+      } else {
+        // Single item drag
+        setDraggedIndices([index])
+      }
+
       // Notify parent of drag start
       onDragStartCallback?.(orderedItems[index], index)
     },
-    [orderedItems, onDragStartCallback]
+    [orderedItems, onDragStartCallback, selectedKeys, getKey]
   )
 
   // Handle pointer down - start long-press timer
@@ -293,14 +315,51 @@ export function ReorderableGrid<T>({
       }
 
       const newTargetIndex = getIndexFromPointer(clientX, clientY)
+      const isMultiDrag = draggedIndices.length > 1
 
-      if (newTargetIndex !== draggedIndex) {
-        // Reorder items
+      if (isMultiDrag) {
+        // Multi-drag: move all selected items as a contiguous block
+        // Find the position of the primary dragged item within the selection
+        const primaryPositionInSelection = draggedIndices.indexOf(draggedIndex)
+        // Calculate where the block should start
+        const blockStartIndex = Math.max(0, Math.min(
+          orderedItems.length - draggedIndices.length,
+          newTargetIndex - primaryPositionInSelection
+        ))
+
+        // Check if block position has changed
+        const currentBlockStart = draggedIndices[0]
+        if (blockStartIndex !== currentBlockStart) {
+          // Extract the dragged items (in their current order within draggedIndices)
+          const draggedItems = draggedIndices.map(i => orderedItems[i])
+          // Create new array without the dragged items
+          const newItems = orderedItems.filter((_, i) => !draggedIndices.includes(i))
+          // Insert the block at the new position
+          newItems.splice(blockStartIndex, 0, ...draggedItems)
+          setOrderedItems(newItems)
+
+          // Update indices - all dragged items now occupy contiguous positions starting at blockStartIndex
+          const newDraggedIndices = draggedIndices.map((_, i) => blockStartIndex + i)
+          setDraggedIndices(newDraggedIndices)
+          // Update the primary dragged index
+          setDraggedIndex(blockStartIndex + primaryPositionInSelection)
+
+          // Adjust drag start position so the item stays under the cursor
+          const oldPos = getPositionFromIndex(draggedIndex)
+          const newPos = getPositionFromIndex(blockStartIndex + primaryPositionInSelection)
+          setDragStartPos((prev) => ({
+            x: prev.x + (newPos.x - oldPos.x),
+            y: prev.y + (newPos.y - oldPos.y),
+          }))
+        }
+      } else if (newTargetIndex !== draggedIndex) {
+        // Single item drag (original behavior)
         const newItems = [...orderedItems]
         const [draggedItem] = newItems.splice(draggedIndex, 1)
         newItems.splice(newTargetIndex, 0, draggedItem)
         setOrderedItems(newItems)
         setDraggedIndex(newTargetIndex)
+        setDraggedIndices([newTargetIndex])
 
         // Adjust drag start position so the item stays under the cursor
         const oldPos = getPositionFromIndex(draggedIndex)
@@ -313,6 +372,7 @@ export function ReorderableGrid<T>({
     },
     [
       draggedIndex,
+      draggedIndices,
       dragStartPos,
       getIndexFromPointer,
       orderedItems,
@@ -331,6 +391,7 @@ export function ReorderableGrid<T>({
       onReorder(orderedItems)
     }
     setDraggedIndex(null)
+    setDraggedIndices([])
     setDragOffset({ x: 0, y: 0 })
     // Clear edge hover state
     if (onEdgeHover && lastEdgeRef.current !== null) {

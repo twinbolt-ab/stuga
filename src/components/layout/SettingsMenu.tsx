@@ -218,6 +218,79 @@ export function SettingsMenu({
 
             {/* Menu Items */}
             <div className="px-2 pb-safe">
+              {/* Advanced - Collapsible Section */}
+              <div>
+                <button
+                  onClick={() => {
+                    setAdvancedOpen(!advancedOpen)
+                  }}
+                  className="w-full flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-border/30 transition-colors touch-feedback"
+                >
+                  <div className="p-2.5 rounded-xl bg-border/50">
+                    <Settings2 className="w-5 h-5 text-foreground" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="font-medium text-foreground">
+                      {t.settings.advanced?.title || 'Advanced'}
+                    </p>
+                    <p className="text-sm text-muted">
+                      {t.settings.advanced?.description || 'Room ordering settings'}
+                    </p>
+                  </div>
+                  <motion.div
+                    animate={{ rotate: advancedOpen ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <ChevronDown className="w-5 h-5 text-muted" />
+                  </motion.div>
+                </button>
+
+                <AnimatePresence initial={false}>
+                  {advancedOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="pl-4 border-l-2 border-border/50 ml-7 space-y-1">
+                        {/* Room Ordering Toggle */}
+                        <button
+                          onClick={handleRoomOrderingToggle}
+                          className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-border/30 transition-colors touch-feedback"
+                        >
+                          <div className="p-2 rounded-lg bg-border/50">
+                            <Layers className="w-4 h-4 text-foreground" />
+                          </div>
+                          <div className="flex-1 text-left">
+                            <p className="text-sm font-medium text-foreground">
+                              {t.settings.advanced?.roomOrdering?.title || 'Room ordering'}
+                            </p>
+                            <p className="text-xs text-muted">
+                              {t.settings.advanced?.roomOrdering?.description ||
+                                'Hold and drag to reorder rooms'}
+                            </p>
+                          </div>
+                          <div
+                            className={clsx(
+                              'px-2 py-0.5 text-xs font-medium rounded-full transition-colors',
+                              roomOrderingEnabled
+                                ? 'bg-accent/15 text-accent'
+                                : 'bg-border/50 text-muted'
+                            )}
+                          >
+                            {roomOrderingEnabled
+                              ? t.settings.advanced?.roomOrdering?.enabled || 'Enabled'
+                              : t.settings.advanced?.roomOrdering?.disabled || 'Disabled'}
+                          </div>
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
               {/* Display Options - Collapsible Section */}
               <div>
                 <button
@@ -361,79 +434,6 @@ export function SettingsMenu({
                   <p className="text-sm text-muted">{t.settings.editMode.description}</p>
                 </div>
               </button>
-
-              {/* Advanced - Collapsible Section */}
-              <div>
-                <button
-                  onClick={() => {
-                    setAdvancedOpen(!advancedOpen)
-                  }}
-                  className="w-full flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-border/30 transition-colors touch-feedback"
-                >
-                  <div className="p-2.5 rounded-xl bg-border/50">
-                    <Settings2 className="w-5 h-5 text-foreground" />
-                  </div>
-                  <div className="flex-1 text-left">
-                    <p className="font-medium text-foreground">
-                      {t.settings.advanced?.title || 'Advanced'}
-                    </p>
-                    <p className="text-sm text-muted">
-                      {t.settings.advanced?.description || 'Room ordering settings'}
-                    </p>
-                  </div>
-                  <motion.div
-                    animate={{ rotate: advancedOpen ? 180 : 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <ChevronDown className="w-5 h-5 text-muted" />
-                  </motion.div>
-                </button>
-
-                <AnimatePresence initial={false}>
-                  {advancedOpen && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="pl-4 border-l-2 border-border/50 ml-7 space-y-1">
-                        {/* Room Ordering Toggle */}
-                        <button
-                          onClick={handleRoomOrderingToggle}
-                          className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-border/30 transition-colors touch-feedback"
-                        >
-                          <div className="p-2 rounded-lg bg-border/50">
-                            <Layers className="w-4 h-4 text-foreground" />
-                          </div>
-                          <div className="flex-1 text-left">
-                            <p className="text-sm font-medium text-foreground">
-                              {t.settings.advanced?.roomOrdering?.title || 'Room ordering'}
-                            </p>
-                            <p className="text-xs text-muted">
-                              {t.settings.advanced?.roomOrdering?.description ||
-                                'Hold and drag to reorder rooms'}
-                            </p>
-                          </div>
-                          <div
-                            className={clsx(
-                              'px-2 py-0.5 text-xs font-medium rounded-full transition-colors',
-                              roomOrderingEnabled
-                                ? 'bg-accent/15 text-accent'
-                                : 'bg-border/50 text-muted'
-                            )}
-                          >
-                            {roomOrderingEnabled
-                              ? t.settings.advanced?.roomOrdering?.enabled || 'Enabled'
-                              : t.settings.advanced?.roomOrdering?.disabled || 'Disabled'}
-                          </div>
-                        </button>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
 
               {/* Bottom padding for safe area */}
               <div className="h-4" />

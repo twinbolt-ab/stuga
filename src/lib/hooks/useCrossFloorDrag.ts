@@ -56,7 +56,6 @@ export function useCrossFloorDrag({
   const [isTransitioning, setIsTransitioning] = useState(false)
 
   const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const sourceFloorIdRef = useRef<string | null | undefined>(undefined)
 
   // Build ordered list of floor IDs (including uncategorized if applicable)
   const floorIds = useMemo((): (string | null)[] => {
@@ -148,13 +147,20 @@ export function useCrossFloorDrag({
   // Handle drag start
   const handleDragStart = useCallback((room: RoomWithDevices) => {
     setDraggedRoom(room)
-    sourceFloorIdRef.current = room.floorId
   }, [])
 
   // Handle drag move (update position)
   const handleDragMove = useCallback((clientX: number, clientY: number) => {
     setDragPosition({ x: clientX, y: clientY })
   }, [])
+
+  // Reset all drag state
+  const resetDragState = useCallback(() => {
+    clearHoldTimer()
+    setDraggedRoom(null)
+    setDragPosition(null)
+    setHoveredFloorId(undefined)
+  }, [clearHoldTimer])
 
   // Handle drag end
   const handleDragEnd = useCallback(
@@ -173,25 +179,11 @@ export function useCrossFloorDrag({
         await onMoveRoomToFloor(room, targetFloorId)
       }
 
-      // Reset state
-      setDraggedRoom(null)
-      setDragPosition(null)
-      setHoveredFloorId(undefined)
-      sourceFloorIdRef.current = undefined
-
+      resetDragState()
       return shouldMove
     },
-    [hoveredFloorId, selectedFloorId, isTransitioning, clearHoldTimer, onMoveRoomToFloor]
+    [hoveredFloorId, selectedFloorId, isTransitioning, clearHoldTimer, onMoveRoomToFloor, resetDragState]
   )
-
-  // Handle drag cancel
-  const handleDragCancel = useCallback(() => {
-    clearHoldTimer()
-    setDraggedRoom(null)
-    setDragPosition(null)
-    setHoveredFloorId(undefined)
-    sourceFloorIdRef.current = undefined
-  }, [clearHoldTimer])
 
   // Handle floor tab enter (when dragging over a floor tab)
   const handleFloorTabEnter = useCallback(
@@ -226,7 +218,7 @@ export function useCrossFloorDrag({
       if (!draggedRoom || isTransitioning) return
 
       if (edge === null) {
-        // Left edge zone
+        // No longer hovering over an edge
         clearHoldTimer()
         setHoveredFloorId(undefined)
         return
@@ -254,7 +246,7 @@ export function useCrossFloorDrag({
     handleDragStart,
     handleDragMove,
     handleDragEnd,
-    handleDragCancel,
+    handleDragCancel: resetDragState,
     handleFloorTabEnter,
     handleFloorTabLeave,
     handleEdgeHover,
