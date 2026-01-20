@@ -552,6 +552,16 @@ export function ReorderableGrid<T>({
   const isMultiDrag = draggedIndices.length > 1
   const primaryDragPosition = draggedIndex !== null ? getPositionFromIndex(draggedIndex) : null
 
+  // Calculate ghost placeholder positions for multi-drag
+  // Show ghost placeholders at target positions for ALL dragged items (including primary)
+  // so users can see exactly where each room will land
+  const ghostPositions = isMultiDrag
+    ? draggedIndices.map((idx) => ({
+        index: idx,
+        position: getPositionFromIndex(idx),
+      }))
+    : []
+
   return (
     <div
       ref={containerRef}
@@ -561,6 +571,31 @@ export function ReorderableGrid<T>({
         height: containerHeight > 0 ? containerHeight : 'auto',
       }}
     >
+      {/* Ghost placeholders for multi-drag - show where secondary items will land */}
+      {ghostPositions.map(({ index, position }) => (
+        <motion.div
+          key={`ghost-${index}`}
+          className="absolute rounded-xl border-2 border-dashed border-accent/40 bg-accent/5"
+          style={{
+            top: 0,
+            left: 0,
+            width: cellSize.width > 0 ? cellSize.width : `calc((100% - ${gap * (columns - 1)}px) / ${columns})`,
+            height: cellSize.height > 0 ? cellSize.height : 'auto',
+          }}
+          initial={{ opacity: 0 }}
+          animate={{
+            x: position.x,
+            y: position.y,
+            opacity: 0.6,
+          }}
+          transition={{
+            x: { type: 'spring', stiffness: 500, damping: 30, mass: 0.8 },
+            y: { type: 'spring', stiffness: 500, damping: 30, mass: 0.8 },
+            opacity: { duration: 0.15 },
+          }}
+        />
+      ))}
+
       {orderedItems.map((item, index) => {
         // First item always renders for measurement, others wait until ready
         if (index > 0 && !isReady) return null
