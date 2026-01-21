@@ -17,9 +17,9 @@ const config: Config = {
         'warm-black': '#0D0D0C',
         'warm-brown': '#3d2e1f',
         brass: {
-          DEFAULT: '#C4A77D',
-          hover: '#B8956A',
-          light: '#D4B896',
+          DEFAULT: '#8B7332',
+          hover: '#7A6528',
+          light: '#B89B4A',
         },
         forest: '#4A7C59',
         amber: '#D4A574',

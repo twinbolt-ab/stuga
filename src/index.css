@@ -9,8 +9,8 @@
   --bg-card: #ffffff;
   --text-primary: #1a1a1a;
   --text-secondary: #6b6b6b;
-  --accent: #c4a77d;
-  --accent-hover: #b8956a;
+  --accent: #9C7B4A;
+  --accent-hover: #8A6C3F;
   --border: #e8e8e6;
   --success: #4a7c59;
   --warning: #d4a574;
@@ -22,8 +22,8 @@
   --bg-card: #1a1a18;
   --text-primary: #f5f5f4;
   --text-secondary: #a3a3a0;
-  --accent: #d4b896;
-  --accent-hover: #c4a77d;
+  --accent: #C9A97A;
+  --accent-hover: #B89968;
   --border: #2d2d2a;
   --success: #5a9c6a;
   --warning: #e4b584;
@@ -89,11 +89,11 @@
   }
 
   .btn-accent-glow {
-    box-shadow: 0 4px 16px rgba(196, 167, 125, 0.2);
+    box-shadow: 0 4px 16px rgba(139, 115, 50, 0.3);
   }
 
   .dark .btn-accent-glow {
-    box-shadow: 0 4px 16px rgba(212, 184, 150, 0.15);
+    box-shadow: 0 4px 16px rgba(184, 155, 74, 0.25);
   }
 }
 
