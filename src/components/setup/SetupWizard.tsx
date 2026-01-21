@@ -58,7 +58,7 @@ export function SetupWizard() {
   const navigate = useNavigate()
   const { enableDevMode, setMockScenario } = useDevMode()
   const [step, setStep] = useState<Step>('welcome')
-  const [url, setUrl] = useState('')
+  const [url, setUrl] = useState(isNativeApp() ? '' : 'https://')
   const [token, setToken] = useState('')
   const [authMethod, setAuthMethod] = useState<AuthMethod>('oauth')
   const [isLoading, setIsLoading] = useState(false)
