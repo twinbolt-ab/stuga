@@ -118,9 +118,56 @@ jobs:
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/stuga_keystore.jks
 
-      - name: Decode Play Store credentials
+      - name: Setup fastlane configuration
         run: |
           mkdir -p android/fastlane
+
+          # Create Gemfile
+          cat > android/Gemfile << 'EOF'
+          source "https://rubygems.org"
+          gem "fastlane"
+          EOF
+
+          # Create Appfile
+          cat > android/fastlane/Appfile << 'EOF'
+          json_key_file("fastlane/play-store-credentials.json")
+          package_name("com.twinbolt.stuga")
+          EOF
+
+          # Create Fastfile
+          cat > android/fastlane/Fastfile << 'EOF'
+          default_platform(:android)
+
+          platform :android do
+            desc "Build release AAB"
+            lane :build do
+              gradle(
+                task: "bundle",
+                build_type: "Release",
+                properties: {
+                  "RELEASE_STORE_FILE" => "../stuga_keystore.jks",
+                  "RELEASE_STORE_PASSWORD" => ENV["KEYSTORE_PASSWORD"],
+                  "RELEASE_KEY_ALIAS" => "stuga",
+                  "RELEASE_KEY_PASSWORD" => ENV["KEYSTORE_PASSWORD"]
+                }
+              )
+            end
+
+            desc "Deploy to internal testing track"
+            lane :internal do
+              build
+              upload_to_play_store(
+                track: "internal",
+                aab: "app/build/outputs/bundle/release/app-release.aab",
+                skip_upload_metadata: true,
+                skip_upload_images: true,
+                skip_upload_screenshots: true
+              )
+            end
+          end
+          EOF
+
+          # Decode Play Store credentials
           echo "${{ secrets.PLAY_STORE_CREDENTIALS_BASE64 }}" | base64 -d > android/fastlane/play-store-credentials.json
 
       - name: Setup Ruby (for fastlane)
