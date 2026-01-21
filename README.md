@@ -106,6 +106,7 @@ Built with Vite, React, Tailwind, Framer Motion, and Capacitor.
 - Custom tabs (favorite rooms and devices)
 
 **Later:**
+- Edit scenes
 - Add new devices through the app
 - Automations workflow / custom scripts
 - Languages
