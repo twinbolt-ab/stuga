@@ -436,11 +436,23 @@ export function SetupWizard() {
                           void verifyUrl(url)
                         }
                       }}
-                      placeholder={t.setup.url.placeholder}
+                      placeholder={isNativeApp() ? t.setup.url.placeholder : (t.setup.url.placeholderWeb || t.setup.url.placeholder)}
                       className="w-full px-4 py-3 bg-card border border-border rounded-xl text-foreground placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
                       autoComplete="url"
                     />
+                    <p className="mt-2 text-xs text-muted">
+                      {isNativeApp() ? t.setup.url.hint : (t.setup.url.hintWeb || t.setup.url.hint)}
+                    </p>
                   </div>
+
+                  {/* Web-only note about HTTPS requirement */}
+                  {!isNativeApp() && t.setup.url.webNote && (
+                    <div className="p-3 bg-accent/10 border border-accent/20 rounded-xl">
+                      <p className="text-sm text-foreground/80">
+                        {t.setup.url.webNote}
+                      </p>
+                    </div>
+                  )}
 
                   {/* URL Suggestions - only shown on native apps (local URLs don't work on web) */}
                   {isNativeApp() && (
