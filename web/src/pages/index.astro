@@ -3,23 +3,9 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="Stuga - A beautiful, opinionated Home Assistant dashboard">
-  <!-- Navigation -->
-  <nav class="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
-    <div class="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-      <a href="/" class="flex items-center gap-3">
-        <img src="/icon.png" alt="Stuga" class="w-8 h-8 rounded-lg" />
-        <span class="font-bold text-lg">Stuga</span>
-      </a>
-      <div class="flex items-center gap-6">
-        <a href="#features" class="text-muted hover:text-foreground transition-colors text-sm">Features</a>
-        <a href="https://github.com/twinbolt-ab/stuga" class="text-muted hover:text-foreground transition-colors text-sm">GitHub</a>
-      </div>
-    </div>
-  </nav>
-
   <main>
     <!-- Hero Section -->
-    <section class="pt-32 pb-20 px-6">
+    <section class="pt-16 pb-20 px-6">
       <div class="max-w-4xl mx-auto text-center">
         <img src="/icon.png" alt="Stuga" class="w-24 h-24 mx-auto mb-8 rounded-2xl shadow-warm-lg" />
         <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight">
@@ -33,14 +19,9 @@ import Layout from '../layouts/Layout.astro';
           Stuga is what I wanted: a fast, polished app that just works. Open it, log in, done.
           Your rooms, devices, and floors are already there. No YAML. No cards. No templates.
         </p>
-        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <a href="/run" class="btn-primary">
-            Run the app
-          </a>
-          <a href="#features" class="btn-secondary">
-            Learn More
-          </a>
-        </div>
+        <a href="/run" class="btn-primary inline-block">
+          Run the app
+        </a>
       </div>
     </section>
 
