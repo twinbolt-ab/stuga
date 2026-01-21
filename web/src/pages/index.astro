@@ -5,20 +5,13 @@ import Layout from '../layouts/Layout.astro';
 <Layout title="Stuga - A beautiful, opinionated Home Assistant dashboard">
   <main>
     <!-- Hero Section -->
-    <section class="pt-16 pb-20 px-6">
+    <section class="pt-16 pb-12 px-6">
       <div class="max-w-4xl mx-auto text-center">
         <img src="/icon.png" alt="Stuga" class="w-24 h-24 mx-auto mb-8 rounded-2xl shadow-warm-lg" />
-        <h1 class="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight">
+        <h1 class="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-8 tracking-tight">
           A beautiful, opinionated<br />
           <span class="text-accent">Home Assistant dashboard</span>
         </h1>
-        <p class="text-xl text-muted max-w-2xl mx-auto mb-6 leading-relaxed">
-          I love Home Assistant. I don't love configuring dashboards.
-        </p>
-        <p class="text-lg text-muted max-w-2xl mx-auto mb-10 leading-relaxed">
-          Stuga is what I wanted: a fast, polished app that just works. Open it, log in, done.
-          Your rooms, devices, and floors are already there. No YAML. No cards. No templates.
-        </p>
         <a href="#download" class="btn-primary inline-block">
           Run the app
         </a>
@@ -138,8 +131,21 @@ import Layout from '../layouts/Layout.astro';
       </div>
     </section>
 
-    <!-- Supported Devices -->
+    <!-- About -->
     <section class="py-20 px-6 bg-card">
+      <div class="max-w-3xl mx-auto text-center">
+        <p class="text-xl text-muted mb-4 leading-relaxed">
+          I love Home Assistant. I don't love configuring dashboards.
+        </p>
+        <p class="text-lg text-muted leading-relaxed">
+          Stuga is what I wanted: a fast, polished app that just works. Open it, log in, done.
+          Your rooms, devices, and floors are already there. No YAML. No cards. No templates.
+        </p>
+      </div>
+    </section>
+
+    <!-- Supported Devices -->
+    <section class="py-20 px-6">
       <div class="max-w-5xl mx-auto text-center">
         <h2 class="text-3xl md:text-4xl font-bold mb-4">Supports</h2>
         <p class="text-muted max-w-2xl mx-auto mb-12">
