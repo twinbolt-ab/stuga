@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "build:app": "cd .. && npm ci && VITE_BASE=/run/ npm run build && mkdir -p web/dist/run && cp -r dist/* web/dist/run/"
   },
   "dependencies": {
     "astro": "^5.0.0",

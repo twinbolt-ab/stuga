@@ -1,3 +1,9 @@
 [build]
-  command = "npm run build"
+  command = "npm run build && npm run build:app"
   publish = "dist"
+
+# SPA fallback for /run app
+[[redirects]]
+  from = "/run/*"
+  to = "/run/index.html"
+  status = 200
