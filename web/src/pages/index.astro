@@ -2,238 +2,162 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Stuga - A Home Assistant dashboard that just works">
+<Layout title="Stuga - An opinionated, beautiful app for Home Assistant">
   <main>
-    <!-- Hero Section -->
-    <section class="pt-20 pb-12 px-6">
-      <div class="max-w-4xl mx-auto text-center">
-        <img src="/icon.png" alt="Stuga" class="w-20 h-20 mx-auto mb-8 rounded-2xl shadow-warm-lg" />
-        <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 tracking-tight">
+    <!-- Demo First - Let the product speak -->
+    <section class="min-h-[70vh] flex flex-col items-center justify-center px-4 pt-12 pb-8">
+      <div class="w-full max-w-[280px] sm:max-w-[300px]">
+        <div class="relative bg-[#1a1a18] rounded-[2.5rem] p-2 shadow-2xl border border-border/30">
+          <div class="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-6 bg-[#1a1a18] rounded-b-xl z-10"></div>
+          <div class="rounded-[2rem] overflow-hidden bg-black">
+            <video
+              autoplay
+              muted
+              loop
+              playsinline
+              poster="/video/poster.jpg"
+              class="w-full"
+            >
+              <source src="/video/demo.webm" type="video/webm" />
+              <source src="/video/demo.mp4" type="video/mp4" />
+            </video>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- The Pitch -->
+    <section class="px-6 pb-16">
+      <div class="max-w-lg mx-auto">
+        <h1 class="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
           An opinionated, beautiful app for Home Assistant.
         </h1>
-        <p class="text-lg text-muted max-w-xl mx-auto mb-8">
-          Stuga is what I wanted: a fast, polished app that just works. Open it, log in, done. Your rooms and devices are already there. No YAML. No cards. No templates. Free and open source.
+        <p class="text-muted text-lg mb-8 leading-relaxed">
+          Open it, log in, done. Your rooms and devices are already there.
         </p>
-        <div class="flex flex-col sm:flex-row gap-3 justify-center">
-          <a href="/run" class="btn-primary inline-block">
-            Run web app
+        <a href="#download" class="btn-primary inline-flex items-center gap-2 text-base px-6 py-3">
+          Get the app
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          </svg>
+        </a>
+      </div>
+    </section>
+
+    <!-- What it does - Typography, not cards -->
+    <section class="px-6 py-20 bg-card">
+      <div class="max-w-lg mx-auto">
+        <p class="text-sm text-accent font-medium tracking-wide uppercase mb-6">What you get</p>
+
+        <div class="space-y-8">
+          <div>
+            <h2 class="text-xl font-bold mb-1">Zero config</h2>
+            <p class="text-muted">Reads your HA setup automatically. No YAML, no cards, no templates.</p>
+          </div>
+
+          <div>
+            <h2 class="text-xl font-bold mb-1">Edit in place</h2>
+            <p class="text-muted">Rename rooms, change icons, reorder things. Saved back to Home Assistant.</p>
+          </div>
+
+          <div>
+            <h2 class="text-xl font-bold mb-1">Actually fast</h2>
+            <p class="text-muted">WebSocket connection. Tap a light, see it change instantly.</p>
+          </div>
+
+          <div>
+            <h2 class="text-xl font-bold mb-1">Built for phones</h2>
+            <p class="text-muted">Designed for how you actually use your smart home.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Get it -->
+    <section id="download" class="px-6 py-20">
+      <div class="max-w-lg mx-auto">
+        <p class="text-sm text-accent font-medium tracking-wide uppercase mb-6">Get Stuga</p>
+
+        <!-- Primary: Native apps -->
+        <div class="mb-10">
+          <div class="flex items-center gap-3 mb-2">
+            <h2 class="text-xl font-bold">iOS & Android</h2>
+            <span class="px-2 py-0.5 bg-accent/10 text-accent text-xs font-medium rounded-full">Late January</span>
+          </div>
+          <p class="text-muted mb-4">Works with any Home Assistant, including local-only setups. No public URL needed.</p>
+          <form
+            name="app-waitlist"
+            method="POST"
+            data-netlify="true"
+            netlify-honeypot="bot-field"
+            class="flex gap-2"
+          >
+            <input type="hidden" name="form-name" value="app-waitlist" />
+            <p class="hidden">
+              <label>Don't fill this out: <input name="bot-field" /></label>
+            </p>
+            <input
+              type="email"
+              name="email"
+              placeholder="your@email.com"
+              required
+              class="flex-1 px-3 py-2 bg-card border border-border rounded-lg text-sm focus:outline-none focus:border-accent"
+            />
+            <button type="submit" class="btn-primary whitespace-nowrap">
+              Notify me
+            </button>
+          </form>
+        </div>
+
+        <!-- Secondary: Web App -->
+        <div class="border-t border-border pt-8 mb-8">
+          <div class="flex items-center gap-3 mb-2">
+            <h2 class="text-xl font-bold">Web App</h2>
+            <span class="px-2 py-0.5 bg-green-500/10 text-green-500 text-xs font-medium rounded-full">Try now</span>
+          </div>
+          <p class="text-muted mb-4">Can't wait? Try it in your browser. Needs HTTPS access to your Home Assistant.</p>
+          <a href="/run" class="inline-flex items-center gap-2 text-accent hover:underline font-medium">
+            Open web app
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
           </a>
-          <a href="#download" class="btn-secondary inline-block">
-            Get iOS & Android
+        </div>
+
+        <!-- Tertiary: Self-hosted -->
+        <div class="border-t border-border pt-8">
+          <h2 class="text-lg font-bold mb-2">Self-host it</h2>
+          <p class="text-muted text-sm mb-3">Run on your own server for local HTTP setups.</p>
+          <a href="https://github.com/twinbolt-ab/stuga" class="inline-flex items-center gap-2 text-accent hover:underline text-sm font-medium">
+            View on GitHub
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
           </a>
         </div>
       </div>
     </section>
 
-    <!-- Video Demo Section -->
-    <section class="py-16 px-6 bg-card overflow-hidden">
-      <div class="max-w-6xl mx-auto">
-        <div class="flex gap-4 md:gap-6 justify-center items-center">
-          <!-- Left screenshot -->
-          <div class="hidden sm:block flex-shrink-0 w-[140px] md:w-[180px] transform -rotate-3 opacity-60 hover:opacity-100 hover:rotate-0 transition-all duration-300">
-            <picture>
-              <source srcset="/screenshots-app/full/room-grid.webp" type="image/webp" />
-              <img
-                src="/screenshots-app/full/room-grid.jpg"
-                alt="Room grid overview"
-                class="w-full rounded-2xl shadow-warm-lg border border-border/50"
-                loading="lazy"
-              />
-            </picture>
-          </div>
-
-          <!-- Center video in phone frame -->
-          <div class="flex-shrink-0 w-[260px] sm:w-[280px] md:w-[300px] z-10">
-            <div class="relative bg-[#1a1a18] rounded-[2.5rem] p-2 shadow-warm-lg border border-border/30">
-              <!-- Phone notch -->
-              <div class="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-6 bg-[#1a1a18] rounded-b-xl z-10"></div>
-              <!-- Video container -->
-              <div class="rounded-[2rem] overflow-hidden bg-black">
-                <video
-                  autoplay
-                  muted
-                  loop
-                  playsinline
-                  poster="/video/poster.jpg"
-                  class="w-full"
-                >
-                  <source src="/video/demo.webm" type="video/webm" />
-                  <source src="/video/demo.mp4" type="video/mp4" />
-                </video>
-              </div>
-            </div>
-            <p class="text-xs text-muted text-center mt-4">See it in action</p>
-          </div>
-
-          <!-- Right screenshot -->
-          <div class="hidden sm:block flex-shrink-0 w-[140px] md:w-[180px] transform rotate-3 opacity-60 hover:opacity-100 hover:rotate-0 transition-all duration-300">
-            <picture>
-              <source srcset="/screenshots-app/full/device-editor.webp" type="image/webp" />
-              <img
-                src="/screenshots-app/full/device-editor.jpg"
-                alt="Device editor"
-                class="w-full rounded-2xl shadow-warm-lg border border-border/50"
-                loading="lazy"
-              />
-            </picture>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Features Section -->
-    <section id="features" class="py-20 px-6">
-      <div class="max-w-5xl mx-auto">
-        <h2 class="text-3xl md:text-4xl font-bold text-center mb-12">Built for my family to actually use.</h2>
-
-        <div class="grid md:grid-cols-4 gap-6">
-          <div class="card">
-            <h3 class="text-xl font-bold mb-2">Zero config</h3>
-            <p class="text-muted leading-relaxed">
-              Reads your HA setup automatically. Your rooms and devices are already there.
-            </p>
-          </div>
-
-          <div class="card">
-            <h3 class="text-xl font-bold mb-2">In-place editing</h3>
-            <p class="text-muted leading-relaxed">
-              Rename rooms, change icons, reorder things. All saved back to HA.
-            </p>
-          </div>
-
-          <div class="card">
-            <h3 class="text-xl font-bold mb-2">Mobile-first</h3>
-            <p class="text-muted leading-relaxed">
-              Designed for phones. Works on tablets and web too.
-            </p>
-          </div>
-
-          <div class="card">
-            <h3 class="text-xl font-bold mb-2">Fast</h3>
-            <p class="text-muted leading-relaxed">
-              WebSocket connection, instant updates. No polling.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Download Section -->
-    <section id="download" class="py-20 px-6">
-      <div class="max-w-5xl mx-auto">
-        <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">Get Stuga</h2>
-        <p class="text-muted text-center max-w-2xl mx-auto mb-12">
-          Pick what works for your setup.
+    <!-- Privacy as a quiet statement -->
+    <section class="px-6 py-16 bg-card">
+      <div class="max-w-lg mx-auto text-center">
+        <p class="text-muted">
+          No accounts. No analytics. Your data stays on your network.
         </p>
-
-        <div class="grid md:grid-cols-3 gap-6">
-          <!-- Web App - Available now -->
-          <div class="card">
-            <div class="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center mb-4">
-              <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-              </svg>
-            </div>
-            <div class="flex items-center gap-2 mb-2">
-              <h3 class="text-xl font-bold">Web App</h3>
-              <span class="px-2 py-0.5 bg-green-500/10 text-green-500 text-xs font-medium rounded-full">Try now</span>
-            </div>
-            <p class="text-muted leading-relaxed mb-4">
-              Works in any browser. Requires a public HTTPS URL for your Home Assistant (Nabu Casa, Cloudflare Tunnel, etc).
-            </p>
-            <a href="/run" class="btn-primary inline-flex items-center gap-2 text-sm">
-              Open web app
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </a>
-          </div>
-
-          <!-- Self-hosted -->
-          <div class="card">
-            <div class="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center mb-4">
-              <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
-              </svg>
-            </div>
-            <h3 class="text-xl font-bold mb-2">Self-hosted</h3>
-            <p class="text-muted leading-relaxed mb-4">
-              Run on your own server. Works with local HTTP Home Assistant setups without exposing anything to the internet.
-            </p>
-            <a href="https://github.com/twinbolt-ab/stuga" class="inline-flex items-center gap-2 text-accent hover:underline text-sm font-medium">
-              View on GitHub
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </a>
-          </div>
-
-          <!-- Native Apps - Coming soon with email capture -->
-          <div class="card">
-            <div class="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center mb-4">
-              <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <h3 class="text-xl font-bold mb-2">iOS & Android</h3>
-            <p class="text-muted leading-relaxed mb-4">
-              Native apps work with any Home Assistant, including local-only setups. No public URL required.
-            </p>
-            <form
-              name="app-waitlist"
-              method="POST"
-              data-netlify="true"
-              netlify-honeypot="bot-field"
-              class="space-y-2"
-            >
-              <input type="hidden" name="form-name" value="app-waitlist" />
-              <p class="hidden">
-                <label>Don't fill this out: <input name="bot-field" /></label>
-              </p>
-              <input
-                type="email"
-                name="email"
-                placeholder="your@email.com"
-                required
-                class="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:border-accent"
-              />
-              <button type="submit" class="w-full px-3 py-2 bg-accent/10 text-accent hover:bg-accent/20 rounded-lg text-sm font-medium transition-colors">
-                Notify me when it's ready
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- About Section -->
-    <section class="py-20 px-6 bg-card">
-      <div class="max-w-3xl mx-auto text-center">
-        <h2 class="text-3xl md:text-4xl font-bold mb-4">Your smart home stays yours</h2>
-        <p class="text-muted leading-relaxed mb-2">
-          No accounts. No analytics. No company watching what you turn on at 2am.
-        </p>
-        <p class="text-muted leading-relaxed mb-6">
-          Stuga connects directly to your Home Assistant. Your data never leaves your network.
-        </p>
-        <p class="text-sm text-muted">
+        <p class="text-sm text-muted/60 mt-4">
           Free and open source. Made by <a href="https://twinbolt.se" class="text-accent hover:underline">Twinbolt</a> in Sweden.
         </p>
       </div>
     </section>
   </main>
 
-  <!-- Footer -->
-  <footer class="py-12 px-6 border-t border-border">
-    <div class="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-      <div class="flex items-center gap-3">
-        <img src="/icon.png" alt="Stuga" class="w-6 h-6 rounded-md" />
-        <span class="text-muted text-sm">&copy; 2026 Twinbolt AB</span>
-      </div>
-      <div class="flex items-center gap-6 text-sm">
-        <a href="/privacy" class="text-muted hover:text-foreground transition-colors">Privacy Policy</a>
-        <a href="https://github.com/twinbolt-ab/stuga" class="text-muted hover:text-foreground transition-colors">GitHub</a>
-        <a href="https://github.com/twinbolt-ab/stuga/issues" class="text-muted hover:text-foreground transition-colors">Support</a>
+  <!-- Minimal footer -->
+  <footer class="py-8 px-6 border-t border-border">
+    <div class="max-w-lg mx-auto flex items-center justify-between text-sm text-muted">
+      <span>&copy; 2026 Twinbolt AB</span>
+      <div class="flex gap-4">
+        <a href="/privacy" class="hover:text-foreground transition-colors">Privacy</a>
+        <a href="https://github.com/twinbolt-ab/stuga" class="hover:text-foreground transition-colors">GitHub</a>
       </div>
     </div>
   </footer>
