@@ -59,7 +59,8 @@
       "tokenHint": "Enter a long-lived access token manually",
       "recommended": "Recommended",
       "useTokenInstead": "Use access token instead",
-      "useOAuthInstead": "Use login instead"
+      "useOAuthInstead": "Use login instead",
+      "advancedToken": "Connect with access token"
     },
     "oauth": {
       "completing": "Completing authentication...",

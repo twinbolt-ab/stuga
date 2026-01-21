@@ -576,20 +576,6 @@ export function SetupWizard() {
                   )}
                 </AnimatePresence>
 
-                {/* Subtle token option link - shown when OAuth is selected */}
-                {authMethod === 'oauth' && (
-                  <div className="text-center">
-                    <button
-                      onClick={() => setAuthMethod('token')}
-                      disabled={isLoading}
-                      className="text-sm text-muted hover:text-foreground transition-colors inline-flex items-center gap-1.5"
-                    >
-                      <Key className="w-3.5 h-3.5" />
-                      {t.setup.authMethod?.useTokenInstead || 'Use access token instead'}
-                    </button>
-                  </div>
-                )}
-
                 {error && (
                   <div className="flex items-center gap-2 text-red-500 text-sm">
                     <AlertCircle className="w-4 h-4 flex-shrink-0" />
@@ -629,6 +615,28 @@ export function SetupWizard() {
                     )}
                   </button>
                 </div>
+
+                {/* Advanced section - shown when OAuth is selected */}
+                <AnimatePresence>
+                  {authMethod === 'oauth' && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2, delay: 0.1 }}
+                      className="pt-4 border-t border-border/50"
+                    >
+                      <button
+                        onClick={() => setAuthMethod('token')}
+                        disabled={isLoading}
+                        className="w-full py-3 px-4 text-sm text-muted hover:text-foreground hover:bg-card/50 rounded-xl transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Key className="w-4 h-4" />
+                        {t.setup.authMethod?.advancedToken || 'Connect with access token'}
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </motion.div>
           )}
