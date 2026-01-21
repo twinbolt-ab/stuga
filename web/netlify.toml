@@ -1,6 +1,8 @@
 [build]
   command = "npm run build && npm run build:app"
   publish = "dist"
+  # Watch the entire repo for changes, not just web/
+  ignore = "exit 1"
 
 # SPA fallback for /run app
 [[redirects]]
