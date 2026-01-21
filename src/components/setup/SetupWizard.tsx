@@ -445,14 +445,24 @@ export function SetupWizard() {
                     </p>
                   </div>
 
-                  {/* Web-only note about HTTPS requirement */}
-                  {!isNativeApp() && t.setup.url.webNote && (
-                    <div className="p-3 bg-accent/10 border border-accent/20 rounded-xl">
-                      <p className="text-sm text-foreground/80">
-                        {t.setup.url.webNote}
-                      </p>
-                    </div>
-                  )}
+                  {/* Web-only warning when user enters non-HTTPS URL */}
+                  <AnimatePresence>
+                    {!isNativeApp() && url && !url.trim().toLowerCase().startsWith('https://') && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                          <p className="text-sm text-foreground/80">
+                            {t.setup.url.webNote}
+                          </p>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
                   {/* URL Suggestions - only shown on native apps (local URLs don't work on web) */}
                   {isNativeApp() && (
