@@ -103,7 +103,13 @@ jobs:
         run: npm run build
 
       - name: Add Android platform
-        run: npx cap add android
+        run: |
+          echo "Checking Capacitor installation..."
+          npx cap --version
+          echo "Adding Android platform..."
+          npx cap add android
+          echo "Verifying android directory exists..."
+          ls -la android/
 
       - name: Sync Capacitor
         run: npx cap sync android
