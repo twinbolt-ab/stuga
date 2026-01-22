@@ -197,6 +197,29 @@ else
   echo "  Android: build.gradle not found, skipping"
 fi
 
+# Create fastlane changelog for Play Store (uses versionCode as filename)
+echo -e "${GREEN}Creating Play Store changelog...${NC}"
+FASTLANE_CHANGELOG_DIR="android/fastlane/metadata/android/en-US/changelogs"
+mkdir -p "$FASTLANE_CHANGELOG_DIR"
+
+# Generate a simpler, plain-text changelog for Play Store (no markdown headers, 500 char limit)
+PLAY_STORE_CHANGELOG=$(claude -p "Convert this changelog to a simple plain-text format for Google Play Store.
+
+Rules:
+- NO headers or categories (remove 'Improvements', 'Bug Fixes', etc.)
+- Just a simple bullet list using • character
+- Keep it under 500 characters total
+- Focus on the most important user-facing changes
+- Simple, friendly language
+
+Input:
+$CHANGELOG
+
+Output only the plain-text changelog:")
+
+echo "$PLAY_STORE_CHANGELOG" > "$FASTLANE_CHANGELOG_DIR/$NEW_VERSION_CODE.txt"
+echo "  Play Store changelog: changelogs/$NEW_VERSION_CODE.txt"
+
 # Update iOS version (not tracked in git, but updated locally for native builds)
 echo -e "${GREEN}Updating iOS version...${NC}"
 IOS_PROJECT="ios/App/App.xcodeproj/project.pbxproj"
@@ -215,7 +238,7 @@ fi
 
 # Commit with changelog in message body
 # Using a special format that GHA can parse
-git add package.json CHANGELOG.md
+git add package.json CHANGELOG.md android/fastlane/metadata/android/en-US/changelogs/
 if git diff --cached --quiet; then
   echo -e "${YELLOW}No changes to commit (version files may already be updated)${NC}"
   echo "Proceeding with tag creation..."

@@ -21,7 +21,6 @@ platform :android do
     upload_to_play_store(
       track: "internal",
       aab: "app/build/outputs/bundle/release/app-release.aab",
-      skip_upload_metadata: true,
       skip_upload_images: true,
       skip_upload_screenshots: true
     )
@@ -33,7 +32,6 @@ platform :android do
     upload_to_play_store(
       track: "production",
       aab: "app/build/outputs/bundle/release/app-release.aab",
-      skip_upload_metadata: true,
       skip_upload_images: true,
       skip_upload_screenshots: true
     )
