@@ -89,29 +89,44 @@ export function useGridDrag<T>({
 
     const container = containerRef.current
     if (!container) return
-    const rect = container.getBoundingClientRect()
 
+    // Calculate where the finger is pointing - this is where the item should be
+    const targetIndex = getIndexFromPointer(externalDragPosition.x, externalDragPosition.y)
+
+    // If the item is not at the target position, reorder it there first
+    let finalIndex = itemIndex
+    let currentItems = orderedItems
+    if (targetIndex !== itemIndex) {
+      const newItems = [...orderedItems]
+      const [draggedItem] = newItems.splice(itemIndex, 1)
+      newItems.splice(targetIndex, 0, draggedItem)
+      setOrderedItems(newItems)
+      currentItems = newItems
+      finalIndex = targetIndex
+    }
+
+    // Calculate offset to center card under finger
+    const gridPos = getPositionFromIndex(finalIndex)
+    const rect = container.getBoundingClientRect()
     const fingerX = externalDragPosition.x - rect.left
     const fingerY = externalDragPosition.y - rect.top
-    const gridPos = getPositionFromIndex(itemIndex)
-
     const offsetX = fingerX - gridPos.x - cellSize.width / 2
     const offsetY = fingerY - gridPos.y - cellSize.height / 2
 
-    setDraggedIndex(itemIndex)
+    setDraggedIndex(finalIndex)
     setDragStartPos({ x: externalDragPosition.x - offsetX, y: externalDragPosition.y - offsetY })
     setDragOffset({ x: offsetX, y: offsetY })
 
     // Rebuild draggedIndices for multi-drag after floor switch
     if (selectedKeys && selectedKeys.size > 1) {
-      const newDraggedIndices = orderedItems
+      const newDraggedIndices = currentItems
         .map((item, i) => ({ key: getKey(item), index: i }))
         .filter(({ key }) => selectedKeys.has(key))
         .map(({ index }) => index)
         .sort((a, b) => a - b)
-      setDraggedIndices(newDraggedIndices.length > 1 ? newDraggedIndices : [itemIndex])
+      setDraggedIndices(newDraggedIndices.length > 1 ? newDraggedIndices : [finalIndex])
     } else {
-      setDraggedIndices([itemIndex])
+      setDraggedIndices([finalIndex])
     }
   }, [
     externalDragKey,
@@ -120,6 +135,7 @@ export function useGridDrag<T>({
     getKey,
     draggedIndex,
     getPositionFromIndex,
+    getIndexFromPointer,
     cellSize,
     selectedKeys,
     containerRef,
@@ -374,12 +390,19 @@ export function useGridDrag<T>({
       handleDragEnd()
     }
 
+    // Prevent context menu during long-press/drag on web
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault()
+    }
+
     window.addEventListener('mousemove', handleMouseMove)
     window.addEventListener('mouseup', handleMouseUp)
+    window.addEventListener('contextmenu', handleContextMenu)
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove)
       window.removeEventListener('mouseup', handleMouseUp)
+      window.removeEventListener('contextmenu', handleContextMenu)
     }
   }, [draggedIndex, pendingDragIndex, checkLongPressMove, handleDragMove, handleDragEnd])
 
