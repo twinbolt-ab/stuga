@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.3.9] - 2026-01-22
+
+- Improved app store listings with better descriptions and metadata
+
+
 ## [0.3.8] - 2026-01-22
 
 - Added reviewer instructions for Google Play to help with app store approval
