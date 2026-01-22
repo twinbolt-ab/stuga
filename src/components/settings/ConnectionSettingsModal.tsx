@@ -60,7 +60,7 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
     }
   }, [isOpen, y])
 
-  // Reset state when modal opens - intentional synchronous setState for modal reset pattern
+  // Reset state when modal opens (ideally would use key prop but requires parent changes)
   useEffect(() => {
     if (isOpen) {
       // For token auth, load stored token

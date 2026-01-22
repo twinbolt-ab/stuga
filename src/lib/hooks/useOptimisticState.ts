@@ -75,11 +75,12 @@ export function useOptimisticState<T>({
     setOptimisticValue(null)
   }, [clearTimer])
 
-  // Clear optimistic state when actual value matches (real data arrived)
+  // Clear optimistic state when actual value matches (server confirmed our optimistic update)
+  // This is valid: effect subscribes to actualValue changes from external source
   useEffect(() => {
     if (optimisticValue !== null && isEqual(actualValue, optimisticValue)) {
       clearTimer()
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: clearing optimistic state when actual matches
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOptimisticValue(null)
     }
   }, [actualValue, optimisticValue, isEqual, clearTimer])
