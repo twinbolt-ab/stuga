@@ -288,6 +288,7 @@
     "editRooms": "Edit rooms",
     "editDevice": "Edit device",
     "editDevices": "Edit devices",
+    "noChange": "No change",
     "rooms": {
       "title": "Edit {count} Rooms",
       "moveToFloor": "Move to floor"

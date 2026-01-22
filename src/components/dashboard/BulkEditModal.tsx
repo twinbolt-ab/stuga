@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { EditModal } from '@/components/ui/EditModal'
 import { FormField } from '@/components/ui/FormField'
-import { Select } from '@/components/ui/Select'
 import { ComboBox } from '@/components/ui/ComboBox'
 import { IconPickerField } from '@/components/ui/IconPickerField'
 import { useToast } from '@/providers/ToastProvider'
@@ -155,7 +154,7 @@ export function BulkEditDevicesModal({
   ]
 
   const hiddenOptions = [
-    { value: '', label: '— No change —' },
+    { value: '', label: t.bulkEdit.noChange },
     { value: 'hide', label: t.bulkEdit.devices.hide },
     { value: 'unhide', label: t.bulkEdit.devices.unhide },
   ]
@@ -223,7 +222,22 @@ export function BulkEditDevicesModal({
         </FormField>
 
         <FormField label={t.edit.device.hidden}>
-          <Select value={hidden} onChange={setHidden} options={hiddenOptions} />
+          <div className="flex gap-2">
+            {hiddenOptions.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setHidden(option.value)}
+                className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-medium transition-colors ${
+                  hidden === option.value
+                    ? 'bg-accent text-white'
+                    : 'bg-border/50 text-foreground hover:bg-border'
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
         </FormField>
 
         <div className="flex gap-3 pt-4">
