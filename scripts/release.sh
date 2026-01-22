@@ -242,7 +242,7 @@ fi
 # Push to GitHub
 echo -e "${GREEN}Pushing to GitHub...${NC}"
 git push origin "$CURRENT_BRANCH"
-git push origin "$NEW_TAG"
+git push origin "$NEW_TAG" --force
 
 echo ""
 echo -e "${GREEN}✓ Pushed $NEW_TAG${NC}"
