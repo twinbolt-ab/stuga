@@ -81,6 +81,71 @@ import Layout from '../layouts/Layout.astro';
       </div>
     </section>
 
+    <!-- Screenshots -->
+    <section class="py-16 overflow-hidden">
+      <div class="max-w-lg mx-auto px-6 mb-8">
+        <p class="text-sm text-accent font-medium tracking-wide uppercase">See it in action</p>
+      </div>
+      <div class="flex gap-6 px-6 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
+        <div class="flex-shrink-0 snap-center first:ml-auto last:mr-auto">
+          <div class="w-[180px] sm:w-[200px]">
+            <div class="relative bg-[#1a1a18] rounded-[1.75rem] p-1.5 shadow-xl border border-border/30">
+              <div class="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-4 bg-[#1a1a18] rounded-b-lg z-10"></div>
+              <div class="rounded-[1.25rem] overflow-hidden bg-black">
+                <picture>
+                  <source srcset="/screenshots-app/medium/room-grid.webp" type="image/webp" />
+                  <img src="/screenshots-app/medium/room-grid.jpg" alt="Room overview" class="w-full" loading="lazy" />
+                </picture>
+              </div>
+            </div>
+            <p class="text-center text-sm text-muted mt-3">Your rooms, organized</p>
+          </div>
+        </div>
+        <div class="flex-shrink-0 snap-center">
+          <div class="w-[180px] sm:w-[200px]">
+            <div class="relative bg-[#1a1a18] rounded-[1.75rem] p-1.5 shadow-xl border border-border/30">
+              <div class="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-4 bg-[#1a1a18] rounded-b-lg z-10"></div>
+              <div class="rounded-[1.25rem] overflow-hidden bg-black">
+                <picture>
+                  <source srcset="/screenshots-app/medium/room-expanded.webp" type="image/webp" />
+                  <img src="/screenshots-app/medium/room-expanded.jpg" alt="Room details" class="w-full" loading="lazy" />
+                </picture>
+              </div>
+            </div>
+            <p class="text-center text-sm text-muted mt-3">Tap to see devices</p>
+          </div>
+        </div>
+        <div class="flex-shrink-0 snap-center">
+          <div class="w-[180px] sm:w-[200px]">
+            <div class="relative bg-[#1a1a18] rounded-[1.75rem] p-1.5 shadow-xl border border-border/30">
+              <div class="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-4 bg-[#1a1a18] rounded-b-lg z-10"></div>
+              <div class="rounded-[1.25rem] overflow-hidden bg-black">
+                <picture>
+                  <source srcset="/screenshots-app/medium/multi-select.webp" type="image/webp" />
+                  <img src="/screenshots-app/medium/multi-select.jpg" alt="Multi-select mode" class="w-full" loading="lazy" />
+                </picture>
+              </div>
+            </div>
+            <p class="text-center text-sm text-muted mt-3">Select multiple rooms</p>
+          </div>
+        </div>
+        <div class="flex-shrink-0 snap-center last:mr-auto">
+          <div class="w-[180px] sm:w-[200px]">
+            <div class="relative bg-[#1a1a18] rounded-[1.75rem] p-1.5 shadow-xl border border-border/30">
+              <div class="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-4 bg-[#1a1a18] rounded-b-lg z-10"></div>
+              <div class="rounded-[1.25rem] overflow-hidden bg-black">
+                <picture>
+                  <source srcset="/screenshots-app/medium/room-editor.webp" type="image/webp" />
+                  <img src="/screenshots-app/medium/room-editor.jpg" alt="Edit room" class="w-full" loading="lazy" />
+                </picture>
+              </div>
+            </div>
+            <p class="text-center text-sm text-muted mt-3">Edit in place</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Get it -->
     <section id="download" class="px-6 py-20">
       <div class="max-w-lg mx-auto">
