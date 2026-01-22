@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.3.10] - 2026-01-22
+
+- No user-facing changes in this release
+
+
 ## [0.3.9] - 2026-01-22
 
 - Improved app store listings with better descriptions and metadata
