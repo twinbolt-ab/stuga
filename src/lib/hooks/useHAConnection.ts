@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import * as ws from '@/lib/ha-websocket'
 import { getStoredCredentials, getAuthMethod } from '@/lib/config'
 import { getValidAccessToken, isUsingOAuth, getOAuthCredentials } from '@/lib/ha-oauth'
@@ -10,17 +10,21 @@ const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000
 // Minimum delay between refresh attempts to prevent infinite loops
 const MIN_REFRESH_DELAY_MS = 30 * 1000
 
+// Module-level singleton state for connection and token refresh (shared across all hook instances)
+let refreshTimerRef: ReturnType<typeof setTimeout> | null = null
+let connectionInitialized = false
+let visibilityHandlerAttached = false
+
 export function useHAConnection() {
   const [isConnected, setIsConnected] = useState(() => ws.isConnected())
   const [entities, setEntities] = useState<Map<string, HAEntity>>(new Map())
   const [isConfigured, setIsConfigured] = useState(false)
   const [hasReceivedData, setHasReceivedData] = useState(false)
-  const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     let cancelled = false
 
-    // Schedule proactive token refresh before expiry
+    // Schedule proactive token refresh before expiry (singleton - only runs once globally)
     async function scheduleTokenRefresh() {
       const usingOAuth = await isUsingOAuth()
       if (!usingOAuth) return
@@ -29,9 +33,9 @@ export function useHAConnection() {
       if (!creds) return
 
       // Clear any existing timer
-      if (refreshTimerRef.current) {
-        clearTimeout(refreshTimerRef.current)
-        refreshTimerRef.current = null
+      if (refreshTimerRef) {
+        clearTimeout(refreshTimerRef)
+        refreshTimerRef = null
       }
 
       // Calculate when to refresh (5 minutes before expiry)
@@ -49,7 +53,7 @@ export function useHAConnection() {
         `Token expires at ${new Date(creds.expires_at).toISOString()}, scheduling refresh in ${Math.round(delay / 1000)}s`
       )
 
-      refreshTimerRef.current = setTimeout(() => {
+      refreshTimerRef = setTimeout(() => {
         if (cancelled) return
         logger.debug('useHAConnection', 'Proactive token refresh triggered')
         void (async () => {
@@ -80,11 +84,15 @@ export function useHAConnection() {
       }
 
       setIsConfigured(true)
-      ws.configure(result.credentials.url, result.credentials.token, authMethod === 'oauth')
-      ws.connect()
 
-      // Start proactive token refresh for OAuth
-      void scheduleTokenRefresh()
+      // Only configure/connect once globally
+      if (!connectionInitialized) {
+        connectionInitialized = true
+        ws.configure(result.credentials.url, result.credentials.token, authMethod === 'oauth')
+        ws.connect()
+        // Start proactive token refresh for OAuth
+        void scheduleTokenRefresh()
+      }
     }
 
     void initConnection()
@@ -99,6 +107,7 @@ export function useHAConnection() {
     })
 
     // Handle visibility change (for web - proactively refresh OAuth token on tab focus)
+    // Only set up once globally
     const handleVisibilityChange = () => {
       if (document.visibilityState !== 'visible') return
 
@@ -125,16 +134,18 @@ export function useHAConnection() {
       })()
     }
 
-    document.addEventListener('visibilitychange', handleVisibilityChange)
+    // Only attach visibility handler once globally
+    if (!visibilityHandlerAttached) {
+      visibilityHandlerAttached = true
+      document.addEventListener('visibilitychange', handleVisibilityChange)
+    }
 
     return () => {
       cancelled = true
-      if (refreshTimerRef.current) {
-        clearTimeout(refreshTimerRef.current)
-      }
+      // Don't clear the global refresh timer or visibility handler on individual hook unmount
+      // They're managed globally and should persist
       unsubMessage()
       unsubConnection()
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }, [])
 
