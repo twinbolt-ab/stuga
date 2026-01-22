@@ -217,10 +217,7 @@ export function ReorderableGrid<T>({
             key={key}
             ref={index === 0 ? measureRef : undefined}
             data-grid-item
-            className={clsx(
-              'absolute',
-              isPrimaryDrag && 'z-50'
-            )}
+            className={clsx('absolute', isPrimaryDrag && 'z-50')}
             style={{
               top: 0,
               left: 0,

@@ -105,10 +105,7 @@ export function useGridMeasurement({
   )
 
   // Get cell width as number or CSS calc fallback (using pure function)
-  const getCellWidth = useCallback(
-    () => getCellWidthOrFallback(geometry),
-    [geometry]
-  )
+  const getCellWidth = useCallback(() => getCellWidthOrFallback(geometry), [geometry])
 
   const containerHeight = getContainerHeight(geometry, itemCount)
   const isReady = cellSize.width > 0 && cellSize.height > 0

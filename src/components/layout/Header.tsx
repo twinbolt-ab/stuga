@@ -86,7 +86,7 @@ interface ReorderableFloorTabProps {
   onTap: () => void
 }
 
-function ReorderableFloorTab({ floor, isActive, isSelected, onTap }: ReorderableFloorTabProps) {
+function ReorderableFloorTab({ floor, onTap }: ReorderableFloorTabProps) {
   const didDragRef = useRef(false)
 
   return (

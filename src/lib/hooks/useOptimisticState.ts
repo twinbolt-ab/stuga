@@ -79,6 +79,7 @@ export function useOptimisticState<T>({
   useEffect(() => {
     if (optimisticValue !== null && isEqual(actualValue, optimisticValue)) {
       clearTimer()
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: clearing optimistic state when actual matches
       setOptimisticValue(null)
     }
   }, [actualValue, optimisticValue, isEqual, clearTimer])

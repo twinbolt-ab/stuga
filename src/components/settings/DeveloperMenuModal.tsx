@@ -114,14 +114,20 @@ export function DeveloperMenuModal({ isOpen, onClose }: DeveloperMenuModalProps)
     setMockScenario(scenario)
   }
 
-  const handleExitDevMode = async () => {
+  const handleExitDevMode = () => {
     disableDevMode()
     onClose()
     // If no real credentials exist, redirect to setup
-    const hasCredentials = await isSetupComplete()
-    if (!hasCredentials) {
-      navigate('/setup', { replace: true })
-    }
+    isSetupComplete()
+      .then((hasCredentials) => {
+        if (!hasCredentials) {
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises -- navigate returns void but type includes Promise path
+          navigate('/setup', { replace: true })
+        }
+      })
+      .catch(() => {
+        // Ignore errors - we're just checking credentials
+      })
   }
 
   return (

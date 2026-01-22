@@ -145,7 +145,7 @@ export async function authenticateWithInAppBrowser(haUrl: string): Promise<OAuth
     const setupAndOpen = async () => {
       // Listen for deep links (app URL open) - this catches the custom scheme redirect
       // when the OS intercepts com.twinbolt.stuga:/ and opens the app
-      appUrlListener = await App.addListener('appUrlOpen', async (event) => {
+      appUrlListener = await App.addListener('appUrlOpen', (event) => {
         if (resolved) return
 
         const url = event.url
@@ -153,12 +153,12 @@ export async function authenticateWithInAppBrowser(haUrl: string): Promise<OAuth
 
         // Check if this is our OAuth redirect
         if (url.startsWith('com.twinbolt.stuga:')) {
-          await processCallback(url)
+          void processCallback(url)
         }
       })
 
       // Listen for URL changes in WebView (backup, may not fire for custom schemes)
-      urlChangeListener = await InAppBrowser.addListener('urlChangeEvent', async (event) => {
+      urlChangeListener = await InAppBrowser.addListener('urlChangeEvent', (event) => {
         if (resolved) return
 
         const url = event.url
@@ -166,16 +166,16 @@ export async function authenticateWithInAppBrowser(haUrl: string): Promise<OAuth
 
         // Check if this is our redirect
         if (url.startsWith(redirectUri) || url.startsWith('com.twinbolt.stuga:')) {
-          await processCallback(url)
+          void processCallback(url)
         }
       })
 
       // Listen for browser close (user cancelled)
-      closeListener = await InAppBrowser.addListener('closeEvent', async () => {
+      closeListener = await InAppBrowser.addListener('closeEvent', () => {
         // Ignore close if we're already processing a redirect
         if (!resolved && !processingRedirect) {
           logger.debug('OAuth', 'User closed browser without completing auth')
-          await handleResult({ success: false, error: 'User cancelled' })
+          void handleResult({ success: false, error: 'User cancelled' })
         }
       })
 
@@ -197,9 +197,9 @@ export async function authenticateWithInAppBrowser(haUrl: string): Promise<OAuth
       }
     }
 
-    setupAndOpen().catch(async (err) => {
+    setupAndOpen().catch((err: unknown) => {
       logger.error('OAuth', 'Setup failed:', err)
-      await handleResult({
+      void handleResult({
         success: false,
         error: err instanceof Error ? err.message : 'Failed to setup OAuth',
       })

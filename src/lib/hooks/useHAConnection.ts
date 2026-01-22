@@ -44,7 +44,10 @@ export function useHAConnection() {
 
       // If token is already expired, don't schedule proactive refresh - it will refresh on demand
       if (creds.expires_at <= Date.now()) {
-        logger.debug('useHAConnection', 'Token already expired, skipping proactive refresh scheduling')
+        logger.debug(
+          'useHAConnection',
+          'Token already expired, skipping proactive refresh scheduling'
+        )
         return
       }
 

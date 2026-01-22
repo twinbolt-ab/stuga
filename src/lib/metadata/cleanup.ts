@@ -47,6 +47,9 @@ export async function cleanupRoomOrderLabels(): Promise<{ deletedCount: number }
     }
   }
 
-  logger.debug('Metadata', `Cleaned up ${roomOrderLabels.length} room order labels from Home Assistant`)
+  logger.debug(
+    'Metadata',
+    `Cleaned up ${roomOrderLabels.length} room order labels from Home Assistant`
+  )
   return { deletedCount: roomOrderLabels.length }
 }

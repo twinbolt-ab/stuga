@@ -12,7 +12,7 @@ document.addEventListener('contextmenu', (e) => e.preventDefault())
 async function bootstrap() {
   try {
     await initStorage()
-    await initMetadataService()
+    initMetadataService()
 
     const root = document.getElementById('root')
     if (!root) throw new Error('Root element not found')

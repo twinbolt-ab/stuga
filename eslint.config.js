@@ -8,7 +8,7 @@ import globals from 'globals'
 
 export default tseslint.config(
   // Global ignores
-  { ignores: ['dist', '.next', 'node_modules', 'android', 'ios', '*.config.js', '*.config.cjs', '*.config.ts'] },
+  { ignores: ['dist', '.next', 'node_modules', 'android', 'ios', 'web', 'public/sw.js', '*.config.js', '*.config.cjs', '*.config.ts'] },
 
   // Base JS recommended rules
   js.configs.recommended,

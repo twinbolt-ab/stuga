@@ -10,7 +10,6 @@ import {
   AlertCircle,
   X,
   Wifi,
-  LogIn,
   Key,
   Copy,
 } from 'lucide-react'
@@ -70,11 +69,12 @@ function WebCorsConfig() {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
-      // Fallback for older browsers
+      // Fallback for older browsers that don't support navigator.clipboard
       const textarea = document.createElement('textarea')
       textarea.value = configCode
       document.body.appendChild(textarea)
       textarea.select()
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
       document.execCommand('copy')
       document.body.removeChild(textarea)
       setCopied(true)
@@ -84,12 +84,8 @@ function WebCorsConfig() {
 
   return (
     <div className="p-4 bg-card border border-border rounded-xl space-y-3">
-      <p className="text-sm font-medium text-foreground">
-        {t.setup.url.webSetupTitle}
-      </p>
-      <p className="text-sm text-muted">
-        {t.setup.url.webSetupNote}
-      </p>
+      <p className="text-sm font-medium text-foreground">{t.setup.url.webSetupTitle}</p>
+      <p className="text-sm text-muted">{t.setup.url.webSetupNote}</p>
       <div className="relative">
         <pre className="text-xs bg-background p-3 pr-10 rounded-lg overflow-x-auto font-mono text-foreground/80">
           {configCode}
@@ -99,11 +95,7 @@ function WebCorsConfig() {
           className="absolute top-2 right-2 p-1.5 rounded-md hover:bg-border/50 transition-colors text-muted hover:text-foreground"
           title="Copy to clipboard"
         >
-          {copied ? (
-            <Check className="w-4 h-4 text-green-500" />
-          ) : (
-            <Copy className="w-4 h-4" />
-          )}
+          {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
         </button>
       </div>
     </div>
@@ -139,9 +131,9 @@ export function SetupWizard() {
   const startDemo = useCallback(() => {
     enableDevMode()
     setMockScenario('apartment')
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises -- navigate returns void but type includes Promise path
     navigate('/')
   }, [enableDevMode, setMockScenario, navigate])
-
 
   // Test WebSocket connection to HA (with shorter timeout for probing)
   const testConnection = useCallback(
@@ -375,7 +367,7 @@ export function SetupWizard() {
     setIsLoading(false)
 
     if (success) {
-      void saveCredentials(url, token.trim())
+      await saveCredentials(url, token.trim())
       setStep('complete')
     } else {
       setError(t.setup.token.error)
@@ -493,12 +485,16 @@ export function SetupWizard() {
                           void verifyUrl(url)
                         }
                       }}
-                      placeholder={isNativeApp() ? t.setup.url.placeholder : (t.setup.url.placeholderWeb || t.setup.url.placeholder)}
+                      placeholder={
+                        isNativeApp()
+                          ? t.setup.url.placeholder
+                          : t.setup.url.placeholderWeb || t.setup.url.placeholder
+                      }
                       className="w-full px-4 py-3 bg-card border border-border rounded-xl text-foreground placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
                       autoComplete="url"
                     />
                     <p className="mt-2 text-xs text-muted">
-                      {isNativeApp() ? t.setup.url.hint : (t.setup.url.hintWeb || t.setup.url.hint)}
+                      {isNativeApp() ? t.setup.url.hint : t.setup.url.hintWeb || t.setup.url.hint}
                     </p>
                   </div>
 
@@ -516,38 +512,34 @@ export function SetupWizard() {
                           <p className="text-sm text-foreground/90 font-medium">
                             {t.setup.url.webNote}
                           </p>
-                          <p className="text-sm text-muted">
-                            {t.setup.url.webNoteApps}
-                          </p>
+                          <p className="text-sm text-muted">{t.setup.url.webNoteApps}</p>
                         </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
 
                   {/* Web setup instructions - always shown on web */}
-                  {!isNativeApp() && (
-                    <WebCorsConfig />
-                  )}
+                  {!isNativeApp() && <WebCorsConfig />}
 
                   {/* URL Suggestions - only shown on native apps (local URLs don't work on web) */}
                   {isNativeApp() && (
-                  <div className="space-y-2">
-                    <p className="text-xs font-medium text-muted uppercase tracking-wide">
-                      {isProbing ? t.setup.url.scanning : t.setup.url.commonUrls}
-                    </p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {suggestions.map((suggestion) => (
-                        <button
-                          key={suggestion.url}
-                          onClick={() => {
-                            setUrl(suggestion.url)
-                            if (suggestion.status === 'success') {
-                              setUrlVerified(true)
-                            }
-                            setError(null)
-                          }}
-                          disabled={suggestion.status === 'checking'}
-                          className={`
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium text-muted uppercase tracking-wide">
+                        {isProbing ? t.setup.url.scanning : t.setup.url.commonUrls}
+                      </p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {suggestions.map((suggestion) => (
+                          <button
+                            key={suggestion.url}
+                            onClick={() => {
+                              setUrl(suggestion.url)
+                              if (suggestion.status === 'success') {
+                                setUrlVerified(true)
+                              }
+                              setError(null)
+                            }}
+                            disabled={suggestion.status === 'checking'}
+                            className={`
                             flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm transition-all
                             ${
                               url === suggestion.url
@@ -559,32 +551,32 @@ export function SetupWizard() {
                                     : 'bg-border/50'
                             }
                           `}
-                        >
-                          {/* Status indicator */}
-                          <div className="flex-shrink-0">
-                            {suggestion.status === 'checking' ? (
-                              <Loader2 className="w-4 h-4 animate-spin text-muted" />
-                            ) : suggestion.status === 'success' ? (
-                              <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center">
-                                <Check className="w-2.5 h-2.5 text-white" />
-                              </div>
-                            ) : suggestion.status === 'failed' ? (
-                              <div className="w-4 h-4 rounded-full bg-border flex items-center justify-center">
-                                <X className="w-2.5 h-2.5 text-muted" />
-                              </div>
-                            ) : (
-                              <Wifi className="w-4 h-4 text-muted" />
-                            )}
-                          </div>
-                          <span
-                            className={`truncate ${suggestion.status === 'success' ? 'text-foreground font-medium' : ''}`}
                           >
-                            {suggestion.label}
-                          </span>
-                        </button>
-                      ))}
+                            {/* Status indicator */}
+                            <div className="flex-shrink-0">
+                              {suggestion.status === 'checking' ? (
+                                <Loader2 className="w-4 h-4 animate-spin text-muted" />
+                              ) : suggestion.status === 'success' ? (
+                                <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center">
+                                  <Check className="w-2.5 h-2.5 text-white" />
+                                </div>
+                              ) : suggestion.status === 'failed' ? (
+                                <div className="w-4 h-4 rounded-full bg-border flex items-center justify-center">
+                                  <X className="w-2.5 h-2.5 text-muted" />
+                                </div>
+                              ) : (
+                                <Wifi className="w-4 h-4 text-muted" />
+                              )}
+                            </div>
+                            <span
+                              className={`truncate ${suggestion.status === 'success' ? 'text-foreground font-medium' : ''}`}
+                            >
+                              {suggestion.label}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
                   )}
                 </div>
 

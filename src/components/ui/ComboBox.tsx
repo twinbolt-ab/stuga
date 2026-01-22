@@ -43,7 +43,8 @@ export function ComboBox({
   const mobileY = useMotionValue(0)
 
   // Detect touch device for full-screen picker
-  const isTouchDevice = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
+  const isTouchDevice =
+    typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
 
   // Get display label for current value (check created item first, then options)
   const selectedOption = options.find((opt) => opt.value === value)
@@ -200,11 +201,7 @@ export function ComboBox({
           disabled={isCreating}
           className="w-full flex items-center gap-2 px-4 py-3 text-left text-accent hover:bg-accent/10 transition-colors disabled:opacity-50"
         >
-          {isCreating ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Plus className="w-4 h-4" />
-          )}
+          {isCreating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
           <span>
             {createLabel} &ldquo;{inputValue.trim()}&rdquo;
           </span>
@@ -227,9 +224,7 @@ export function ComboBox({
               {option.label}
             </button>
           ))
-        : !showCreateOption && (
-            <div className="px-4 py-3 text-muted text-sm">No options found</div>
-          )}
+        : !showCreateOption && <div className="px-4 py-3 text-muted text-sm">No options found</div>}
     </>
   )
 

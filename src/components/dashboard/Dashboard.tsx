@@ -22,7 +22,7 @@ import { useFloorNavigation } from '@/lib/hooks/useFloorNavigation'
 import { useModalState } from '@/lib/hooks/useModalState'
 import { useCrossFloorDrag } from '@/lib/hooks/useCrossFloorDrag'
 import { saveFloorOrderBatch, updateArea, createFloor, setFloorOrder } from '@/lib/ha-websocket'
-import { ORDER_GAP, DEFAULT_ORDER } from '@/lib/constants'
+import { ORDER_GAP } from '@/lib/constants'
 import type { HAEntity, HAFloor, RoomWithDevices } from '@/types/ha'
 
 // Inner component that uses the context
@@ -31,7 +31,7 @@ function DashboardContent() {
   const { entities } = useHAConnection()
   const { isEntityVisible } = useEnabledDomains()
   const { setAreaOrder } = useRoomOrder()
-  const { activeMockScenario, isDevMode } = useDevMode()
+  const { activeMockScenario } = useDevMode()
   const { roomOrderingEnabled } = useSettings()
 
   // Edit mode from context
@@ -138,7 +138,6 @@ function DashboardContent() {
     handleDragStart,
     handleDragMove,
     handleDragEnd,
-    handleDragCancel,
     handleFloorTabEnter,
     handleFloorTabLeave,
     handleEdgeHover,

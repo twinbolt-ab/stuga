@@ -80,7 +80,7 @@ export function useGridDrag<T>({
     }
   }
 
-  // Handle external drag continuation
+  // Handle external drag continuation - intentional setState to sync external drag state
   useEffect(() => {
     if (!externalDragKey || !externalDragPosition || draggedIndex !== null) return
 
@@ -100,6 +100,7 @@ export function useGridDrag<T>({
       const newItems = [...orderedItems]
       const [draggedItem] = newItems.splice(itemIndex, 1)
       newItems.splice(targetIndex, 0, draggedItem)
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing external drag state requires setState
       setOrderedItems(newItems)
       currentItems = newItems
       finalIndex = targetIndex

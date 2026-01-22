@@ -62,4 +62,3 @@ export function getEntityOrder(entityId: string): number {
 export function setEntityOrder(entityId: string, order: number): Promise<void> {
   return getBackend().setEntityOrder(entityId, order)
 }
-

@@ -60,7 +60,7 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
     }
   }, [isOpen, y])
 
-  // Reset state when modal opens
+  // Reset state when modal opens - intentional synchronous setState for modal reset pattern
   useEffect(() => {
     if (isOpen) {
       // For token auth, load stored token
@@ -72,6 +72,7 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
         }
         void loadToken()
       }
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUrl(connectedUrl)
       setError(null)
       setSuccess(false)
