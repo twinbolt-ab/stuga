@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  discussions: write
 
 jobs:
   # Create GitHub release with changelog
@@ -75,6 +76,52 @@ jobs:
           gh release create "$TAG" \
             --title "$TAG" \
             --notes-file /tmp/release_body.md
+
+      - name: Post to Discussions
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.tag_info.outputs.tag }}"
+          CHANGELOG=$(tail -n +3 /tmp/tag_message.txt)
+
+          # Get repository and category IDs for the GraphQL mutation
+          REPO_INFO=$(gh api graphql -f query='
+            query($owner: String!, $name: String!) {
+              repository(owner: $owner, name: $name) {
+                id
+                discussionCategories(first: 10) {
+                  nodes {
+                    id
+                    name
+                  }
+                }
+              }
+            }
+          ' -f owner="${{ github.repository_owner }}" -f name="${{ github.event.repository.name }}")
+
+          REPO_ID=$(echo "$REPO_INFO" | jq -r '.data.repository.id')
+          CATEGORY_ID=$(echo "$REPO_INFO" | jq -r '.data.repository.discussionCategories.nodes[] | select(.name == "Announcements") | .id')
+
+          if [[ -z "$CATEGORY_ID" || "$CATEGORY_ID" == "null" ]]; then
+            echo "Warning: Announcements category not found, skipping discussion"
+            exit 0
+          fi
+
+          # Create the discussion
+          gh api graphql -f query='
+            mutation($repositoryId: ID!, $categoryId: ID!, $body: String!, $title: String!) {
+              createDiscussion(input: {repositoryId: $repositoryId, categoryId: $categoryId, body: $body, title: $title}) {
+                discussion {
+                  url
+                }
+              }
+            }
+          ' -f repositoryId="$REPO_ID" \
+            -f categoryId="$CATEGORY_ID" \
+            -f title="$TAG released" \
+            -f body="$CHANGELOG"
+
+          echo "Discussion created for $TAG"
 
   # Build and release Android to Play Store
   android:
