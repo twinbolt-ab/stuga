@@ -203,6 +203,10 @@ const OAUTH_STORAGE_KEYS = {
   PENDING_URL: 'stuga-oauth-pending-url',
 } as const
 
+// In-memory cache for OAuth credentials to avoid repeated secure storage reads
+let credentialsCache: StoredOAuthCredentials | null | undefined = undefined // undefined = not loaded yet
+let credentialsCachePromise: Promise<StoredOAuthCredentials | null> | null = null
+
 // Store OAuth credentials
 export async function storeOAuthCredentials(
   haUrl: string,
@@ -223,6 +227,9 @@ export async function storeOAuthCredentials(
   }
   // Store credentials in secure storage (iOS Keychain / Android KeyStore on native)
   await secureStorage.setItem(OAUTH_STORAGE_KEYS.CREDENTIALS, JSON.stringify(credentials))
+  // Update in-memory cache
+  credentialsCache = credentials
+  credentialsCachePromise = null
   // Mark setup as complete (non-sensitive, use regular storage)
   await storage.setItem(STORAGE_KEYS.SETUP_COMPLETE, 'true')
   // Also store URL in standard location for compatibility (non-sensitive)
@@ -230,16 +237,38 @@ export async function storeOAuthCredentials(
   logger.debug('OAuth', 'Credentials stored successfully')
 }
 
-// Get stored OAuth credentials
+// Get stored OAuth credentials (with in-memory caching to avoid repeated secure storage reads)
 export async function getOAuthCredentials(): Promise<StoredOAuthCredentials | null> {
-  const secureStorage = getSecureStorage()
-  const stored = await secureStorage.getItem(OAUTH_STORAGE_KEYS.CREDENTIALS)
-  if (!stored) return null
-  try {
-    return JSON.parse(stored) as StoredOAuthCredentials
-  } catch {
-    return null
+  // Return cached value if we've already loaded
+  if (credentialsCache !== undefined) {
+    return credentialsCache
   }
+
+  // If a load is already in progress, wait for it (prevents parallel reads)
+  if (credentialsCachePromise) {
+    return credentialsCachePromise
+  }
+
+  // Load from secure storage and cache the result
+  credentialsCachePromise = (async () => {
+    const secureStorage = getSecureStorage()
+    const stored = await secureStorage.getItem(OAUTH_STORAGE_KEYS.CREDENTIALS)
+    if (!stored) {
+      credentialsCache = null
+      return null
+    }
+    try {
+      credentialsCache = JSON.parse(stored) as StoredOAuthCredentials
+      return credentialsCache
+    } catch {
+      credentialsCache = null
+      return null
+    }
+  })()
+
+  const result = await credentialsCachePromise
+  credentialsCachePromise = null
+  return result
 }
 
 // Check if OAuth credentials exist
@@ -252,6 +281,9 @@ export async function hasOAuthCredentials(): Promise<boolean> {
 export async function clearOAuthCredentials(): Promise<void> {
   const secureStorage = getSecureStorage()
   await secureStorage.removeItem(OAUTH_STORAGE_KEYS.CREDENTIALS)
+  // Clear the in-memory cache
+  credentialsCache = null
+  credentialsCachePromise = null
 }
 
 // Store pending OAuth state (for validation after redirect)
