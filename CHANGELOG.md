@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.13] - 2026-01-22
+
+- Added promotional video to app store listing
+- Updated screenshots and visuals
+
+
 ## [0.3.12] - 2026-01-22
 
 - Improved compatibility with newer Android devices
