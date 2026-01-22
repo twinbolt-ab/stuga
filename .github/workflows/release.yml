@@ -102,13 +102,28 @@ jobs:
       - name: Build web assets
         run: npm run build
 
-      - name: Sync Capacitor
+      - name: Setup Android platform
         run: |
           echo "Checking Capacitor installation..."
           npx cap --version
+
+          # Save fastlane metadata (tracked in git)
+          if [ -d android/fastlane ]; then
+            cp -r android/fastlane /tmp/fastlane-backup
+          fi
+
+          # Remove partial android directory and recreate
+          rm -rf android
+          npx cap add android
+
+          # Restore fastlane metadata
+          if [ -d /tmp/fastlane-backup ]; then
+            cp -r /tmp/fastlane-backup android/fastlane
+          fi
+
           echo "Syncing Android platform..."
           npx cap sync android
-          echo "Verifying android directory exists..."
+          echo "Verifying android directory..."
           ls -la android/
 
       - name: Decode keystore
