@@ -27,9 +27,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 
-# Capacitor
-/ios
-/android
+# Capacitor (ignore build artifacts, but track fastlane metadata)
+/ios/*
+!/ios/App/
+/ios/App/*
+!/ios/App/fastlane/
+/android/*
+!/android/fastlane/
 
 # Vite
 .vite
