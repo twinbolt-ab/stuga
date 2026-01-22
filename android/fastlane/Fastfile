@@ -15,11 +15,11 @@ platform :android do
     )
   end
 
-  desc "Deploy to internal testing track"
+  desc "Deploy to production"
   lane :internal do
     build
     upload_to_play_store(
-      track: "internal",
+      track: "production",
       aab: "app/build/outputs/bundle/release/app-release.aab",
       skip_upload_images: true,
       skip_upload_screenshots: true
