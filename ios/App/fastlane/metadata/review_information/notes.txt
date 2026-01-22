@@ -1,0 +1,1 @@
+To test the app, enter "demo" as the Home Assistant URL on the login screen. This connects to a demo instance with sample devices and does not require any credentials.

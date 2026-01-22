@@ -1,0 +1,1 @@
+home assistant,smart home,home automation,iot,lights,dashboard,hass,homeassistant
