@@ -1,0 +1,22 @@
+An opinionated, beautiful app for Home Assistant.
+
+Open it, log in, done. Your rooms and devices are already there.
+
+ZERO CONFIG
+Reads your Home Assistant setup automatically. No YAML, no cards, no templates.
+
+EDIT IN PLACE
+Rename rooms, change icons, reorder things. Changes are saved back to Home Assistant.
+
+ACTUALLY FAST
+WebSocket connection means instant feedback. Tap a light, see it change immediately.
+
+BUILT FOR PHONES
+Designed for how you actually use your smart home on the go.
+
+PRIVACY FIRST
+No accounts. No analytics. Your data stays on your network.
+
+Works with any Home Assistant installation, including local-only setups. No public URL or cloud subscription needed.
+
+Free and open source. Made by Twinbolt in Sweden.
