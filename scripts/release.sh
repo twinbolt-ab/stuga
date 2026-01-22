@@ -50,7 +50,8 @@ if [[ "$CURRENT_BRANCH" != "main" ]]; then
   fi
 fi
 
-# Get latest tag
+# Get latest successful GitHub release (not just tag)
+LATEST_RELEASE=$(gh release list --limit 1 --json tagName -q '.[0].tagName' 2>/dev/null || echo "")
 LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
 
 if [[ -z "$LATEST_TAG" ]]; then
@@ -58,6 +59,9 @@ if [[ -z "$LATEST_TAG" ]]; then
   CURRENT_VERSION="0.0.0"
 else
   echo -e "${CYAN}Latest tag: $LATEST_TAG${NC}"
+  if [[ -n "$LATEST_RELEASE" && "$LATEST_RELEASE" != "$LATEST_TAG" ]]; then
+    echo -e "${YELLOW}Latest successful release: $LATEST_RELEASE (will use for changelog)${NC}"
+  fi
   CURRENT_VERSION="${LATEST_TAG#v}"
 fi
 
@@ -86,22 +90,24 @@ NEW_TAG="v$NEW_VERSION"
 echo -e "${GREEN}Bumping version: ${CURRENT_VERSION} → ${NEW_VERSION}${NC}"
 echo ""
 
-# Get commits since last tag
+# Get commits since last successful release (not just last tag)
 echo -e "${CYAN}Gathering commits...${NC}"
-if [[ -z "$LATEST_TAG" ]]; then
+CHANGELOG_BASE="${LATEST_RELEASE:-$LATEST_TAG}"
+
+if [[ -z "$CHANGELOG_BASE" ]]; then
   COMMITS=$(git log --pretty=format:"%s" --no-merges | head -50)
   COMMIT_COUNT=$(git rev-list --count HEAD)
+  echo -e "Found ${BOLD}$COMMIT_COUNT${NC} commits (no previous release)"
 else
-  COMMITS=$(git log "${LATEST_TAG}..HEAD" --pretty=format:"%s" --no-merges)
-  COMMIT_COUNT=$(git rev-list --count "${LATEST_TAG}..HEAD")
+  COMMITS=$(git log "${CHANGELOG_BASE}..HEAD" --pretty=format:"%s" --no-merges)
+  COMMIT_COUNT=$(git rev-list --count "${CHANGELOG_BASE}..HEAD")
+  echo -e "Found ${BOLD}$COMMIT_COUNT${NC} commits since $CHANGELOG_BASE"
 fi
 
 if [[ -z "$COMMITS" || "$COMMIT_COUNT" -eq 0 ]]; then
-  echo -e "${RED}Error: No commits since last tag${NC}"
+  echo -e "${RED}Error: No commits since last release${NC}"
   exit 1
 fi
-
-echo -e "Found ${BOLD}$COMMIT_COUNT${NC} commits since $LATEST_TAG"
 echo ""
 
 # Generate changelog with Claude
