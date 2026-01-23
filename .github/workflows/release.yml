@@ -82,6 +82,14 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="${{ steps.tag_info.outputs.tag }}"
+          TAG_MESSAGE=$(cat /tmp/tag_message.txt)
+
+          # Check for silent release marker
+          if echo "$TAG_MESSAGE" | grep -q "SILENT_RELEASE"; then
+            echo "Silent release detected, skipping Discussion announcement"
+            exit 0
+          fi
+
           CHANGELOG=$(tail -n +3 /tmp/tag_message.txt)
 
           # Get repository and category IDs for the GraphQL mutation

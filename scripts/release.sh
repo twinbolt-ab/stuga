@@ -138,19 +138,101 @@ echo "$CHANGELOG"
 echo "─────────────────────────────────────"
 echo ""
 
-# Confirm release
-echo -e "${YELLOW}This will:${NC}"
-echo "  1. Update package.json version to $NEW_VERSION"
-echo "  2. Commit with changelog in message"
-echo "  3. Create git tag $NEW_TAG"
-echo "  4. Push to GitHub (GHA will create release)"
-echo ""
-read -p "Proceed? (y/N) " -n 1 -r
-echo
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-  echo "Aborted."
-  exit 1
-fi
+# Changelog options
+SKIP_PUSH=false
+SILENT_RELEASE=false
+
+while true; do
+  echo -e "${YELLOW}Options:${NC}"
+  echo "  [y] Proceed with this changelog"
+  echo "  [e] Edit changelog in \$EDITOR"
+  echo "  [r] Regenerate changelog"
+  echo "  [p] Use previous release's changelog"
+  echo "  [c] Commit only (no push - for manual edits)"
+  echo "  [s] Silent release (no GitHub Discussion announcement)"
+  echo "  [n] Abort"
+  echo ""
+  read -p "Choice: " -n 1 -r
+  echo
+
+  case $REPLY in
+    y|Y)
+      break
+      ;;
+    e|E)
+      # Save to temp file for editing
+      TEMP_CHANGELOG=$(mktemp)
+      echo "$CHANGELOG" > "$TEMP_CHANGELOG"
+      ${EDITOR:-vim} "$TEMP_CHANGELOG"
+      CHANGELOG=$(cat "$TEMP_CHANGELOG")
+      rm "$TEMP_CHANGELOG"
+      echo ""
+      echo -e "${BOLD}Updated Changelog:${NC}"
+      echo "─────────────────────────────────────"
+      echo "$CHANGELOG"
+      echo "─────────────────────────────────────"
+      echo ""
+      ;;
+    r|R)
+      echo -e "${CYAN}Regenerating changelog...${NC}"
+      CHANGELOG=$(claude -p "You are writing release notes for a mobile app (iOS/Android) called Stuga - a Home Assistant dashboard.
+
+Given these git commit messages since the last release, write a concise, user-friendly changelog.
+
+Rules:
+- Group related changes under categories if appropriate (e.g., 'Improvements', 'Bug Fixes')
+- Use simple language that end users can understand
+- Focus on what changed from the user's perspective, not technical details
+- Keep it brief - one line per change
+- Use bullet points (-)
+- Don't include commit hashes or technical jargon
+- If a commit is clearly internal/refactoring with no user impact, skip it
+
+Commits:
+$COMMITS
+
+Write ONLY the changelog content, no headers or intro text:")
+      echo ""
+      echo -e "${BOLD}Regenerated Changelog:${NC}"
+      echo "─────────────────────────────────────"
+      echo "$CHANGELOG"
+      echo "─────────────────────────────────────"
+      echo ""
+      ;;
+    p|P)
+      # Get changelog from previous release
+      PREV_CHANGELOG=$(gh release view "$LATEST_RELEASE" --json body -q .body 2>/dev/null | sed '1,/## What/d' | sed '/Full Changelog/,$d' | sed 's/^[[:space:]]*//')
+      if [[ -n "$PREV_CHANGELOG" ]]; then
+        CHANGELOG="$PREV_CHANGELOG"
+        echo ""
+        echo -e "${BOLD}Previous Release Changelog:${NC}"
+        echo "─────────────────────────────────────"
+        echo "$CHANGELOG"
+        echo "─────────────────────────────────────"
+        echo ""
+      else
+        echo -e "${RED}Could not fetch previous changelog${NC}"
+      fi
+      ;;
+    c|C)
+      SKIP_PUSH=true
+      echo -e "${YELLOW}Will commit and tag but NOT push. You can push manually after review.${NC}"
+      break
+      ;;
+    s|S)
+      SILENT_RELEASE=true
+      echo -e "${YELLOW}Silent release - no Discussion announcement will be created.${NC}"
+      break
+      ;;
+    n|N)
+      echo "Aborted."
+      exit 1
+      ;;
+    *)
+      echo "Invalid option"
+      ;;
+  esac
+done
 
 # Update package.json version
 echo -e "${GREEN}Updating package.json...${NC}"
@@ -276,14 +358,32 @@ else
   git tag -a "$NEW_TAG" -m "Release $NEW_TAG" -m "" -m "$CHANGELOG"
 fi
 
-# Push to GitHub
-echo -e "${GREEN}Pushing to GitHub...${NC}"
-git push origin "$CURRENT_BRANCH"
-git push origin "$NEW_TAG" --force
+# Push to GitHub (unless skipped)
+if [[ "$SKIP_PUSH" == "true" ]]; then
+  echo ""
+  echo -e "${GREEN}✓ Created commit and tag $NEW_TAG locally${NC}"
+  echo ""
+  echo "To complete the release, run:"
+  echo "  git push origin $CURRENT_BRANCH && git push origin $NEW_TAG --force"
+else
+  echo -e "${GREEN}Pushing to GitHub...${NC}"
 
-echo ""
-echo -e "${GREEN}✓ Pushed $NEW_TAG${NC}"
-echo ""
-echo "GitHub Actions will now create the release automatically."
-REPO_URL=$(gh repo view --json url -q .url 2>/dev/null || git remote get-url origin | sed -E 's/.*[:/]([^/]+\/[^/]+)(\.git)?$/https:\/\/github.com\/\1/')
-echo "Watch progress: ${REPO_URL}/actions"
+  # For silent releases, add a marker to the tag message
+  if [[ "$SILENT_RELEASE" == "true" ]]; then
+    git tag -d "$NEW_TAG" 2>/dev/null
+    git tag -a "$NEW_TAG" -m "Release $NEW_TAG" -m "SILENT_RELEASE" -m "$CHANGELOG"
+  fi
+
+  git push origin "$CURRENT_BRANCH"
+  git push origin "$NEW_TAG" --force
+
+  echo ""
+  echo -e "${GREEN}✓ Pushed $NEW_TAG${NC}"
+  echo ""
+  if [[ "$SILENT_RELEASE" == "true" ]]; then
+    echo "Silent release - no Discussion announcement will be created."
+  fi
+  echo "GitHub Actions will now create the release automatically."
+  REPO_URL=$(gh repo view --json url -q .url 2>/dev/null || git remote get-url origin | sed -E 's/.*[:/]([^/]+\/[^/]+)(\.git)?$/https:\/\/github.com\/\1/')
+  echo "Watch progress: ${REPO_URL}/actions"
+fi
