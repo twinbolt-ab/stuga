@@ -351,7 +351,7 @@ if git diff --cached --quiet; then
   echo -e "${YELLOW}No changes to commit (version files may already be updated)${NC}"
   echo "Proceeding with tag creation..."
 else
-  git commit -m "Release $NEW_TAG" -m "CHANGELOG_START" -m "$CHANGELOG" -m "CHANGELOG_END"
+  git commit -m "Release $NEW_TAG" -m "$CHANGELOG"
 fi
 
 # Create annotated tag (or update if it exists on current commit)

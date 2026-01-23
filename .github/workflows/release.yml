@@ -80,6 +80,7 @@ jobs:
       - name: Post to Discussions
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           TAG="${{ steps.tag_info.outputs.tag }}"
           TAG_MESSAGE=$(cat /tmp/tag_message.txt)
@@ -90,7 +91,29 @@ jobs:
             exit 0
           fi
 
+          # Extract changelog (skip first line which is "Release vX.X.X")
           CHANGELOG=$(tail -n +3 /tmp/tag_message.txt)
+
+          # Generate announcement with Claude (if API key available)
+          if [[ -n "$ANTHROPIC_API_KEY" ]]; then
+            ANNOUNCEMENT=$(curl -s https://api.anthropic.com/v1/messages \
+              -H "Content-Type: application/json" \
+              -H "x-api-key: $ANTHROPIC_API_KEY" \
+              -H "anthropic-version: 2023-06-01" \
+              -d "{
+                \"model\": \"claude-sonnet-4-20250514\",
+                \"max_tokens\": 500,
+                \"messages\": [{
+                  \"role\": \"user\",
+                  \"content\": \"Write a brief, friendly release announcement for Stuga (a Home Assistant dashboard app) version $TAG. Start with a short intro sentence that summarizes the release, then list the changes. Keep it concise and conversational.\n\nChanges:\n$CHANGELOG\n\nWrite ONLY the announcement text, no headers.\"
+                }]
+              }" | jq -r '.content[0].text // empty')
+          fi
+
+          # Fall back to plain changelog if Claude fails
+          if [[ -z "$ANNOUNCEMENT" ]]; then
+            ANNOUNCEMENT="$TAG is now available!\n\n$CHANGELOG"
+          fi
 
           # Get repository and category IDs for the GraphQL mutation
           REPO_INFO=$(gh api graphql -f query='
@@ -127,7 +150,7 @@ jobs:
           ' -f repositoryId="$REPO_ID" \
             -f categoryId="$CATEGORY_ID" \
             -f title="$TAG released" \
-            -f body="$CHANGELOG"
+            -f body="$ANNOUNCEMENT"
 
           echo "Discussion created for $TAG"
 
