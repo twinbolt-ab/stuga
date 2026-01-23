@@ -125,7 +125,9 @@
     "close": "Close",
     "display": {
       "title": "Display",
-      "description": "Theme and visible devices"
+      "description": "Theme and visible devices",
+      "temperature": "Show temperature",
+      "humidity": "Show humidity"
     },
     "theme": {
       "title": "Theme",

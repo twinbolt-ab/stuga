@@ -5,11 +5,15 @@ const SETTINGS_KEY = 'stuga-settings'
 interface Settings {
   groupByFloors: boolean
   roomOrderingEnabled: boolean
+  showTemperature: boolean
+  showHumidity: boolean
 }
 
 const defaultSettings: Settings = {
   groupByFloors: true,
   roomOrderingEnabled: true,
+  showTemperature: true,
+  showHumidity: false,
 }
 
 // Shared settings store
@@ -94,11 +98,23 @@ export function useSettings() {
     updateSettingsStore({ roomOrderingEnabled: value })
   }, [])
 
+  const setShowTemperature = useCallback((value: boolean) => {
+    updateSettingsStore({ showTemperature: value })
+  }, [])
+
+  const setShowHumidity = useCallback((value: boolean) => {
+    updateSettingsStore({ showHumidity: value })
+  }, [])
+
   return {
     groupByFloors: settings.groupByFloors,
     setGroupByFloors,
     roomOrderingEnabled: settings.roomOrderingEnabled,
     setRoomOrderingEnabled,
+    showTemperature: settings.showTemperature,
+    setShowTemperature,
+    showHumidity: settings.showHumidity,
+    setShowHumidity,
     isLoaded: initialized,
   }
 }

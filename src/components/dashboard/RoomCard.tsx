@@ -18,6 +18,7 @@ import { useEditMode } from '@/lib/contexts/EditModeContext'
 import { useLongPress } from '@/lib/hooks/useLongPress'
 import { useOptimisticState } from '@/lib/hooks/useOptimisticState'
 import { useBrightnessGesture } from '@/lib/hooks/useBrightnessGesture'
+import { useSettings } from '@/lib/hooks/useSettings'
 import { haptic } from '@/lib/haptics'
 import { t, interpolate } from '@/lib/i18n'
 import {
@@ -51,6 +52,8 @@ export function RoomCard({
     getLightBrightnessMap,
     calculateRelativeBrightness,
   } = useLightControl()
+
+  const { showTemperature, showHumidity } = useSettings()
 
   // Get edit mode state from context
   const { mode, isRoomEditMode, isDeviceEditMode, isSelected, toggleSelection, exitEditMode } =
@@ -395,15 +398,16 @@ export function RoomCard({
         {/* Status row */}
         <div className="relative flex items-center justify-between">
           <div className="flex items-center gap-3 text-sm text-muted pointer-events-none">
-            {room.temperature !== undefined || room.humidity !== undefined ? (
+            {(showTemperature && room.temperature !== undefined) ||
+            (showHumidity && room.humidity !== undefined) ? (
               <>
-                {room.temperature !== undefined && (
+                {showTemperature && room.temperature !== undefined && (
                   <span className="flex items-center gap-1">
                     <Thermometer className="w-3.5 h-3.5" />
                     <span>{room.temperature.toFixed(1)}°</span>
                   </span>
                 )}
-                {room.humidity !== undefined && (
+                {showHumidity && room.humidity !== undefined && (
                   <span className="flex items-center gap-1">
                     <Droplet className="w-3.5 h-3.5" />
                     <span>{room.humidity}%</span>

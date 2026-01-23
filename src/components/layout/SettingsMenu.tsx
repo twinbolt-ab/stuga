@@ -12,6 +12,8 @@ import {
   ChevronDown,
   Palette,
   Settings2,
+  Thermometer,
+  Droplet,
 } from 'lucide-react'
 import { t } from '@/lib/i18n'
 import { ConnectionSettingsModal } from '@/components/settings/ConnectionSettingsModal'
@@ -46,7 +48,14 @@ export function SettingsMenu({
   const [displayOptionsOpen, setDisplayOptionsOpen] = useState(false)
   const [advancedOpen, setAdvancedOpen] = useState(false)
   const { isDevMode, enableDevMode } = useDevMode()
-  const { roomOrderingEnabled, setRoomOrderingEnabled } = useSettings()
+  const {
+    roomOrderingEnabled,
+    setRoomOrderingEnabled,
+    showTemperature,
+    setShowTemperature,
+    showHumidity,
+    setShowHumidity,
+  } = useSettings()
   const y = useMotionValue(0)
   const sheetRef = useRef<HTMLDivElement>(null)
 
@@ -343,6 +352,62 @@ export function SettingsMenu({
                             <p className="text-xs text-muted">
                               {isDark ? t.settings.theme.dark : t.settings.theme.light}
                             </p>
+                          </div>
+                        </button>
+
+                        {/* Temperature Toggle */}
+                        <button
+                          onClick={() => setShowTemperature(!showTemperature)}
+                          className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-border/30 transition-colors touch-feedback"
+                        >
+                          <div className="p-2 rounded-lg bg-border/50">
+                            <Thermometer className="w-4 h-4 text-foreground" />
+                          </div>
+                          <div className="flex-1 text-left">
+                            <p className="text-sm font-medium text-foreground">
+                              {t.settings.display.temperature}
+                            </p>
+                          </div>
+                          <div
+                            className={clsx(
+                              'w-10 h-6 rounded-full transition-colors relative',
+                              showTemperature ? 'bg-accent' : 'bg-border'
+                            )}
+                          >
+                            <div
+                              className={clsx(
+                                'absolute top-1 w-4 h-4 rounded-full bg-white transition-transform',
+                                showTemperature ? 'translate-x-5' : 'translate-x-1'
+                              )}
+                            />
+                          </div>
+                        </button>
+
+                        {/* Humidity Toggle */}
+                        <button
+                          onClick={() => setShowHumidity(!showHumidity)}
+                          className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-border/30 transition-colors touch-feedback"
+                        >
+                          <div className="p-2 rounded-lg bg-border/50">
+                            <Droplet className="w-4 h-4 text-foreground" />
+                          </div>
+                          <div className="flex-1 text-left">
+                            <p className="text-sm font-medium text-foreground">
+                              {t.settings.display.humidity}
+                            </p>
+                          </div>
+                          <div
+                            className={clsx(
+                              'w-10 h-6 rounded-full transition-colors relative',
+                              showHumidity ? 'bg-accent' : 'bg-border'
+                            )}
+                          >
+                            <div
+                              className={clsx(
+                                'absolute top-1 w-4 h-4 rounded-full bg-white transition-transform',
+                                showHumidity ? 'translate-x-5' : 'translate-x-1'
+                              )}
+                            />
                           </div>
                         </button>
 
