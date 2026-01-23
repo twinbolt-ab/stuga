@@ -160,11 +160,6 @@ export const saveFloorOrderBatch = (orderedFloors: HAFloor[], originalFloors: HA
   floorSvc.saveFloorOrderBatch(state, orderedFloors, originalFloors)
 export const createFloor = (name: string) => floorSvc.createFloor(state, name)
 export const deleteFloor = (floorId: string) => floorSvc.deleteFloor(state, floorId)
-export const getFloorColumns = (floorId: string) => floorSvc.getFloorColumns(state, floorId)
-export const setFloorColumns = (
-  floorId: string,
-  columns: import('@/lib/hooks/useSettings').GridColumnsOption | undefined
-) => floorSvc.setFloorColumns(state, floorId, columns)
 
 // Labels (for cleanup operations)
 export const deleteLabel = (labelId: string) => labelSvc.deleteLabel(state, labelId)

@@ -1,11 +1,10 @@
 import type { HAFloor } from '@/types/ha'
-import { isHAFloor, isHALabel } from '@/types/ha'
+import { isHAFloor } from '@/types/ha'
 import type { HAWebSocketState } from './types'
 import { send, getNextMessageId } from './connection'
 import { registerCallback, notifyRegistryHandlers } from './message-router'
-import { DEFAULT_ORDER, ORDER_GAP, FLOOR_COLUMNS_LABEL_PREFIX } from '@/lib/constants'
+import { DEFAULT_ORDER, ORDER_GAP } from '@/lib/constants'
 import { logger } from '@/lib/logger'
-import type { GridColumnsOption } from '@/lib/hooks/useSettings'
 
 export function getFloors(state: HAWebSocketState): Map<string, HAFloor> {
   return state.floors
@@ -200,112 +199,3 @@ export async function saveFloorOrderBatch(
   }
 }
 
-/** Grid columns override is stored in HA labels (e.g., "stuga-floor-columns-2"). */
-export function getFloorColumns(
-  state: HAWebSocketState,
-  floorId: string
-): GridColumnsOption | undefined {
-  const floor = state.floors.get(floorId)
-  if (!floor?.labels) return undefined
-
-  for (const labelId of floor.labels) {
-    const label = state.labels.get(labelId)
-    if (label?.name.startsWith(FLOOR_COLUMNS_LABEL_PREFIX)) {
-      const value = label.name.slice(FLOOR_COLUMNS_LABEL_PREFIX.length)
-      if (value === 'auto') return 'auto'
-      const num = parseInt(value, 10)
-      if (num === 1 || num === 2 || num === 3) return num
-    }
-  }
-  return undefined
-}
-
-/** Sets the grid columns override for a floor. Pass undefined to clear (use global setting). */
-export async function setFloorColumns(
-  state: HAWebSocketState,
-  floorId: string,
-  columns: GridColumnsOption | undefined
-): Promise<void> {
-  const floor = state.floors.get(floorId)
-  if (!floor) return
-
-  // Get existing labels, filtering out any existing columns labels
-  const existingLabels = (floor.labels || []).filter((labelId) => {
-    const label = state.labels.get(labelId)
-    return !label?.name.startsWith(FLOOR_COLUMNS_LABEL_PREFIX)
-  })
-
-  // If clearing the setting, just update with existing labels (minus columns label)
-  if (columns === undefined) {
-    return new Promise((resolve, reject) => {
-      const msgId = getNextMessageId(state)
-      registerCallback(state, msgId, (success) => {
-        if (success) {
-          floor.labels = existingLabels
-          notifyRegistryHandlers(state)
-          resolve()
-        } else {
-          reject(new Error('Failed to update floor labels'))
-        }
-      })
-      send(state, {
-        id: msgId,
-        type: 'config/floor_registry/update',
-        floor_id: floorId,
-        labels: existingLabels,
-      })
-    })
-  }
-
-  // Create or get the columns label
-  const labelName = `${FLOOR_COLUMNS_LABEL_PREFIX}${columns}`
-  let columnsLabelId: string | undefined
-
-  // Check if label already exists
-  for (const [labelId, label] of state.labels) {
-    if (label.name === labelName) {
-      columnsLabelId = labelId
-      break
-    }
-  }
-
-  // Create label if it doesn't exist
-  if (!columnsLabelId) {
-    columnsLabelId = await new Promise<string>((resolve, reject) => {
-      const msgId = getNextMessageId(state)
-      registerCallback(state, msgId, (success, result) => {
-        if (success && isHALabel(result)) {
-          state.labels.set(result.label_id, result)
-          resolve(result.label_id)
-        } else {
-          reject(new Error('Failed to create label'))
-        }
-      })
-      send(state, {
-        id: msgId,
-        type: 'config/label_registry/create',
-        name: labelName,
-      })
-    })
-  }
-
-  // Update floor with new labels
-  return new Promise((resolve, reject) => {
-    const msgId = getNextMessageId(state)
-    registerCallback(state, msgId, (success) => {
-      if (success) {
-        floor.labels = [...existingLabels, columnsLabelId]
-        notifyRegistryHandlers(state)
-        resolve()
-      } else {
-        reject(new Error('Failed to update floor labels'))
-      }
-    })
-    send(state, {
-      id: msgId,
-      type: 'config/floor_registry/update',
-      floor_id: floorId,
-      labels: [...existingLabels, columnsLabelId],
-    })
-  })
-}

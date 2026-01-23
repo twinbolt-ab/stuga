@@ -425,19 +425,18 @@ export function SettingsMenu({
                             </p>
                           </div>
                           <div className="flex rounded-lg overflow-hidden border border-border">
-                            {(['auto', 1, 2, 3] as const).map((col) => (
+                            {([1, 2, 3] as const).map((col) => (
                               <button
                                 key={col}
                                 onClick={() => setGridColumns(col)}
                                 className={clsx(
-                                  'h-7 text-sm font-medium transition-colors',
-                                  col === 'auto' ? 'px-2' : 'w-8',
+                                  'w-8 h-7 text-sm font-medium transition-colors',
                                   gridColumns === col
                                     ? 'bg-accent text-white'
                                     : 'bg-transparent text-foreground hover:bg-border/50'
                                 )}
                               >
-                                {col === 'auto' ? t.settings.display.columnsAuto : col}
+                                {col}
                               </button>
                             ))}
                           </div>

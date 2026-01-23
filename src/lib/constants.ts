@@ -14,9 +14,6 @@ export const DOMAINS_LABEL_PREFIX = `${STUGA_PREFIX}domains-`
 // Label prefix for selected temperature sensor per area (stores entity_id)
 export const TEMPERATURE_SENSOR_LABEL_PREFIX = `${STUGA_PREFIX}temp-`
 
-// Label prefix for per-floor grid columns override (stores 1, 2, or 3)
-export const FLOOR_COLUMNS_LABEL_PREFIX = `${STUGA_PREFIX}floor-columns-`
-
 // Default order value for items without explicit order
 export const DEFAULT_ORDER = 99
 

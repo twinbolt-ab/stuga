@@ -2,7 +2,7 @@ import { useEffect, useCallback, useSyncExternalStore } from 'react'
 
 const SETTINGS_KEY = 'stuga-settings'
 
-export type GridColumnsOption = 'auto' | 1 | 2 | 3
+export type GridColumnsOption = 1 | 2 | 3
 
 interface Settings {
   groupByFloors: boolean
@@ -17,7 +17,7 @@ const defaultSettings: Settings = {
   roomOrderingEnabled: true,
   showTemperature: true,
   showHumidity: false,
-  gridColumns: 'auto',
+  gridColumns: 2,
 }
 
 // Shared settings store

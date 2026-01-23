@@ -269,9 +269,7 @@
     "floor": {
       "title": "Edit Floor",
       "name": "Name",
-      "icon": "Icon",
-      "columns": "Grid columns",
-      "columnsDefault": "Default"
+      "icon": "Icon"
     },
     "save": "Save",
     "saving": "Saving...",
