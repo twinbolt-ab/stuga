@@ -164,16 +164,15 @@ while true; do
       TEMP_CHANGELOG=$(mktemp).md
       echo "$CHANGELOG" > "$TEMP_CHANGELOG"
       # Try editors in order of preference
-      if command -v code &> /dev/null; then
-        code --wait "$TEMP_CHANGELOG"
-      elif command -v nano &> /dev/null; then
+      if command -v nano &> /dev/null; then
         nano "$TEMP_CHANGELOG"
       elif command -v vim &> /dev/null; then
         vim "$TEMP_CHANGELOG"
-      elif [[ -n "$EDITOR" ]] && command -v "$EDITOR" &> /dev/null; then
-        $EDITOR "$TEMP_CHANGELOG"
+      elif command -v code &> /dev/null; then
+        echo "(Close the VS Code tab when done editing)"
+        code --wait "$TEMP_CHANGELOG"
       else
-        echo -e "${RED}No editor found. Set \$EDITOR or install nano/vim/code${NC}"
+        echo -e "${RED}No editor found. Install nano or vim${NC}"
         rm "$TEMP_CHANGELOG"
         continue
       fi
