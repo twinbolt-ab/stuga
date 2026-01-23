@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.3.17] - 2026-01-23
+
+This release brings a refreshed editing experience and more control over how your rooms display information.
+
+**Improvements**
+- Redesigned floor editing with a cleaner, more intuitive interface
+- Room cards now show humidity alongside temperature
+- New settings to show or hide temperature and humidity in room cards
+- You can now exclude specific lights or switches from the room toggle
+- Simplified grid layout with a cleaner 2-column default
+
+**Bug Fixes**
+- Switches now behave correctly based on their device type when toggling rooms
+
+
 ## [0.3.16] - 2026-01-23
 
 - Fixed video containers getting squashed when scrolling on phones
