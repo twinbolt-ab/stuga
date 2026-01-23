@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.16] - 2026-01-23
+
+- Fixed video containers getting squashed when scrolling on phones
+- Bug fixes
+
+
 ## [0.3.15] - 2026-01-22
 - Improved Android app versioning for more reliable updates
 - Added screenshot gallery to the landing page
