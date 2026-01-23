@@ -11,7 +11,6 @@ import {
   updateEntity,
   createArea,
   setEntityHidden,
-  setExcludedFromRoomToggle,
 } from '@/lib/ha-websocket'
 import { logger } from '@/lib/logger'
 import type { RoomWithDevices, HAFloor, HAEntity } from '@/types/ha'
@@ -135,14 +134,8 @@ export function BulkEditDevicesModal({
   const [roomId, setRoomId] = useState<string>('')
   const [icon, setIcon] = useState<string>('')
   const [hidden, setHidden] = useState<string>('')
-  const [independent, setIndependent] = useState<string>('')
   const [isSaving, setIsSaving] = useState(false)
   const { showError } = useToast()
-
-  // Check if any selected devices are lights or switches (toggleable devices)
-  const hasToggleableDevices = devices.some(
-    (d) => d.entity_id.startsWith('light.') || d.entity_id.startsWith('switch.')
-  )
 
   // Reset form state when modal opens
   useEffect(() => {
@@ -150,7 +143,6 @@ export function BulkEditDevicesModal({
       setRoomId('')
       setIcon('')
       setHidden('')
-      setIndependent('')
       setIsSaving(false)
     }
   }, [isOpen])
@@ -167,14 +159,8 @@ export function BulkEditDevicesModal({
     { value: 'unhide', label: t.bulkEdit.devices.unhide },
   ]
 
-  const independentOptions = [
-    { value: '', label: t.bulkEdit.noChange },
-    { value: 'independent', label: t.bulkEdit.devices.makeIndependent },
-    { value: 'dependent', label: t.bulkEdit.devices.makeDependent },
-  ]
-
   const handleSave = async () => {
-    if (!roomId && !icon && !hidden && !independent) {
+    if (!roomId && !icon && !hidden) {
       onClose()
       return
     }
@@ -202,16 +188,7 @@ export function BulkEditDevicesModal({
         ? devices.map((device) => setEntityHidden(device.entity_id, hidden === 'hide'))
         : []
 
-      // Handle independent state for lights and switches only
-      const independentUpdates = independent
-        ? devices
-            .filter((d) => d.entity_id.startsWith('light.') || d.entity_id.startsWith('switch.'))
-            .map((device) =>
-              setExcludedFromRoomToggle(device.entity_id, independent === 'independent')
-            )
-        : []
-
-      await Promise.all([...entityUpdates, ...hiddenUpdates, ...independentUpdates])
+      await Promise.all([...entityUpdates, ...hiddenUpdates])
       onComplete()
       onClose()
     } catch (error) {
@@ -262,27 +239,6 @@ export function BulkEditDevicesModal({
             ))}
           </div>
         </FormField>
-
-        {hasToggleableDevices && (
-          <FormField label={t.bulkEdit.devices.independent} hint={t.edit.device.independentHint}>
-            <div className="flex gap-2">
-              {independentOptions.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setIndependent(option.value)}
-                  className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-medium transition-colors ${
-                    independent === option.value
-                      ? 'bg-accent text-white'
-                      : 'bg-border/50 text-foreground hover:bg-border'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </FormField>
-        )}
 
         <div className="flex gap-3 pt-4">
           <button

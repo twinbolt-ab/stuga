@@ -3,12 +3,7 @@ import { isHALabel } from '@/types/ha'
 import type { HAWebSocketState, OptimisticOverride } from './types'
 import { send, getNextMessageId } from './connection'
 import { registerCallback, notifyMessageHandlers, notifyRegistryHandlers } from './message-router'
-import {
-  DEVICE_ORDER_LABEL_PREFIX,
-  DEFAULT_ORDER,
-  OPTIMISTIC_DURATION,
-  NO_ROOM_TOGGLE_LABEL,
-} from '@/lib/constants'
+import { DEVICE_ORDER_LABEL_PREFIX, DEFAULT_ORDER, OPTIMISTIC_DURATION } from '@/lib/constants'
 import { getDevModeSync } from '@/lib/hooks/useDevMode'
 
 // Timer references for optimistic state cleanup
@@ -183,7 +178,12 @@ export async function setEntityOrder(
 export async function updateEntity(
   state: HAWebSocketState,
   entityId: string,
-  updates: { name?: string | null; area_id?: string | null; icon?: string | null }
+  updates: {
+    name?: string | null
+    area_id?: string | null
+    icon?: string | null
+    device_class?: string | null
+  }
 ): Promise<void> {
   const entity = state.entityRegistry.get(entityId)
   // Entity might not be in registry (e.g., YAML-defined scenes), but we can still try to update it
@@ -202,6 +202,8 @@ export async function updateEntity(
         if (updates.name !== undefined) updatedEntity.name = updates.name || undefined
         if (updates.area_id !== undefined) updatedEntity.area_id = updates.area_id || undefined
         if (updates.icon !== undefined) updatedEntity.icon = updates.icon || undefined
+        if (updates.device_class !== undefined)
+          updatedEntity.device_class = updates.device_class || undefined
 
         state.entityRegistry.set(entityId, updatedEntity)
 
@@ -225,6 +227,18 @@ export async function updateEntity(
           }
         }
 
+        // Update device_class in entity attributes if changed
+        if (updates.device_class !== undefined) {
+          const stateEntity = state.entities.get(entityId)
+          if (stateEntity) {
+            if (updates.device_class) {
+              stateEntity.attributes.device_class = updates.device_class
+            } else {
+              delete stateEntity.attributes.device_class
+            }
+          }
+        }
+
         notifyMessageHandlers(state)
         notifyRegistryHandlers(state)
         resolve()
@@ -242,6 +256,7 @@ export async function updateEntity(
     if (updates.name !== undefined) payload.name = updates.name
     if (updates.area_id !== undefined) payload.area_id = updates.area_id
     if (updates.icon !== undefined) payload.icon = updates.icon
+    if (updates.device_class !== undefined) payload.device_class = updates.device_class
 
     send(state, payload)
   })
@@ -375,106 +390,6 @@ export async function updateEntityLabels(
       type: 'config/entity_registry/update',
       entity_id: entityId,
       labels,
-    })
-  })
-}
-
-/** Check if an entity is excluded from room toggle */
-export function isExcludedFromRoomToggle(state: HAWebSocketState, entityId: string): boolean {
-  const entity = state.entityRegistry.get(entityId)
-  if (!entity?.labels) return false
-
-  for (const labelId of entity.labels) {
-    const label = state.labels.get(labelId)
-    if (label?.name === NO_ROOM_TOGGLE_LABEL) {
-      return true
-    }
-  }
-  return false
-}
-
-/** Returns existing label ID or creates the no-room-toggle label */
-async function ensureNoRoomToggleLabel(state: HAWebSocketState): Promise<string> {
-  // Check if label already exists
-  for (const [labelId, label] of state.labels) {
-    if (label.name === NO_ROOM_TOGGLE_LABEL) {
-      return labelId
-    }
-  }
-
-  // Create new label
-  return new Promise((resolve, reject) => {
-    const msgId = getNextMessageId(state)
-    registerCallback(state, msgId, (success, result) => {
-      if (success && isHALabel(result)) {
-        state.labels.set(result.label_id, result)
-        resolve(result.label_id)
-      } else {
-        reject(new Error('Failed to create label'))
-      }
-    })
-    send(state, {
-      id: msgId,
-      type: 'config/label_registry/create',
-      name: NO_ROOM_TOGGLE_LABEL,
-    })
-  })
-}
-
-/** Set whether an entity is excluded from room toggle */
-export async function setExcludedFromRoomToggle(
-  state: HAWebSocketState,
-  entityId: string,
-  excluded: boolean
-): Promise<void> {
-  const entity = state.entityRegistry.get(entityId)
-  if (!entity) return
-
-  // Get current labels
-  const currentLabels = entity.labels || []
-
-  // Find if we already have the no-room-toggle label
-  let noRoomToggleLabelId: string | undefined
-  for (const labelId of currentLabels) {
-    const label = state.labels.get(labelId)
-    if (label?.name === NO_ROOM_TOGGLE_LABEL) {
-      noRoomToggleLabelId = labelId
-      break
-    }
-  }
-
-  const hasLabel = !!noRoomToggleLabelId
-
-  // If already in desired state, nothing to do
-  if (hasLabel === excluded) return
-
-  let newLabels: string[]
-  if (excluded) {
-    // Add the label
-    const labelId = await ensureNoRoomToggleLabel(state)
-    newLabels = [...currentLabels, labelId]
-  } else {
-    // Remove the label
-    newLabels = currentLabels.filter((id) => id !== noRoomToggleLabelId)
-  }
-
-  // Update entity labels
-  return new Promise((resolve, reject) => {
-    const msgId = getNextMessageId(state)
-    registerCallback(state, msgId, (success) => {
-      if (success) {
-        entity.labels = newLabels
-        notifyRegistryHandlers(state)
-        resolve()
-      } else {
-        reject(new Error('Failed to update entity labels'))
-      }
-    })
-    send(state, {
-      id: msgId,
-      type: 'config/entity_registry/update',
-      entity_id: entityId,
-      labels: newLabels,
     })
   })
 }

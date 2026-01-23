@@ -1,9 +1,11 @@
-import { useCallback, Fragment, useRef, useState, useLayoutEffect } from 'react'
+import { useCallback, Fragment, useRef, useState, useLayoutEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { RoomCard, MemoizedRoomCard } from './RoomCard'
 import { ReorderableGrid } from './ReorderableGrid'
 import { t } from '@/lib/i18n'
 import { ROOM_EXPAND_DURATION } from '@/lib/constants'
+import { useSettings } from '@/lib/hooks/useSettings'
+import { getFloorColumns } from '@/lib/ha-websocket'
 import type { RoomWithDevices } from '@/types/ha'
 
 const GAP = 12
@@ -61,6 +63,26 @@ export function RoomsGrid({
   // Layout follows expanded state directly (no sequencing - animations happen together)
   const layoutExpandedId = expandedRoomId
 
+  // Get grid columns from settings (global default)
+  const { gridColumns: globalColumns } = useSettings()
+
+  // Calculate effective column count
+  // Priority: floor override > global setting > auto calculation
+  const effectiveColumns = useMemo(() => {
+    // Check for per-floor override
+    const floorOverride = selectedFloorId ? getFloorColumns(selectedFloorId) : undefined
+
+    // Use floor override if set, otherwise use global setting
+    const setting = floorOverride ?? globalColumns
+
+    // If 'auto', calculate based on room count: ≤5 rooms = 1 column, >5 = 2 columns
+    if (setting === 'auto') {
+      return displayRooms.length <= 5 ? 1 : 2
+    }
+
+    return setting
+  }, [selectedFloorId, globalColumns, displayRooms.length])
+
   // Measure container width for pixel-based width animations
   const containerRef = useRef<HTMLDivElement>(null)
   const [containerWidth, setContainerWidth] = useState(0)
@@ -77,9 +99,12 @@ export function RoomsGrid({
     return () => resizeObserver.disconnect()
   }, [])
 
-  // Calculate card widths in pixels
-  const singleColumnWidth = (containerWidth - GAP) / 2
+  // Calculate card widths in pixels based on effective columns
+  const singleColumnWidth = (containerWidth - (effectiveColumns - 1) * GAP) / effectiveColumns
   const fullWidth = containerWidth
+
+  // CSS calc fallback for before container is measured
+  const calcWidth = `calc(${100 / effectiveColumns}% - ${((effectiveColumns - 1) * GAP) / effectiveColumns}px)`
 
   // Stable callback that delegates to onToggleExpand - avoids new function refs per card
   // Must be defined before any conditional returns to follow React hooks rules
@@ -129,7 +154,7 @@ export function RoomsGrid({
         externalDragKey={reorderingDisabled ? undefined : activeDragRoomId}
         externalDragPosition={reorderingDisabled ? undefined : activeDragPosition}
         getKey={(room) => room.id}
-        columns={2}
+        columns={effectiveColumns}
         gap={12}
         renderItem={(room) => (
           <RoomCard
@@ -146,7 +171,9 @@ export function RoomsGrid({
   const layoutExpandedIndex = layoutExpandedId
     ? displayRooms.findIndex((r) => r.id === layoutExpandedId)
     : -1
-  const layoutExpandedInRightColumn = layoutExpandedIndex !== -1 && layoutExpandedIndex % 2 === 1
+  // Check if expanded card is in any column except the first (needs placeholder for cards to its left)
+  const layoutExpandedColumn =
+    layoutExpandedIndex !== -1 ? layoutExpandedIndex % effectiveColumns : -1
 
   // Normal grid view with width animations (no layout FLIP for better performance)
   return (
@@ -156,8 +183,10 @@ export function RoomsGrid({
         const isExpanded = room.id === expandedRoomId
         // isLayoutExpanded controls the grid layout (col-span, position)
         const isLayoutExpanded = room.id === layoutExpandedId
-        // Card to the left of a layout-expanded right-column card needs a placeholder
-        const needsPlaceholder = layoutExpandedInRightColumn && index === layoutExpandedIndex - 1
+        // Cards to the left of an expanded card in the same row need placeholders
+        const rowStart = layoutExpandedIndex - layoutExpandedColumn
+        const needsPlaceholder =
+          layoutExpandedColumn > 0 && index >= rowStart && index < layoutExpandedIndex
 
         // Use pixel width when measured, calc() fallback before measurement
         const targetWidth = containerWidth
@@ -166,7 +195,7 @@ export function RoomsGrid({
             : singleColumnWidth
           : isLayoutExpanded
             ? '100%'
-            : 'calc(50% - 6px)'
+            : calcWidth
 
         return (
           <Fragment key={room.id}>
@@ -188,10 +217,10 @@ export function RoomsGrid({
                 onEnterEditModeWithSelection={onEnterEditModeWithSelection}
               />
             </motion.div>
-            {/* Invisible placeholder to preserve gap when right-column card expands */}
+            {/* Invisible placeholder to preserve gap when non-first-column card expands */}
             {needsPlaceholder && (
               <div
-                style={{ width: containerWidth ? singleColumnWidth : 'calc(50% - 6px)' }}
+                style={{ width: containerWidth ? singleColumnWidth : calcWidth }}
                 className="invisible"
               />
             )}

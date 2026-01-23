@@ -1,6 +1,6 @@
 import { useCallback, useRef } from 'react'
 import { useHAConnection } from './useHAConnection'
-import { getEntity, setOptimisticState, isExcludedFromRoomToggle } from '@/lib/ha-websocket'
+import { getEntity, setOptimisticState } from '@/lib/ha-websocket'
 import type { HAEntity } from '@/types/ha'
 
 interface UseLightControlOptions {
@@ -111,23 +111,23 @@ export function useLightControl(options: UseLightControlOptions = {}) {
   // Toggle all lights and switches in a room on/off
   const toggleRoomLights = useCallback(
     (lights: HAEntity[], switches: HAEntity[] = []) => {
-      // Filter out devices that are marked as independent (excluded from room toggle)
-      const includedLights = lights.filter((l) => !isExcludedFromRoomToggle(l.entity_id))
-      const includedSwitches = switches.filter((sw) => !isExcludedFromRoomToggle(sw.entity_id))
+      // All lights are included in room toggle
+      // Only switches with device_class === 'light' are included (configured via "Show as" in HA)
+      const includedSwitches = switches.filter((sw) => sw.attributes.device_class === 'light')
 
-      // If any included light or switch is on, turn all off. Otherwise turn all on.
+      // If any light or included switch is on, turn all off. Otherwise turn all on.
       const anyOn =
-        includedLights.some((l) => l.state === 'on') ||
-        includedSwitches.some((s) => s.state === 'on')
+        lights.some((l) => l.state === 'on') || includedSwitches.some((s) => s.state === 'on')
       const newState = anyOn ? 'off' : 'on'
       const service = anyOn ? 'turn_off' : 'turn_on'
 
-      // Apply optimistic state for included entities only
-      for (const light of includedLights) {
+      // Apply optimistic state for all lights
+      for (const light of lights) {
         const brightness = newState === 'on' ? 255 : undefined
         setOptimisticState(light.entity_id, newState, brightness)
         void callService('light', service, { entity_id: light.entity_id })
       }
+      // Apply optimistic state for included switches only
       for (const sw of includedSwitches) {
         setOptimisticState(sw.entity_id, newState)
         void callService('switch', service, { entity_id: sw.entity_id })

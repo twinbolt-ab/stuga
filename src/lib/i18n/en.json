@@ -127,7 +127,9 @@
       "title": "Display",
       "description": "Theme and visible devices",
       "temperature": "Show temperature",
-      "humidity": "Show humidity"
+      "humidity": "Show humidity",
+      "columns": "Grid columns",
+      "columnsAuto": "Auto"
     },
     "theme": {
       "title": "Theme",
@@ -254,8 +256,8 @@
       "room": "Room",
       "hidden": "Hidden",
       "hiddenHint": "Hide this device",
-      "independent": "Independent",
-      "independentHint": "Don't toggle with room"
+      "actAsLight": "Act as light",
+      "actAsLightHint": "Toggles with room lights"
     },
     "scene": {
       "title": "Edit Scene",
@@ -268,7 +270,9 @@
     "floor": {
       "title": "Edit Floor",
       "name": "Name",
-      "icon": "Icon"
+      "icon": "Icon",
+      "columns": "Grid columns",
+      "columnsDefault": "Default"
     },
     "save": "Save",
     "saving": "Saving...",
@@ -302,10 +306,7 @@
       "moveToRoom": "Move to room",
       "setIcon": "Set icon",
       "hide": "Hide all",
-      "unhide": "Unhide all",
-      "independent": "Independent",
-      "makeIndependent": "Make independent",
-      "makeDependent": "Include in room toggle"
+      "unhide": "Unhide all"
     }
   },
   "delete": {

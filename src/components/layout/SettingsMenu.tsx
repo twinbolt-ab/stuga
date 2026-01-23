@@ -14,6 +14,7 @@ import {
   Settings2,
   Thermometer,
   Droplet,
+  LayoutGrid,
 } from 'lucide-react'
 import { t } from '@/lib/i18n'
 import { ConnectionSettingsModal } from '@/components/settings/ConnectionSettingsModal'
@@ -55,6 +56,8 @@ export function SettingsMenu({
     setShowTemperature,
     showHumidity,
     setShowHumidity,
+    gridColumns,
+    setGridColumns,
   } = useSettings()
   const y = useMotionValue(0)
   const sheetRef = useRef<HTMLDivElement>(null)
@@ -410,6 +413,35 @@ export function SettingsMenu({
                             />
                           </div>
                         </button>
+
+                        {/* Grid Columns */}
+                        <div className="flex items-center gap-3 px-3 py-3 rounded-xl">
+                          <div className="p-2 rounded-lg bg-border/50">
+                            <LayoutGrid className="w-4 h-4 text-foreground" />
+                          </div>
+                          <div className="flex-1 text-left">
+                            <p className="text-sm font-medium text-foreground">
+                              {t.settings.display.columns}
+                            </p>
+                          </div>
+                          <div className="flex rounded-lg overflow-hidden border border-border">
+                            {(['auto', 1, 2, 3] as const).map((col) => (
+                              <button
+                                key={col}
+                                onClick={() => setGridColumns(col)}
+                                className={clsx(
+                                  'h-7 text-sm font-medium transition-colors',
+                                  col === 'auto' ? 'px-2' : 'w-8',
+                                  gridColumns === col
+                                    ? 'bg-accent text-white'
+                                    : 'bg-transparent text-foreground hover:bg-border/50'
+                                )}
+                              >
+                                {col === 'auto' ? t.settings.display.columnsAuto : col}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
 
                         {/* Device Types */}
                         <button

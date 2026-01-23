@@ -157,7 +157,7 @@ export function RoomExpanded({ room, allRooms: _allRooms, isExpanded }: RoomExpa
           duration: ROOM_EXPAND_DURATION * 0.5,
           ease: isExpanded ? 'easeOut' : 'easeIn',
         }}
-        className="pt-3 mt-3 border-t border-border pb-1 px-0.5 -mx-0.5"
+        className="pt-3 mt-3 border-t border-border pb-1 px-0.5 -mx-0.5 [&>*:last-child]:mb-0"
         onPointerDown={(e) => {
           e.stopPropagation()
         }}

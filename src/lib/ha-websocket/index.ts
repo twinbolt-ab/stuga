@@ -112,7 +112,12 @@ export const setEntityOrder = (entityId: string, order: number) =>
   entitySvc.setEntityOrder(state, entityId, order)
 export const updateEntity = (
   entityId: string,
-  updates: { name?: string | null; area_id?: string | null; icon?: string | null }
+  updates: {
+    name?: string | null
+    area_id?: string | null
+    icon?: string | null
+    device_class?: string | null
+  }
 ) => entitySvc.updateEntity(state, entityId, updates)
 export const isEntityHidden = (entityId: string) => entitySvc.isEntityHidden(state, entityId)
 export const getHiddenEntities = () => entitySvc.getHiddenEntities(state)
@@ -124,10 +129,6 @@ export const callService = (domain: string, service: string, data?: Record<strin
 export const setOptimisticState = (entityId: string, newState: string, brightness?: number) => {
   entitySvc.setOptimisticState(state, entityId, newState, brightness)
 }
-export const isExcludedFromRoomToggle = (entityId: string) =>
-  entitySvc.isExcludedFromRoomToggle(state, entityId)
-export const setExcludedFromRoomToggle = (entityId: string, excluded: boolean) =>
-  entitySvc.setExcludedFromRoomToggle(state, entityId, excluded)
 
 // Areas
 export const getAreaRegistry = () => state.areaRegistry
@@ -159,6 +160,11 @@ export const saveFloorOrderBatch = (orderedFloors: HAFloor[], originalFloors: HA
   floorSvc.saveFloorOrderBatch(state, orderedFloors, originalFloors)
 export const createFloor = (name: string) => floorSvc.createFloor(state, name)
 export const deleteFloor = (floorId: string) => floorSvc.deleteFloor(state, floorId)
+export const getFloorColumns = (floorId: string) => floorSvc.getFloorColumns(state, floorId)
+export const setFloorColumns = (
+  floorId: string,
+  columns: import('@/lib/hooks/useSettings').GridColumnsOption | undefined
+) => floorSvc.setFloorColumns(state, floorId, columns)
 
 // Labels (for cleanup operations)
 export const deleteLabel = (labelId: string) => labelSvc.deleteLabel(state, labelId)

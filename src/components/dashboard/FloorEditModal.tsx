@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Trash2 } from 'lucide-react'
+import { Trash2, LayoutGrid } from 'lucide-react'
+import { clsx } from 'clsx'
 import { EditModal } from '@/components/ui/EditModal'
 import { FormField } from '@/components/ui/FormField'
 import { TextInput } from '@/components/ui/TextInput'
@@ -7,8 +8,9 @@ import { IconPickerField } from '@/components/ui/IconPickerField'
 import { FloorDeleteDialog } from '@/components/dashboard/FloorDeleteDialog'
 import { useToast } from '@/providers/ToastProvider'
 import { t } from '@/lib/i18n'
-import { updateFloor } from '@/lib/ha-websocket'
+import { updateFloor, getFloorColumns, setFloorColumns } from '@/lib/ha-websocket'
 import { logger } from '@/lib/logger'
+import type { GridColumnsOption } from '@/lib/hooks/useSettings'
 import type { HAFloor, RoomWithDevices } from '@/types/ha'
 
 interface FloorEditModalProps {
@@ -28,6 +30,7 @@ export function FloorEditModal({
 }: FloorEditModalProps) {
   const [name, setName] = useState('')
   const [icon, setIcon] = useState('')
+  const [columns, setColumns] = useState<GridColumnsOption | undefined>(undefined)
   const [isSaving, setIsSaving] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const { showError } = useToast()
@@ -38,6 +41,7 @@ export function FloorEditModal({
     if (floor && floorId) {
       setName(floor.name)
       setIcon(floor.icon || '')
+      setColumns(getFloorColumns(floorId))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [floorId])
@@ -51,6 +55,11 @@ export function FloorEditModal({
         name: name.trim() || floor.name,
         icon: icon.trim() || null,
       })
+      // Save columns setting separately (via labels)
+      const currentColumns = getFloorColumns(floor.floor_id)
+      if (columns !== currentColumns) {
+        await setFloorColumns(floor.floor_id, columns)
+      }
       onClose()
     } catch (error) {
       logger.error('FloorEdit', 'Failed to update floor:', error)
@@ -69,6 +78,36 @@ export function FloorEditModal({
 
         <FormField label={t.edit.floor.icon}>
           <IconPickerField value={icon} onChange={setIcon} />
+        </FormField>
+
+        <FormField label={t.edit.floor.columns}>
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-border/50">
+              <LayoutGrid className="w-4 h-4 text-foreground" />
+            </div>
+            <div className="flex rounded-lg overflow-hidden border border-border">
+              {([undefined, 'auto', 1, 2, 3] as const).map((col) => (
+                <button
+                  key={col ?? 'default'}
+                  type="button"
+                  onClick={() => setColumns(col)}
+                  className={clsx(
+                    'h-8 text-sm font-medium transition-colors',
+                    col === undefined || col === 'auto' ? 'px-2' : 'w-8',
+                    columns === col
+                      ? 'bg-accent text-white'
+                      : 'bg-transparent text-foreground hover:bg-border/50'
+                  )}
+                >
+                  {col === undefined
+                    ? t.edit.floor.columnsDefault
+                    : col === 'auto'
+                      ? t.settings.display.columnsAuto
+                      : col}
+                </button>
+              ))}
+            </div>
+          </div>
         </FormField>
 
         <div className="flex gap-3 pt-4">

@@ -53,6 +53,8 @@ export interface EntityRegistryEntry {
   icon?: string
   disabled_by?: string
   hidden_by?: string
+  device_class?: string | null
+  original_device_class?: string | null
 }
 
 export interface HADevice {

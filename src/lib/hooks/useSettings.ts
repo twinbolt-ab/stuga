@@ -2,11 +2,14 @@ import { useEffect, useCallback, useSyncExternalStore } from 'react'
 
 const SETTINGS_KEY = 'stuga-settings'
 
+export type GridColumnsOption = 'auto' | 1 | 2 | 3
+
 interface Settings {
   groupByFloors: boolean
   roomOrderingEnabled: boolean
   showTemperature: boolean
   showHumidity: boolean
+  gridColumns: GridColumnsOption
 }
 
 const defaultSettings: Settings = {
@@ -14,6 +17,7 @@ const defaultSettings: Settings = {
   roomOrderingEnabled: true,
   showTemperature: true,
   showHumidity: false,
+  gridColumns: 'auto',
 }
 
 // Shared settings store
@@ -106,6 +110,10 @@ export function useSettings() {
     updateSettingsStore({ showHumidity: value })
   }, [])
 
+  const setGridColumns = useCallback((value: GridColumnsOption) => {
+    updateSettingsStore({ gridColumns: value })
+  }, [])
+
   return {
     groupByFloors: settings.groupByFloors,
     setGroupByFloors,
@@ -115,6 +123,8 @@ export function useSettings() {
     setShowTemperature,
     showHumidity: settings.showHumidity,
     setShowHumidity,
+    gridColumns: settings.gridColumns,
+    setGridColumns,
     isLoaded: initialized,
   }
 }

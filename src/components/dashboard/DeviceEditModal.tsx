@@ -16,8 +16,6 @@ import {
   setEntityHidden,
   deleteScene,
   createArea,
-  isExcludedFromRoomToggle,
-  setExcludedFromRoomToggle,
 } from '@/lib/ha-websocket'
 import { logger } from '@/lib/logger'
 import type { HAEntity, RoomWithDevices } from '@/types/ha'
@@ -33,7 +31,7 @@ export function DeviceEditModal({ device, rooms, onClose }: DeviceEditModalProps
   const [icon, setIcon] = useState('')
   const [roomId, setRoomId] = useState('')
   const [hidden, setHidden] = useState(false)
-  const [independent, setIndependent] = useState(false)
+  const [actsAsLight, setActsAsLight] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -44,11 +42,9 @@ export function DeviceEditModal({ device, rooms, onClose }: DeviceEditModalProps
     return device?.entity_id.startsWith('scene.') ?? false
   }, [device])
 
-  // Determine if this is a toggleable device (light or switch)
-  const isToggleable = useMemo(() => {
-    return (
-      (device?.entity_id.startsWith('switch.') || device?.entity_id.startsWith('light.')) ?? false
-    )
+  // Determine if this is a switch (only switches show "Show as" option)
+  const isSwitch = useMemo(() => {
+    return device?.entity_id.startsWith('switch.') ?? false
   }, [device])
 
   // Get the appropriate translations
@@ -73,8 +69,8 @@ export function DeviceEditModal({ device, rooms, onClose }: DeviceEditModalProps
       // Get hidden state
       setHidden(isEntityHidden(deviceId))
 
-      // Get independent state (relevant for lights and switches)
-      setIndependent(isExcludedFromRoomToggle(deviceId))
+      // Get "acts as light" state (for switches: device_class === 'light')
+      setActsAsLight(device.attributes.device_class === 'light')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deviceId])
@@ -94,20 +90,16 @@ export function DeviceEditModal({ device, rooms, onClose }: DeviceEditModalProps
 
     setIsSaving(true)
     try {
-      // Update name, icon, and area
+      // Update name, icon, area, and device_class (for switches)
       await updateEntity(device.entity_id, {
         name: name.trim() || null,
         icon: icon.trim() || null,
         area_id: roomId || null,
+        device_class: isSwitch ? (actsAsLight ? 'light' : null) : undefined,
       })
 
       // Update hidden state
       await setEntityHidden(device.entity_id, hidden)
-
-      // Update independent state (for lights and switches)
-      if (isToggleable) {
-        await setExcludedFromRoomToggle(device.entity_id, independent)
-      }
 
       onClose()
     } catch (error) {
@@ -162,9 +154,9 @@ export function DeviceEditModal({ device, rooms, onClose }: DeviceEditModalProps
             <Toggle checked={hidden} onChange={setHidden} />
           </FormField>
 
-          {isToggleable && (
-            <FormField label={t.edit.device.independent} hint={t.edit.device.independentHint}>
-              <Toggle checked={independent} onChange={setIndependent} />
+          {isSwitch && (
+            <FormField label={t.edit.device.actAsLight} hint={t.edit.device.actAsLightHint}>
+              <Toggle checked={actsAsLight} onChange={setActsAsLight} />
             </FormField>
           )}
 
