@@ -1,7 +1,15 @@
 import { useRef, useCallback, useEffect, memo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { clsx } from 'clsx'
-import { Lightbulb, LightbulbOff, Thermometer, ChevronDown, Home, Check } from 'lucide-react'
+import {
+  Lightbulb,
+  LightbulbOff,
+  Thermometer,
+  Droplet,
+  ChevronDown,
+  Home,
+  Check,
+} from 'lucide-react'
 import type { RoomWithDevices } from '@/types/ha'
 import { RoomExpanded } from './RoomExpanded'
 import { MdiIcon } from '@/components/ui/MdiIcon'
@@ -387,11 +395,21 @@ export function RoomCard({
         {/* Status row */}
         <div className="relative flex items-center justify-between">
           <div className="flex items-center gap-3 text-sm text-muted pointer-events-none">
-            {room.temperature !== undefined ? (
-              <span className="flex items-center gap-1">
-                <Thermometer className="w-3.5 h-3.5" />
-                <span>{room.temperature.toFixed(1)}°</span>
-              </span>
+            {room.temperature !== undefined || room.humidity !== undefined ? (
+              <>
+                {room.temperature !== undefined && (
+                  <span className="flex items-center gap-1">
+                    <Thermometer className="w-3.5 h-3.5" />
+                    <span>{room.temperature.toFixed(1)}°</span>
+                  </span>
+                )}
+                {room.humidity !== undefined && (
+                  <span className="flex items-center gap-1">
+                    <Droplet className="w-3.5 h-3.5" />
+                    <span>{room.humidity}%</span>
+                  </span>
+                )}
+              </>
             ) : (
               hasControllableDevices && (
                 <span className="flex items-center gap-1">
