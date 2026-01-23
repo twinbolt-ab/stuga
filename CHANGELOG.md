@@ -1,49 +1,13 @@
 # Changelog
 
 ## [0.3.15] - 2026-01-22
-
 - Improved Android app versioning for more reliable updates
-
-
-## [0.3.14] - 2026-01-22
-
 - Added screenshot gallery to the landing page
-
-
-## [0.3.13] - 2026-01-22
-
 - Added promotional video to app store listing
 - Updated screenshots and visuals
-
-
-## [0.3.12] - 2026-01-22
-
 - Improved compatibility with newer Android devices
-
-
-## [0.3.11] - 2026-01-22
-
 - Fixed Android app build issues
-
-
-## [0.3.10] - 2026-01-22
-
-- No user-facing changes in this release
-
-
-## [0.3.9] - 2026-01-22
-
 - Improved app store listings with better descriptions and metadata
-
-
-## [0.3.8] - 2026-01-22
-
-- Added reviewer instructions for Google Play to help with app store approval
-
-
-## [0.3.7] - 2026-01-22
-
-- No user-facing changes in this release
 
 
 ## [0.3.6] - 2026-01-22
