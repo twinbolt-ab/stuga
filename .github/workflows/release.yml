@@ -154,12 +154,15 @@ jobs:
           echo "Checking Capacitor installation..."
           npx cap --version
 
-          # Save tracked android resources (fastlane, icons)
+          # Save tracked android resources (fastlane, res, manifest)
           if [ -d android/fastlane ]; then
             cp -r android/fastlane /tmp/fastlane-backup
           fi
           if [ -d android/app/src/main/res ]; then
             cp -r android/app/src/main/res /tmp/res-backup
+          fi
+          if [ -f android/app/src/main/AndroidManifest.xml ]; then
+            cp android/app/src/main/AndroidManifest.xml /tmp/AndroidManifest-backup.xml
           fi
 
           # Remove partial android directory and recreate
@@ -172,6 +175,9 @@ jobs:
           fi
           if [ -d /tmp/res-backup ]; then
             cp -r /tmp/res-backup/* android/app/src/main/res/
+          fi
+          if [ -f /tmp/AndroidManifest-backup.xml ]; then
+            cp /tmp/AndroidManifest-backup.xml android/app/src/main/AndroidManifest.xml
           fi
 
           # Get version from package.json and calculate versionCode
