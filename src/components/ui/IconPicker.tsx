@@ -74,7 +74,7 @@ export function IconPicker({ isOpen, value, onChange, onClose }: IconPickerProps
           className="fixed inset-0 z-[60] bg-card flex flex-col"
         >
           {/* Header - fixed at top */}
-          <div className="flex-shrink-0 pt-safe">
+          <div className="flex-shrink-0 pt-safe relative z-10">
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
               <h2 className="text-lg font-semibold text-foreground">{t.iconPicker.title}</h2>
               <button
@@ -115,7 +115,7 @@ export function IconPicker({ isOpen, value, onChange, onClose }: IconPickerProps
           </div>
 
           {/* Icon grid - scrollable, keyboard covers bottom naturally */}
-          <div className="flex-1 overflow-y-auto px-4 pb-safe">
+          <div className="flex-1 overflow-y-auto overscroll-contain px-4 pb-safe">
             {filteredIcons.length === 0 ? (
               <div className="py-8 text-center text-muted">{t.iconPicker.noResults}</div>
             ) : (
