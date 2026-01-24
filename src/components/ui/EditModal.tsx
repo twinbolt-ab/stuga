@@ -102,12 +102,12 @@ export function EditModal({ isOpen, onClose, title, children }: EditModalProps) 
         }}
         className="fixed bottom-0 left-0 right-0 z-[100] bg-card rounded-t-2xl shadow-warm-lg flex flex-col touch-none max-h-[90vh]"
       >
-        {/* Handle bar */}
+        {/* Handle bar - main drag area */}
         <div className="flex justify-center pt-3 pb-2">
           <div className="w-10 h-1 bg-border rounded-full" />
         </div>
 
-        {/* Header */}
+        {/* Header - also draggable */}
         <div className="flex items-center justify-between px-4 pb-4 border-b border-border">
           <h2 className="text-lg font-semibold text-foreground">{title}</h2>
           <button
@@ -119,8 +119,8 @@ export function EditModal({ isOpen, onClose, title, children }: EditModalProps) 
           </button>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 pb-safe">{children}</div>
+        {/* Content - touch-pan-y allows scrolling while handle bar enables drag-to-close */}
+        <div className="flex-1 overflow-y-auto touch-pan-y px-4 py-4 pb-safe">{children}</div>
       </motion.div>
     </>,
     document.body
