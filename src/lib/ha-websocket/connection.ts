@@ -3,7 +3,8 @@ import type { HAWebSocketState } from './types'
 import { RECONNECT_DELAY } from '@/lib/constants'
 import { getValidAccessToken } from '@/lib/ha-oauth'
 import { logger } from '@/lib/logger'
-import { notifyConnectionHandlers, clearPendingCallbacks } from './message-router'
+import { notifyConnectionHandlers, clearPendingCallbacks, notifyConnectionErrorHandlers } from './message-router'
+import { runConnectionDiagnostics } from '@/lib/connection-diagnostics'
 
 type MessageCallback = (message: WebSocketMessage) => void
 
@@ -36,7 +37,7 @@ export function connect(state: HAWebSocketState, onMessage: MessageCallback): vo
       logger.debug('HA WS', 'Disconnected')
       state.isAuthenticated = false
       notifyConnectionHandlers(state, false)
-      scheduleReconnect(state, onMessage)
+      handleConnectionFailure(state, onMessage)
     }
 
     state.ws.onerror = (error) => {
@@ -44,8 +45,24 @@ export function connect(state: HAWebSocketState, onMessage: MessageCallback): vo
     }
   } catch (error) {
     logger.error('HA WS', 'Connection failed:', error)
-    scheduleReconnect(state, onMessage)
+    handleConnectionFailure(state, onMessage)
   }
+}
+
+async function handleConnectionFailure(
+  state: HAWebSocketState,
+  onMessage: MessageCallback
+): Promise<void> {
+  // Run diagnostics only on initial connection failure
+  if (state.isInitialConnection && state.url && state.token) {
+    logger.debug('HA WS', 'Running connection diagnostics...')
+    const httpUrl = state.url.replace(/^ws/, 'http').replace('/api/websocket', '')
+    const diagnostic = await runConnectionDiagnostics(httpUrl, state.token)
+    state.lastDiagnostic = diagnostic
+    notifyConnectionErrorHandlers(state, diagnostic)
+  }
+
+  scheduleReconnect(state, onMessage)
 }
 
 export function disconnect(state: HAWebSocketState): void {

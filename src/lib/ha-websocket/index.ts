@@ -17,7 +17,8 @@ import type {
   EntityRegistryEntry,
 } from '@/types/ha'
 import { createInitialState } from './types'
-import type { MessageHandler, ConnectionHandler, RegistryHandler } from './types'
+import type { MessageHandler, ConnectionHandler, RegistryHandler, ConnectionErrorHandler } from './types'
+import type { DiagnosticResult } from '@/lib/connection-diagnostics'
 import * as conn from './connection'
 import * as router from './message-router'
 import * as registry from './registry-manager'
@@ -40,6 +41,8 @@ function handleMessage(message: WebSocketMessage): void {
     case 'auth_ok':
       logger.debug('HA WS', 'Authenticated')
       state.isAuthenticated = true
+      state.isInitialConnection = false // Successful connection, future failures are reconnects
+      state.lastDiagnostic = null // Clear any previous diagnostic
       router.notifyConnectionHandlers(state, true)
       registry.subscribeToStateChanges(state)
       registry.fetchAllRegistries(state)
@@ -100,6 +103,17 @@ export const onConnection = (handler: ConnectionHandler) =>
   router.addConnectionHandler(state, handler)
 export const onRegistryUpdate = (handler: RegistryHandler) =>
   router.addRegistryHandler(state, handler)
+export const onConnectionError = (handler: ConnectionErrorHandler) =>
+  router.addConnectionErrorHandler(state, handler)
+
+// Diagnostics
+export const getLastDiagnostic = (): DiagnosticResult | null => state.lastDiagnostic
+export const clearDiagnostic = () => {
+  state.lastDiagnostic = null
+}
+export const resetInitialConnection = () => {
+  state.isInitialConnection = true
+}
 
 // Entities
 export const getEntities = () => entitySvc.getEntities(state)
@@ -172,5 +186,12 @@ export const updateEntityLabels = (entityId: string, labels: string[]) =>
 export const getState = () => state
 
 // Re-export types
-export type { HAWebSocketState, MessageHandler, ConnectionHandler, RegistryHandler } from './types'
+export type {
+  HAWebSocketState,
+  MessageHandler,
+  ConnectionHandler,
+  RegistryHandler,
+  ConnectionErrorHandler,
+} from './types'
 export type { HAEntity, HALabel, HAFloor, AreaRegistryEntry, EntityRegistryEntry }
+export type { DiagnosticResult, ConnectionErrorType } from '@/lib/connection-diagnostics'

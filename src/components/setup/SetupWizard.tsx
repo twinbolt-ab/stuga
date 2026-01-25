@@ -12,9 +12,15 @@ import {
   Wifi,
   Key,
   Copy,
+  ShieldOff,
+  ServerOff,
+  RefreshCw,
 } from 'lucide-react'
 import { saveCredentials } from '@/lib/config'
 import { t } from '@/lib/i18n'
+import { type ConnectionErrorType, type DiagnosticResult } from '@/lib/connection-diagnostics'
+import { logError, setCustomKey, log } from '@/lib/crashlytics'
+import { EditModal } from '@/components/ui/EditModal'
 import { useDevMode } from '@/lib/hooks/useDevMode'
 import {
   storePendingOAuth,
@@ -44,6 +50,254 @@ interface UrlSuggestion {
   url: string
   label: string
   status: UrlStatus
+}
+
+// Map error types to user-friendly messages
+function getErrorMessage(errorType: ConnectionErrorType): string {
+  const messages: Record<ConnectionErrorType, string> = {
+    network: t.connectionError?.errorNetwork || 'Unable to reach Home Assistant',
+    'websocket-blocked': t.connectionError?.errorWebsocket || 'WebSocket connection blocked',
+    auth: t.connectionError?.errorAuth || 'Authentication failed',
+    'server-down': t.connectionError?.errorServerDown || 'Home Assistant is not responding',
+    unknown: t.setup.url.error,
+  }
+  return messages[errorType]
+}
+
+function getTroubleshootingTip(errorType: ConnectionErrorType): string {
+  const tips: Record<ConnectionErrorType, string> = {
+    network:
+      t.connectionError?.troubleshootNetwork ||
+      'Check your network connection and verify the Home Assistant URL is correct.',
+    'websocket-blocked':
+      t.connectionError?.troubleshootWebsocket ||
+      'WebSocket connections may be blocked by your network or proxy. Try connecting from a different network.',
+    auth:
+      t.connectionError?.troubleshootAuth ||
+      'Your access token may have expired or is invalid. Try reconnecting with a new token.',
+    'server-down':
+      t.connectionError?.troubleshootServerDown ||
+      'Home Assistant may be restarting or offline. Check that it is running and try again.',
+    unknown:
+      t.connectionError?.troubleshootUnknown ||
+      'An unexpected error occurred. Check your connection settings and try again.',
+  }
+  return tips[errorType]
+}
+
+// Detailed troubleshooting steps for each error type
+function getTroubleshootingSteps(errorType: ConnectionErrorType): string[] {
+  const steps: Record<ConnectionErrorType, string[]> = {
+    network: [
+      'Check that your device is connected to the internet or local network',
+      'Verify the Home Assistant URL is correct (e.g., http://homeassistant.local:8123)',
+      'Make sure Home Assistant is running and accessible',
+      'If using a local address, ensure you\'re on the same network as Home Assistant',
+      'Try accessing the URL directly in a web browser to verify it works',
+    ],
+    'websocket-blocked': [
+      'WebSocket connections are being blocked by your network or a proxy',
+      'If you\'re on a corporate or public WiFi, try using mobile data instead',
+      'Check if you have a VPN running that might block WebSocket connections',
+      'If using a reverse proxy (like nginx), ensure WebSocket upgrade is enabled',
+      'Add these lines to your nginx config:\n  proxy_http_version 1.1;\n  proxy_set_header Upgrade $http_upgrade;\n  proxy_set_header Connection "upgrade";',
+      'If using Cloudflare, ensure WebSockets are enabled in your dashboard',
+    ],
+    auth: [
+      'Your access token may have expired or is invalid',
+      'Go to Home Assistant → Profile → Security → Long-Lived Access Tokens',
+      'Create a new token and try connecting again',
+      'Make sure you copied the entire token without any extra spaces',
+    ],
+    'server-down': [
+      'Home Assistant appears to be offline or not responding',
+      'Check if Home Assistant is running on your server',
+      'Try restarting Home Assistant from the command line or web interface',
+      'Check the Home Assistant logs for any errors',
+      'Verify the port number is correct (default is 8123)',
+    ],
+    unknown: [
+      'An unexpected error occurred during connection',
+      'Try the connection again - it may be a temporary issue',
+      'Check the Home Assistant logs for more details',
+      'Restart Home Assistant and try again',
+      'If the problem persists, check the Home Assistant community forums',
+    ],
+  }
+  return steps[errorType]
+}
+
+// Troubleshooting help content (rendered inside EditModal)
+function TroubleshootingHelpContent({ errorType }: { errorType: ConnectionErrorType }) {
+  const steps = getTroubleshootingSteps(errorType)
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-muted">{getTroubleshootingTip(errorType)}</p>
+
+      <div className="space-y-3">
+        <p className="text-xs font-medium text-muted uppercase tracking-wide">Things to try:</p>
+        <ul className="space-y-3">
+          {steps.map((step, index) => (
+            <li key={index} className="flex gap-3 text-sm">
+              <span className="flex-shrink-0 w-5 h-5 rounded-full bg-accent/10 text-accent text-xs font-medium flex items-center justify-center">
+                {index + 1}
+              </span>
+              <span className="text-foreground/90 whitespace-pre-wrap">{step}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  )
+}
+
+type DiagnosticStatus = 'idle' | 'checking' | 'success' | 'failed'
+
+interface LiveDiagnosticState {
+  show: boolean
+  httpsStatus: DiagnosticStatus
+  websocketStatus: DiagnosticStatus
+  errorType?: ConnectionErrorType
+}
+
+// Component for showing live connection diagnostic details
+function DiagnosticDetails({
+  state,
+  onRetry,
+}: {
+  state: LiveDiagnosticState
+  onRetry: () => void
+}) {
+  const [showHelp, setShowHelp] = useState(false)
+  const { httpsStatus, websocketStatus, errorType } = state
+  const isComplete = httpsStatus !== 'checking' && websocketStatus !== 'checking'
+  const hasFailed = httpsStatus === 'failed' || websocketStatus === 'failed'
+
+  const getIcon = () => {
+    if (!isComplete) return <Loader2 className="w-6 h-6 animate-spin" />
+    if (!hasFailed) return <Check className="w-6 h-6" />
+    switch (errorType) {
+      case 'network':
+      case 'server-down':
+        return <ServerOff className="w-6 h-6" />
+      case 'websocket-blocked':
+      case 'auth':
+        return <ShieldOff className="w-6 h-6" />
+      default:
+        return <AlertCircle className="w-6 h-6" />
+    }
+  }
+
+  const getStatusDisplay = (status: DiagnosticStatus) => {
+    switch (status) {
+      case 'checking':
+        return (
+          <span className="flex items-center gap-1.5 text-muted">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Checking...
+          </span>
+        )
+      case 'success':
+        return (
+          <span className="flex items-center gap-1.5 text-green-500">
+            <Check className="w-4 h-4" />
+            {t.connectionError?.statusOk || 'OK'}
+          </span>
+        )
+      case 'failed':
+        return (
+          <span className="flex items-center gap-1.5 text-red-500">
+            <X className="w-4 h-4" />
+            {t.connectionError?.statusFailed || 'Failed'}
+          </span>
+        )
+      default:
+        return <span className="text-muted">—</span>
+    }
+  }
+
+  return (
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="space-y-4"
+      >
+        {/* Error Header - only show when complete and failed */}
+        {isComplete && hasFailed && errorType && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            className="flex items-start gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-xl"
+          >
+            <div className="text-red-500 flex-shrink-0">{getIcon()}</div>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-foreground">{getErrorMessage(errorType)}</p>
+              <p className="text-sm text-muted mt-1">{getTroubleshootingTip(errorType)}</p>
+              {/* Troubleshooting button */}
+              <button
+                onClick={() => setShowHelp(true)}
+                className="text-xs text-muted hover:text-foreground underline underline-offset-2 transition-colors mt-2"
+              >
+                Troubleshooting
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Diagnostic Details - show during checking and after */}
+        <div className="p-4 bg-card border border-border rounded-xl space-y-3">
+          <div className="flex items-center gap-2">
+            {!isComplete && <Loader2 className="w-4 h-4 animate-spin text-accent" />}
+            <p className="text-xs font-medium text-muted uppercase tracking-wide">
+              {isComplete
+                ? t.connectionError?.diagnosticDetails || 'Diagnostic Details'
+                : 'Checking connection...'}
+            </p>
+          </div>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between items-center">
+              <span className="text-muted">
+                {t.connectionError?.httpsStatus || 'Server reachable'}
+              </span>
+              {getStatusDisplay(httpsStatus)}
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-muted">
+                {t.connectionError?.websocketStatus || 'WebSocket'}
+              </span>
+              {getStatusDisplay(websocketStatus)}
+            </div>
+          </div>
+        </div>
+
+        {/* Retry Button - only show when complete and failed */}
+        {isComplete && hasFailed && (
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            onClick={onRetry}
+            className="w-full py-3 px-4 bg-accent/10 text-accent hover:bg-accent/20 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" />
+            {t.connectionError?.retry || 'Retry'}
+          </motion.button>
+        )}
+      </motion.div>
+
+      {/* Troubleshooting Help Modal */}
+      {errorType && (
+        <EditModal
+          isOpen={showHelp}
+          onClose={() => setShowHelp(false)}
+          title="Troubleshooting Help"
+        >
+          <TroubleshootingHelpContent errorType={errorType} />
+        </EditModal>
+      )}
+    </>
+  )
 }
 
 // Common HA URL patterns to try
@@ -111,6 +365,11 @@ export function SetupWizard() {
   const [authMethod, setAuthMethod] = useState<AuthMethod>('oauth')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [liveDiagnostic, setLiveDiagnostic] = useState<LiveDiagnosticState>({
+    show: false,
+    httpsStatus: 'idle',
+    websocketStatus: 'idle',
+  })
   const [suggestions, setSuggestions] = useState<UrlSuggestion[]>([])
   const [isProbing, setIsProbing] = useState(false)
   const [urlVerified, setUrlVerified] = useState(false)
@@ -278,6 +537,99 @@ export function SetupWizard() {
     [testConnection]
   )
 
+  // Run live diagnostics with progress updates
+  const runLiveDiagnostics = useCallback(async (testUrl: string): Promise<DiagnosticResult> => {
+    void log('Setup: Running connection diagnostics')
+
+    // Show diagnostic panel
+    setLiveDiagnostic({
+      show: true,
+      httpsStatus: 'checking',
+      websocketStatus: 'idle',
+    })
+
+    // Test HTTPS first
+    const httpsOk = await testHttpsReachable(testUrl)
+    setLiveDiagnostic((prev) => ({
+      ...prev,
+      httpsStatus: httpsOk ? 'success' : 'failed',
+      websocketStatus: httpsOk ? 'checking' : 'idle',
+    }))
+
+    if (!httpsOk) {
+      const result: DiagnosticResult = {
+        httpsReachable: false,
+        websocketReachable: false,
+        authValid: false,
+        errorType: 'network',
+        timestamp: Date.now(),
+      }
+      setLiveDiagnostic((prev) => ({ ...prev, errorType: 'network' }))
+      // Log to Crashlytics
+      void logSetupDiagnostic(result, testUrl)
+      return result
+    }
+
+    // Test WebSocket
+    const wsOk = await testConnection(testUrl, undefined, 8000)
+    const errorType: ConnectionErrorType = wsOk ? 'unknown' : 'websocket-blocked'
+    setLiveDiagnostic((prev) => ({
+      ...prev,
+      websocketStatus: wsOk ? 'success' : 'failed',
+      errorType: wsOk ? undefined : errorType,
+    }))
+
+    const result: DiagnosticResult = {
+      httpsReachable: true,
+      websocketReachable: wsOk,
+      authValid: false, // Not tested yet
+      errorType,
+      timestamp: Date.now(),
+    }
+
+    // Log to Crashlytics if failed
+    if (!wsOk) {
+      void logSetupDiagnostic(result, testUrl)
+    }
+
+    return result
+  }, [testConnection])
+
+  // Log diagnostic result to Crashlytics
+  const logSetupDiagnostic = async (result: DiagnosticResult, testUrl: string) => {
+    let hostname = 'unknown'
+    try {
+      hostname = new URL(testUrl).hostname
+    } catch {
+      // Invalid URL
+    }
+
+    await setCustomKey('setup_error_type', result.errorType)
+    await setCustomKey('setup_https_reachable', result.httpsReachable)
+    await setCustomKey('setup_websocket_reachable', result.websocketReachable)
+    await setCustomKey('setup_ha_hostname', hostname)
+
+    const error = new Error(`Setup connection failed: ${result.errorType}`)
+    await logError(error, 'setup-diagnostic')
+  }
+
+  // Simple HTTPS reachability test
+  const testHttpsReachable = async (testUrl: string): Promise<boolean> => {
+    try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 8000)
+      const response = await fetch(`${testUrl}/api/`, {
+        method: 'GET',
+        signal: controller.signal,
+      })
+      clearTimeout(timeoutId)
+      // 401/403 means server is reachable but needs auth
+      return response.status === 401 || response.status === 200 || response.status === 403
+    } catch {
+      return false
+    }
+  }
+
   // Handle connect button click
   const handleConnect = async () => {
     // Check for demo mode
@@ -288,12 +640,49 @@ export function SetupWizard() {
 
     setIsLoading(true)
     setError(null)
+    setLiveDiagnostic({ show: false, httpsStatus: 'idle', websocketStatus: 'idle' })
+
+    // Normalize URL
+    let normalizedUrl = url.trim()
+    if (!normalizedUrl.startsWith('http')) {
+      normalizedUrl = 'http://' + normalizedUrl
+    }
+    normalizedUrl = normalizedUrl.replace(/\/+$/, '')
 
     // First verify URL if not already verified
     if (!urlVerified) {
-      const urlValid = await verifyUrl(url)
-      if (!urlValid) {
-        setError(t.setup.url.error)
+      // Start a timer - show diagnostics after 500ms if still connecting
+      let showDiagnosticsTimer: ReturnType<typeof setTimeout> | null = null
+      let diagnosticPromise: Promise<DiagnosticResult> | null = null
+
+      // Run connection test
+      const connectionPromise = testConnection(normalizedUrl, undefined, 10000)
+
+      // After 500ms, start showing live diagnostics
+      showDiagnosticsTimer = setTimeout(() => {
+        diagnosticPromise = runLiveDiagnostics(normalizedUrl)
+      }, 500)
+
+      const connected = await connectionPromise
+
+      // Clear the timer if connection completed quickly
+      if (showDiagnosticsTimer) {
+        clearTimeout(showDiagnosticsTimer)
+      }
+
+      if (connected) {
+        // Success! Hide diagnostics and proceed
+        setLiveDiagnostic({ show: false, httpsStatus: 'idle', websocketStatus: 'idle' })
+        setUrl(normalizedUrl)
+        setUrlVerified(true)
+      } else {
+        // Connection failed - if diagnostics already started, wait for them
+        if (diagnosticPromise) {
+          await diagnosticPromise
+        } else {
+          // Diagnostics didn't start (failed within 500ms), run them now
+          await runLiveDiagnostics(normalizedUrl)
+        }
         setIsLoading(false)
         return
       }
@@ -306,6 +695,13 @@ export function SetupWizard() {
       await handleTokenSubmit()
     }
   }
+
+  // Retry connection after diagnostic
+  const handleRetryConnection = useCallback(() => {
+    setLiveDiagnostic({ show: false, httpsStatus: 'idle', websocketStatus: 'idle' })
+    setError(null)
+    setUrlVerified(false)
+  }, [])
 
   const handleOAuthLogin = async () => {
     try {
@@ -633,7 +1029,15 @@ export function SetupWizard() {
                   )}
                 </AnimatePresence>
 
-                {error && (
+                {/* Live Connection Diagnostic Details */}
+                <AnimatePresence>
+                  {liveDiagnostic.show && (
+                    <DiagnosticDetails state={liveDiagnostic} onRetry={handleRetryConnection} />
+                  )}
+                </AnimatePresence>
+
+                {/* Simple error message (for non-diagnostic errors like OAuth failures) */}
+                {error && !liveDiagnostic.show && (
                   <div className="flex items-center gap-2 text-red-500 text-sm">
                     <AlertCircle className="w-4 h-4 flex-shrink-0" />
                     <span>{error}</span>

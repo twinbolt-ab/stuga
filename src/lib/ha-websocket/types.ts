@@ -1,4 +1,5 @@
 import type { HAEntity, HALabel, HAFloor, AreaRegistryEntry, EntityRegistryEntry } from '@/types/ha'
+import type { DiagnosticResult } from '@/lib/connection-diagnostics'
 
 // Optimistic state override for immediate UI feedback
 export interface OptimisticOverride {
@@ -11,6 +12,7 @@ export interface OptimisticOverride {
 export type MessageHandler = (entities: Map<string, HAEntity>) => void
 export type ConnectionHandler = (connected: boolean) => void
 export type RegistryHandler = () => void
+export type ConnectionErrorHandler = (diagnostic: DiagnosticResult) => void
 
 // Callback for pending WebSocket requests
 export interface PendingCallback {
@@ -28,6 +30,8 @@ export interface HAWebSocketState {
   messageId: number
   isAuthenticated: boolean
   reconnectTimeout: NodeJS.Timeout | null
+  isInitialConnection: boolean
+  lastDiagnostic: DiagnosticResult | null
 
   // Message IDs for registry fetches
   statesMessageId: number
@@ -54,6 +58,7 @@ export interface HAWebSocketState {
   messageHandlers: Set<MessageHandler>
   connectionHandlers: Set<ConnectionHandler>
   registryHandlers: Set<RegistryHandler>
+  connectionErrorHandlers: Set<ConnectionErrorHandler>
   pendingCallbacks: Map<number, PendingCallback>
 }
 
@@ -67,6 +72,8 @@ export function createInitialState(): HAWebSocketState {
     messageId: 1,
     isAuthenticated: false,
     reconnectTimeout: null,
+    isInitialConnection: true,
+    lastDiagnostic: null,
 
     statesMessageId: 0,
     entityRegistryMessageId: 0,
@@ -89,6 +96,7 @@ export function createInitialState(): HAWebSocketState {
     messageHandlers: new Set(),
     connectionHandlers: new Set(),
     registryHandlers: new Set(),
+    connectionErrorHandlers: new Set(),
     pendingCallbacks: new Map(),
   }
 }

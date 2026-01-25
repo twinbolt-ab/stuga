@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
-import { motion, AnimatePresence, useMotionValue, PanInfo } from 'framer-motion'
+import { motion, AnimatePresence, useMotionValue, useDragControls, PanInfo } from 'framer-motion'
 import { useTheme } from '@/providers/ThemeProvider'
 import {
   Moon,
@@ -61,6 +61,7 @@ export function SettingsMenu({
   } = useSettings()
   const y = useMotionValue(0)
   const sheetRef = useRef<HTMLDivElement>(null)
+  const dragControls = useDragControls()
 
   // Dev mode activation via click counter
   const [devModeClickCount, setDevModeClickCount] = useState(0)
@@ -92,16 +93,7 @@ export function SettingsMenu({
     }
   }, [devModeClickCount, isDevMode, enableDevMode])
 
-  const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    // Release any pointer capture to prevent blocking subsequent touches
-    if (sheetRef.current && 'pointerId' in event) {
-      try {
-        sheetRef.current.releasePointerCapture(event.pointerId)
-      } catch {
-        // Ignore if pointer capture wasn't held
-      }
-    }
-
+  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     // Blur any focused element to reset touch state
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur()
@@ -113,6 +105,10 @@ export function SettingsMenu({
       // Reset y if not closing
       y.set(0)
     }
+  }
+
+  const startDrag = (event: React.PointerEvent) => {
+    dragControls.start(event)
   }
 
   // Reset y motion value and blur focused element when modal state changes
@@ -200,19 +196,27 @@ export function SettingsMenu({
             exit={{ y: '100%', pointerEvents: 'none' as const }}
             transition={{ type: 'spring', damping: 30, stiffness: 400 }}
             drag="y"
-            dragConstraints={{ top: 0, bottom: 0 }}
-            dragElastic={{ top: 0, bottom: 0.5 }}
+            dragControls={dragControls}
+            dragListener={false}
+            dragConstraints={{ top: 0 }}
+            dragElastic={{ top: 0.1, bottom: 0.8 }}
             onDragEnd={handleDragEnd}
             style={{ y }}
             className="fixed bottom-0 left-0 right-0 z-50 bg-card rounded-t-2xl shadow-warm-lg"
           >
-            {/* Handle bar */}
-            <div className="flex justify-center pt-3 pb-2">
+            {/* Handle bar - drag area */}
+            <div
+              onPointerDown={startDrag}
+              className="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing touch-none"
+            >
               <div className="w-10 h-1 bg-border rounded-full" />
             </div>
 
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 pb-2">
+            {/* Header - also draggable */}
+            <div
+              onPointerDown={startDrag}
+              className="flex items-center justify-between px-4 pb-2 cursor-grab active:cursor-grabbing touch-none"
+            >
               <h2
                 className="text-lg font-semibold text-foreground cursor-default select-none"
                 onClick={handleSettingsHeaderClick}
@@ -221,6 +225,7 @@ export function SettingsMenu({
               </h2>
               <button
                 onClick={onClose}
+                onPointerDown={(e) => e.stopPropagation()}
                 className="p-2 -mr-2 rounded-full hover:bg-border/50 transition-colors touch-feedback"
                 aria-label={t.settings.close}
               >

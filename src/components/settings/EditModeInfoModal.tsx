@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react'
-import { motion, AnimatePresence, useMotionValue, PanInfo } from 'framer-motion'
+import { motion, AnimatePresence, useMotionValue, useDragControls, PanInfo } from 'framer-motion'
 import { X, Hand, Move, CloudUpload, CheckSquare } from 'lucide-react'
 import { t } from '@/lib/i18n'
 
@@ -12,6 +12,7 @@ interface EditModeInfoModalProps {
 export function EditModeInfoModal({ isOpen, onClose, onConfirm }: EditModeInfoModalProps) {
   const y = useMotionValue(0)
   const sheetRef = useRef<HTMLDivElement>(null)
+  const dragControls = useDragControls()
 
   // Reset y motion value when modal opens
   useEffect(() => {
@@ -23,15 +24,7 @@ export function EditModeInfoModal({ isOpen, onClose, onConfirm }: EditModeInfoMo
     }
   }, [isOpen, y])
 
-  const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    if (sheetRef.current && 'pointerId' in event) {
-      try {
-        sheetRef.current.releasePointerCapture(event.pointerId)
-      } catch {
-        // Ignore if pointer capture wasn't held
-      }
-    }
-
+  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur()
     }
@@ -41,6 +34,10 @@ export function EditModeInfoModal({ isOpen, onClose, onConfirm }: EditModeInfoMo
     } else {
       y.set(0)
     }
+  }
+
+  const startDrag = (event: React.PointerEvent) => {
+    dragControls.start(event)
   }
 
   return (
@@ -64,22 +61,31 @@ export function EditModeInfoModal({ isOpen, onClose, onConfirm }: EditModeInfoMo
             exit={{ y: '100%', pointerEvents: 'none' as const }}
             transition={{ type: 'spring', damping: 30, stiffness: 400 }}
             drag="y"
-            dragConstraints={{ top: 0, bottom: 0 }}
-            dragElastic={{ top: 0, bottom: 0.5 }}
+            dragControls={dragControls}
+            dragListener={false}
+            dragConstraints={{ top: 0 }}
+            dragElastic={{ top: 0.1, bottom: 0.8 }}
             onDragEnd={handleDragEnd}
             style={{ y }}
             className="fixed bottom-0 left-0 right-0 z-[70] bg-card rounded-t-2xl shadow-warm-lg"
           >
-            {/* Handle bar */}
-            <div className="flex justify-center pt-3 pb-2">
+            {/* Handle bar - drag area */}
+            <div
+              onPointerDown={startDrag}
+              className="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing touch-none"
+            >
               <div className="w-10 h-1 bg-border rounded-full" />
             </div>
 
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 pb-4">
+            {/* Header - also draggable */}
+            <div
+              onPointerDown={startDrag}
+              className="flex items-center justify-between px-4 pb-4 cursor-grab active:cursor-grabbing touch-none"
+            >
               <h2 className="text-lg font-semibold text-foreground">{t.editMode.infoTitle}</h2>
               <button
                 onClick={onClose}
+                onPointerDown={(e) => e.stopPropagation()}
                 className="p-2 -mr-2 rounded-full hover:bg-border/50 transition-colors"
               >
                 <X className="w-5 h-5 text-muted" />

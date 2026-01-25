@@ -4,8 +4,10 @@ import type {
   MessageHandler,
   ConnectionHandler,
   RegistryHandler,
+  ConnectionErrorHandler,
   OptimisticOverride,
 } from './types'
+import type { DiagnosticResult } from '@/lib/connection-diagnostics'
 
 const DEFAULT_TIMEOUT = 30000
 
@@ -123,5 +125,23 @@ export function notifyConnectionHandlers(state: HAWebSocketState, connected: boo
 export function notifyRegistryHandlers(state: HAWebSocketState): void {
   for (const handler of state.registryHandlers) {
     handler()
+  }
+}
+
+/** Subscribes to connection errors. */
+export function addConnectionErrorHandler(
+  state: HAWebSocketState,
+  handler: ConnectionErrorHandler
+): () => void {
+  state.connectionErrorHandlers.add(handler)
+  return () => state.connectionErrorHandlers.delete(handler)
+}
+
+export function notifyConnectionErrorHandlers(
+  state: HAWebSocketState,
+  diagnostic: DiagnosticResult
+): void {
+  for (const handler of state.connectionErrorHandlers) {
+    handler(diagnostic)
   }
 }

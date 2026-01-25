@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Header } from '@/components/layout/Header'
 import { EditModeHeader } from './EditModeHeader'
 import { ConnectionBanner } from './ConnectionBanner'
+import { ConnectionErrorModal } from './ConnectionErrorModal'
 import { RoomsGrid } from './RoomsGrid'
 import { AllDevicesView } from './AllDevicesView'
 import { FloorSwipeContainer } from './FloorSwipeContainer'
@@ -13,6 +14,7 @@ import { FloorEditModal } from './FloorEditModal'
 import { FloorCreateModal } from './FloorCreateModal'
 import { BulkEditRoomsModal, BulkEditDevicesModal } from './BulkEditModal'
 import { StructureHint } from './StructureHint'
+import { ConnectionSettingsModal } from '@/components/settings/ConnectionSettingsModal'
 import { EditModeProvider, useEditMode } from '@/lib/contexts/EditModeContext'
 import { useHAConnection } from '@/lib/hooks/useHAConnection'
 import { useRooms } from '@/lib/hooks/useRooms'
@@ -31,7 +33,7 @@ import type { HAEntity, HAFloor, RoomWithDevices } from '@/types/ha'
 // Inner component that uses the context
 function DashboardContent() {
   const { rooms, floors, isConnected, hasReceivedData } = useRooms()
-  const { entities } = useHAConnection()
+  const { entities, connectionError, retryConnection, clearConnectionError } = useHAConnection()
   const { isEntityVisible } = useEnabledDomains()
   const { setAreaOrder } = useRoomOrder()
   const { activeMockScenario } = useDevMode()
@@ -62,6 +64,17 @@ function DashboardContent() {
 
   // State for floor create modal
   const [showCreateFloor, setShowCreateFloor] = useState(false)
+
+  // State for connection error modal and settings
+  const [showConnectionError, setShowConnectionError] = useState(false)
+  const [showConnectionSettings, setShowConnectionSettings] = useState(false)
+
+  // Show connection error modal when there's a diagnostic error
+  useEffect(() => {
+    if (connectionError && !hasReceivedData) {
+      setShowConnectionError(true)
+    }
+  }, [connectionError, hasReceivedData])
 
   // Expanded room state (kept separate as it's used for toggling)
   const [expandedRoomId, setExpandedRoomId] = useState<string | null>(null)
@@ -132,6 +145,22 @@ function DashboardContent() {
   // Handler to open the create floor modal
   const handleAddFloor = useCallback(() => {
     setShowCreateFloor(true)
+  }, [])
+
+  // Handlers for connection error modal
+  const handleCloseConnectionError = useCallback(() => {
+    setShowConnectionError(false)
+    clearConnectionError()
+  }, [clearConnectionError])
+
+  const handleRetryConnection = useCallback(() => {
+    setShowConnectionError(false)
+    retryConnection()
+  }, [retryConnection])
+
+  const handleOpenConnectionSettings = useCallback(() => {
+    setShowConnectionError(false)
+    setShowConnectionSettings(true)
   }, [])
 
   // Handler when a new floor is created
@@ -530,6 +559,23 @@ function DashboardContent() {
           setShowCreateFloor(false)
         }}
         onCreate={handleFloorCreated}
+      />
+
+      {/* Connection error modal */}
+      <ConnectionErrorModal
+        isOpen={showConnectionError}
+        onClose={handleCloseConnectionError}
+        onRetry={handleRetryConnection}
+        onOpenSettings={handleOpenConnectionSettings}
+        diagnostic={connectionError}
+      />
+
+      {/* Connection settings modal (opened from error modal) */}
+      <ConnectionSettingsModal
+        isOpen={showConnectionSettings}
+        onClose={() => {
+          setShowConnectionSettings(false)
+        }}
       />
     </div>
   )

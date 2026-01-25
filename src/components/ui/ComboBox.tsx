@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import { motion, AnimatePresence, useMotionValue, animate, PanInfo } from 'framer-motion'
+import { motion, AnimatePresence, useMotionValue, useDragControls, animate, PanInfo } from 'framer-motion'
 import { ChevronDown, Plus, Loader2, X, Search } from 'lucide-react'
 import { logger } from '@/lib/logger'
 import { t } from '@/lib/i18n'
@@ -41,6 +41,7 @@ export function ComboBox({
   const dropdownRef = useRef<HTMLDivElement>(null)
   const mobileSheetRef = useRef<HTMLDivElement>(null)
   const mobileY = useMotionValue(0)
+  const mobileDragControls = useDragControls()
 
   // Detect touch device for full-screen picker
   const isTouchDevice =
@@ -127,16 +128,7 @@ export function ComboBox({
   }, [])
 
   const handleMobileDragEnd = useCallback(
-    (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-      // Release any pointer capture
-      if (mobileSheetRef.current && 'pointerId' in event) {
-        try {
-          mobileSheetRef.current.releasePointerCapture(event.pointerId)
-        } catch {
-          // Ignore if pointer capture wasn't held
-        }
-      }
-
+    (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
       if (info.offset.y > DRAG_CLOSE_THRESHOLD || info.velocity.y > 500) {
         handleClose()
       } else {
@@ -145,6 +137,13 @@ export function ComboBox({
       }
     },
     [handleClose, mobileY]
+  )
+
+  const startMobileDrag = useCallback(
+    (event: React.PointerEvent) => {
+      mobileDragControls.start(event)
+    },
+    [mobileDragControls]
   )
 
   const handleSelect = useCallback(
@@ -295,25 +294,34 @@ export function ComboBox({
                 exit={{ opacity: 0, y: '100%' }}
                 transition={{ type: 'spring', damping: 30, stiffness: 400 }}
                 drag="y"
-                dragConstraints={{ top: 0, bottom: 0 }}
-                dragElastic={{ top: 0.1, bottom: 0.5 }}
+                dragControls={mobileDragControls}
+                dragListener={false}
+                dragConstraints={{ top: 0 }}
+                dragElastic={{ top: 0.1, bottom: 0.8 }}
                 onDragEnd={handleMobileDragEnd}
                 style={{ y: mobileY }}
-                className="fixed inset-0 z-[200] bg-card flex flex-col touch-none"
+                className="fixed inset-0 z-[200] bg-card flex flex-col"
               >
-                {/* Handle bar */}
-                <div className="flex justify-center pt-3 pb-1">
+                {/* Handle bar - drag area */}
+                <div
+                  onPointerDown={startMobileDrag}
+                  className="flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing touch-none"
+                >
                   <div className="w-10 h-1 bg-border rounded-full" />
                 </div>
 
-                {/* Header */}
+                {/* Header - also draggable */}
                 <div className="flex-shrink-0 pt-safe">
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                  <div
+                    onPointerDown={startMobileDrag}
+                    className="flex items-center justify-between px-4 py-3 border-b border-border cursor-grab active:cursor-grabbing touch-none"
+                  >
                     <h2 className="text-lg font-semibold text-foreground">
                       {placeholder || 'Select'}
                     </h2>
                     <button
                       onClick={handleClose}
+                      onPointerDown={(e) => e.stopPropagation()}
                       className="p-2 -mr-2 rounded-full hover:bg-border/50 transition-colors touch-feedback"
                       aria-label={t.settings.close}
                     >

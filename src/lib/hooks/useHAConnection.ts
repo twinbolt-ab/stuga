@@ -4,6 +4,7 @@ import { getStoredCredentials, getAuthMethod } from '@/lib/config'
 import { getValidAccessToken, isUsingOAuth, getOAuthCredentials } from '@/lib/ha-oauth'
 import { logger } from '@/lib/logger'
 import type { HAEntity } from '@/types/ha'
+import type { DiagnosticResult } from '@/lib/connection-diagnostics'
 
 // Refresh token 5 minutes before expiry
 const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000
@@ -20,6 +21,9 @@ export function useHAConnection() {
   const [entities, setEntities] = useState<Map<string, HAEntity>>(new Map())
   const [isConfigured, setIsConfigured] = useState(false)
   const [hasReceivedData, setHasReceivedData] = useState(false)
+  const [connectionError, setConnectionError] = useState<DiagnosticResult | null>(
+    () => ws.getLastDiagnostic()
+  )
 
   useEffect(() => {
     let cancelled = false
@@ -107,6 +111,14 @@ export function useHAConnection() {
 
     const unsubConnection = ws.onConnection((connected) => {
       setIsConnected(connected)
+      // Clear connection error on successful connection
+      if (connected) {
+        setConnectionError(null)
+      }
+    })
+
+    const unsubConnectionError = ws.onConnectionError((diagnostic) => {
+      setConnectionError(diagnostic)
     })
 
     // Handle visibility change (for web - proactively refresh OAuth token on tab focus)
@@ -149,6 +161,7 @@ export function useHAConnection() {
       // They're managed globally and should persist
       unsubMessage()
       unsubConnection()
+      unsubConnectionError()
     }
   }, [])
 
@@ -184,8 +197,25 @@ export function useHAConnection() {
 
     setIsConfigured(true)
     ws.disconnect()
+    ws.resetInitialConnection() // Reset so diagnostics run again on failure
+    ws.clearDiagnostic()
+    setConnectionError(null)
     ws.configure(result.credentials.url, result.credentials.token, authMethod === 'oauth')
     ws.connect()
+  }, [])
+
+  // Retry connection after an error (clears error and retries)
+  const retryConnection = useCallback(() => {
+    ws.clearDiagnostic()
+    setConnectionError(null)
+    ws.resetInitialConnection() // Allow diagnostics to run again on next failure
+    ws.connect()
+  }, [])
+
+  // Clear connection error without retrying
+  const clearConnectionError = useCallback(() => {
+    ws.clearDiagnostic()
+    setConnectionError(null)
   }, [])
 
   // Disconnect and clear state
@@ -206,6 +236,10 @@ export function useHAConnection() {
     getEntitiesByDomain,
     reconnect,
     disconnect,
+    // Connection error handling
+    connectionError,
+    retryConnection,
+    clearConnectionError,
     // Connection info (sync access to already-configured values)
     url: ws.getUrl(),
     isOAuth: ws.isUsingOAuth(),

@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
-import { motion, AnimatePresence, useMotionValue, PanInfo } from 'framer-motion'
+import { motion, AnimatePresence, useMotionValue, useDragControls, PanInfo } from 'framer-motion'
 import { X, Search, Trash2 } from 'lucide-react'
 import { MdiIcon } from './MdiIcon'
 import { searchIcons, getIconDisplayName } from '@/lib/icons'
@@ -18,6 +18,7 @@ export function IconPicker({ isOpen, value, onChange, onClose }: IconPickerProps
   const [keyboardOffset, setKeyboardOffset] = useState(0)
   const y = useMotionValue(0)
   const sheetRef = useRef<HTMLDivElement>(null)
+  const dragControls = useDragControls()
 
   // Reset selected icon when value changes
   useEffect(() => {
@@ -56,14 +57,7 @@ export function IconPicker({ isOpen, value, onChange, onClose }: IconPickerProps
   }, [onChange, onClose])
 
   const handleDragEnd = useCallback(
-    (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-      if (sheetRef.current && 'pointerId' in event) {
-        try {
-          sheetRef.current.releasePointerCapture(event.pointerId)
-        } catch {
-          // Ignore
-        }
-      }
+    (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
       if (document.activeElement instanceof HTMLElement) {
         document.activeElement.blur()
       }
@@ -74,6 +68,13 @@ export function IconPicker({ isOpen, value, onChange, onClose }: IconPickerProps
       }
     },
     [onClose, y]
+  )
+
+  const startDrag = useCallback(
+    (event: React.PointerEvent) => {
+      dragControls.start(event)
+    },
+    [dragControls]
   )
 
   // Close on escape and lock body scroll
@@ -134,22 +135,31 @@ export function IconPicker({ isOpen, value, onChange, onClose }: IconPickerProps
             exit={{ y: '100%', pointerEvents: 'none' as const }}
             transition={{ type: 'spring', damping: 30, stiffness: 400 }}
             drag="y"
-            dragConstraints={{ top: 0, bottom: 0 }}
-            dragElastic={{ top: 0, bottom: 0.5 }}
+            dragControls={dragControls}
+            dragListener={false}
+            dragConstraints={{ top: 0 }}
+            dragElastic={{ top: 0.1, bottom: 0.8 }}
             onDragEnd={handleDragEnd}
             style={{ y, bottom: keyboardOffset }}
             className="fixed left-0 right-0 z-[70] bg-card rounded-t-2xl shadow-warm-lg max-h-[85vh] flex flex-col transition-[bottom] duration-200"
           >
-            {/* Handle bar */}
-            <div className="flex justify-center pt-3 pb-2 flex-shrink-0">
+            {/* Handle bar - drag area */}
+            <div
+              onPointerDown={startDrag}
+              className="flex justify-center pt-3 pb-2 flex-shrink-0 cursor-grab active:cursor-grabbing touch-none"
+            >
               <div className="w-10 h-1 bg-border rounded-full" />
             </div>
 
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 pb-3 flex-shrink-0">
+            {/* Header - also draggable */}
+            <div
+              onPointerDown={startDrag}
+              className="flex items-center justify-between px-4 pb-3 flex-shrink-0 cursor-grab active:cursor-grabbing touch-none"
+            >
               <h2 className="text-lg font-semibold text-foreground">{t.iconPicker.title}</h2>
               <button
                 onClick={onClose}
+                onPointerDown={(e) => e.stopPropagation()}
                 className="p-2 -mr-2 rounded-full hover:bg-border/50 transition-colors touch-feedback"
                 aria-label={t.settings.close}
               >
