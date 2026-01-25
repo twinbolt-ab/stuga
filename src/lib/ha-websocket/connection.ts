@@ -5,6 +5,8 @@ import { getValidAccessToken } from '@/lib/ha-oauth'
 import { logger } from '@/lib/logger'
 import { notifyConnectionHandlers, clearPendingCallbacks, notifyConnectionErrorHandlers } from './message-router'
 import { runConnectionDiagnostics } from '@/lib/connection-diagnostics'
+import { logError, log, setUserContext, getConnectionType } from '@/lib/crashlytics'
+import { Capacitor } from '@capacitor/core'
 
 type MessageCallback = (message: WebSocketMessage) => void
 
@@ -42,9 +44,14 @@ export function connect(state: HAWebSocketState, onMessage: MessageCallback): vo
 
     state.ws.onerror = (error) => {
       logger.error('HA WS', 'Error:', error)
+      void logError(new Error('WebSocket error event'), 'websocket-error')
     }
   } catch (error) {
     logger.error('HA WS', 'Connection failed:', error)
+    void logError(
+      error instanceof Error ? error : new Error(String(error)),
+      'websocket-connect'
+    )
     handleConnectionFailure(state, onMessage)
   }
 }
@@ -56,10 +63,19 @@ async function handleConnectionFailure(
   // Run diagnostics only on initial connection failure
   if (state.isInitialConnection && state.url && state.token) {
     logger.debug('HA WS', 'Running connection diagnostics...')
+    void log('WebSocket connection failed, running diagnostics')
     const httpUrl = state.url.replace(/^ws/, 'http').replace('/api/websocket', '')
     const diagnostic = await runConnectionDiagnostics(httpUrl, state.token)
     state.lastDiagnostic = diagnostic
     notifyConnectionErrorHandlers(state, diagnostic)
+
+    // Log the diagnostic result if there's a failure
+    if (!diagnostic.httpsReachable || !diagnostic.websocketReachable || !diagnostic.authValid) {
+      void logError(
+        new Error(`Connection diagnostic: https=${diagnostic.httpsReachable}, ws=${diagnostic.websocketReachable}, auth=${diagnostic.authValid}, error=${diagnostic.errorType}`),
+        'websocket-diagnostic'
+      )
+    }
   }
 
   scheduleReconnect(state, onMessage)
@@ -90,17 +106,20 @@ function scheduleReconnect(state: HAWebSocketState, onMessage: MessageCallback):
 export async function authenticate(state: HAWebSocketState): Promise<boolean> {
   // If using OAuth, get a fresh token (handles refresh automatically)
   if (state.useOAuth) {
+    void log('Authenticating with OAuth')
     const result = await getValidAccessToken()
     if (result.status === 'valid') {
       state.token = result.token
     } else if (result.status === 'network-error') {
       // Network error - keep trying to reconnect, credentials are still valid
       logger.warn('HA WS', 'Network error getting token, will retry on reconnect')
+      void logError(new Error('OAuth network error during authentication'), 'websocket-auth-network')
       disconnect(state)
       return false
     } else {
       // Auth error or no credentials - stop trying
       logger.error('HA WS', 'OAuth token unavailable:', result.status)
+      void logError(new Error(`OAuth token unavailable: ${result.status}`), 'websocket-auth-failed')
       disconnect(state)
       return false
     }
@@ -111,6 +130,25 @@ export async function authenticate(state: HAWebSocketState): Promise<boolean> {
     access_token: state.token,
   })
   return true
+}
+
+/** Call after successful authentication to set user context for crash reporting */
+export function setConnectionContext(state: HAWebSocketState): void {
+  if (!state.url) return
+
+  const httpUrl = state.url.replace(/^ws/, 'http').replace('/api/websocket', '')
+  const platform = Capacitor.getPlatform() as 'web' | 'ios' | 'android'
+  const connectionType = getConnectionType(httpUrl)
+  const authMethod = state.useOAuth ? 'oauth' : 'token'
+
+  void setUserContext({
+    platform,
+    connectionType,
+    authMethod,
+    entityCount: state.entities?.size,
+    areaCount: state.areas?.size,
+    floorCount: state.floors?.size,
+  })
 }
 
 export function send(state: HAWebSocketState, message: Record<string, unknown>): void {

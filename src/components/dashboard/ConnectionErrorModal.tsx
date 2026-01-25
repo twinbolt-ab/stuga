@@ -9,12 +9,16 @@ import {
   AlertTriangle,
   RefreshCw,
   Settings,
+  Copy,
+  Check,
+  ExternalLink,
 } from 'lucide-react'
 import { t } from '@/lib/i18n'
 import { haptic } from '@/lib/haptics'
 import { useIsClient } from '@/lib/hooks/useIsClient'
 import { EditModal } from '@/components/ui/EditModal'
 import type { DiagnosticResult, ConnectionErrorType } from '@/lib/connection-diagnostics'
+import { copyErrorReport, GITHUB_ISSUES_URL } from '@/lib/crashlytics'
 
 const DRAG_CLOSE_THRESHOLD = 150
 
@@ -99,8 +103,36 @@ function getTroubleshootingSteps(errorType: ConnectionErrorType): string[] {
 }
 
 // Troubleshooting help content (rendered inside EditModal)
-function TroubleshootingHelpContent({ errorType }: { errorType: ConnectionErrorType }) {
+function TroubleshootingHelpContent({
+  errorType,
+  diagnostic,
+}: {
+  errorType: ConnectionErrorType
+  diagnostic: DiagnosticResult | null
+}) {
   const steps = getTroubleshootingSteps(errorType)
+  const [copied, setCopied] = useState(false)
+
+  const handleCopyReport = async () => {
+    const success = await copyErrorReport({
+      errorType,
+      diagnostics: diagnostic
+        ? {
+            httpsReachable: diagnostic.httpsReachable,
+            websocketReachable: diagnostic.websocketReachable,
+            authValid: diagnostic.authValid,
+          }
+        : undefined,
+    })
+    if (success) {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }
+
+  const handleOpenIssues = () => {
+    window.open(GITHUB_ISSUES_URL, '_blank')
+  }
 
   return (
     <div className="space-y-4">
@@ -118,6 +150,42 @@ function TroubleshootingHelpContent({ errorType }: { errorType: ConnectionErrorT
             </li>
           ))}
         </ul>
+      </div>
+
+      {/* Report Error Section */}
+      <div className="pt-4 border-t border-border space-y-3">
+        <p className="text-xs font-medium text-muted uppercase tracking-wide">
+          {t.connectionError.stillHavingIssues || 'Still having issues?'}
+        </p>
+        <p className="text-sm text-muted">
+          {t.connectionError.autoReported ||
+            'Error details are sent automatically. For follow-up, report on GitHub with your debug ID.'}
+        </p>
+        <div className="flex gap-2">
+          <button
+            onClick={handleCopyReport}
+            className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-muted/20 text-foreground text-sm font-medium transition-colors hover:bg-muted/30 touch-feedback"
+          >
+            {copied ? (
+              <>
+                <Check className="w-4 h-4 text-success" />
+                {t.connectionError.copied || 'Copied!'}
+              </>
+            ) : (
+              <>
+                <Copy className="w-4 h-4" />
+                {t.connectionError.copyDetails || 'Copy details'}
+              </>
+            )}
+          </button>
+          <button
+            onClick={handleOpenIssues}
+            className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-accent text-white text-sm font-medium transition-colors hover:bg-accent-hover touch-feedback"
+          >
+            <ExternalLink className="w-4 h-4" />
+            {t.connectionError.reportIssue || 'Report issue'}
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -322,7 +390,7 @@ export function ConnectionErrorModal({
         onClose={() => setShowHelp(false)}
         title="Troubleshooting Help"
       >
-        <TroubleshootingHelpContent errorType={errorType} />
+        <TroubleshootingHelpContent errorType={errorType} diagnostic={diagnostic} />
       </EditModal>
     </>,
     document.body

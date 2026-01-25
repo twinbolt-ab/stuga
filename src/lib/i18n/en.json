@@ -124,7 +124,12 @@
     "statusOk": "OK",
     "statusFailed": "Failed",
     "retry": "Retry",
-    "openSettings": "Settings"
+    "openSettings": "Settings",
+    "stillHavingIssues": "Still having issues?",
+    "autoReported": "Error details are sent automatically. For follow-up, report on GitHub with your debug ID.",
+    "copyDetails": "Copy details",
+    "copied": "Copied!",
+    "reportIssue": "Report issue"
   },
   "rooms": {
     "title": "Rooms",
@@ -205,12 +210,16 @@
     },
     "advanced": {
       "title": "Advanced",
-      "description": "Room ordering settings",
+      "description": "Room ordering and debug info",
       "roomOrdering": {
         "title": "Room ordering",
         "description": "Hold and drag to reorder rooms",
         "enabled": "Enabled",
         "disabled": "Disabled"
+      },
+      "debugId": {
+        "title": "Debug ID",
+        "description": "Share this ID when reporting issues"
       }
     }
   },

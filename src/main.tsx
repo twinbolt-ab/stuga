@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { initStorage } from './lib/storage'
 import { initMetadataService } from './lib/metadata'
-import { initCrashlytics, logError } from './lib/crashlytics'
+import { initCrashlytics, initDebugId, logError } from './lib/crashlytics'
 import { initPerformance } from './lib/performance'
 import App from './App'
 import './index.css'
@@ -34,6 +34,7 @@ async function bootstrap() {
     await initPerformance()
 
     await initStorage()
+    await initDebugId()
     initMetadataService()
 
     const root = document.getElementById('root')

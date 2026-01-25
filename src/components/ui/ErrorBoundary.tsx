@@ -1,6 +1,7 @@
 import { Component, type ReactNode } from 'react'
-import { AlertTriangle, RefreshCw } from 'lucide-react'
+import { AlertTriangle, RefreshCw, Copy, Check, ExternalLink } from 'lucide-react'
 import { logger } from '@/lib/logger'
+import { copyErrorReport, GITHUB_ISSUES_URL, logError } from '@/lib/crashlytics'
 
 interface Props {
   children: ReactNode
@@ -9,28 +10,48 @@ interface Props {
 interface State {
   hasError: boolean
   error: Error | null
+  copied: boolean
 }
 
 export class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props)
-    this.state = { hasError: false, error: null }
+    this.state = { hasError: false, error: null, copied: false }
   }
 
   static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error }
+    return { hasError: true, error, copied: false }
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     logger.error('ErrorBoundary', 'Uncaught error:', error.message, errorInfo.componentStack)
+    // Log to Crashlytics
+    void logError(error, 'error-boundary')
   }
 
   handleRetry = () => {
-    this.setState({ hasError: false, error: null })
+    this.setState({ hasError: false, error: null, copied: false })
   }
 
   handleReload = () => {
     window.location.reload()
+  }
+
+  handleCopyReport = async () => {
+    const { error } = this.state
+    const success = await copyErrorReport({
+      errorType: 'react-error',
+      errorMessage: error?.message,
+      stack: error?.stack,
+    })
+    if (success) {
+      this.setState({ copied: true })
+      setTimeout(() => this.setState({ copied: false }), 2000)
+    }
+  }
+
+  handleOpenIssues = () => {
+    window.open(GITHUB_ISSUES_URL, '_blank')
   }
 
   render() {
@@ -76,6 +97,38 @@ export class ErrorBoundary extends Component<Props, State> {
               >
                 Reload app
               </button>
+            </div>
+
+            {/* Report Error Section */}
+            <div className="pt-4 border-t border-[var(--border)] space-y-3">
+              <p className="text-sm text-[var(--text-secondary)]">
+                Error details are sent automatically. For follow-up, report on GitHub.
+              </p>
+              <div className="flex gap-2 justify-center">
+                <button
+                  onClick={this.handleCopyReport}
+                  className="px-3 py-2 rounded-lg bg-[var(--bg-card)] text-[var(--text-primary)] text-sm font-medium border border-[var(--border)] flex items-center gap-2 hover:bg-[var(--border)] transition-colors"
+                >
+                  {this.state.copied ? (
+                    <>
+                      <Check className="w-4 h-4 text-green-500" />
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4" />
+                      Copy details
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={this.handleOpenIssues}
+                  className="px-3 py-2 rounded-lg bg-[var(--accent)] text-white text-sm font-medium flex items-center gap-2 hover:bg-[var(--accent-hover)] transition-colors"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Report issue
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -45,6 +45,7 @@ export const STORAGE_KEYS = {
   MOCK_SCENARIO: 'stuga-mock-scenario',
   STRUCTURE_HINT_DISMISSED: 'stuga-structure-hint-dismissed',
   FLOORS_HINT_DISMISSED: 'stuga-floors-hint-dismissed',
+  DEBUG_ID: 'stuga-debug-id',
 } as const
 
 /**

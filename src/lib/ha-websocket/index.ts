@@ -46,6 +46,8 @@ function handleMessage(message: WebSocketMessage): void {
       router.notifyConnectionHandlers(state, true)
       registry.subscribeToStateChanges(state)
       registry.fetchAllRegistries(state)
+      // Set user context for crash reporting (counts may be 0 initially, updated later)
+      conn.setConnectionContext(state)
       break
 
     case 'auth_invalid':

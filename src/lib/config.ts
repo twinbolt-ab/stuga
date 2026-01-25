@@ -5,6 +5,7 @@ import { STORAGE_KEYS } from './constants'
 import { getStorage } from './storage'
 import { DEFAULT_ENABLED_DOMAINS, type ConfigurableDomain } from '@/types/ha'
 import { getValidAccessToken, getOAuthCredentials, clearOAuthCredentials } from './ha-oauth'
+import { logError } from './crashlytics'
 
 export interface StoredCredentials {
   url: string
@@ -102,13 +103,21 @@ export function getStoredCredentialsSync(): StoredCredentials | null {
 export async function saveCredentials(url: string, token: string): Promise<void> {
   if (typeof window === 'undefined') return
 
-  const storage = getStorage()
-  // Normalize URL (remove trailing slash)
-  const normalizedUrl = url.replace(/\/+$/, '')
+  try {
+    const storage = getStorage()
+    // Normalize URL (remove trailing slash)
+    const normalizedUrl = url.replace(/\/+$/, '')
 
-  await storage.setItem(STORAGE_KEYS.HA_URL, normalizedUrl)
-  await storage.setItem(STORAGE_KEYS.HA_TOKEN, token)
-  await storage.setItem(STORAGE_KEYS.SETUP_COMPLETE, 'true')
+    await storage.setItem(STORAGE_KEYS.HA_URL, normalizedUrl)
+    await storage.setItem(STORAGE_KEYS.HA_TOKEN, token)
+    await storage.setItem(STORAGE_KEYS.SETUP_COMPLETE, 'true')
+  } catch (error) {
+    void logError(
+      error instanceof Error ? error : new Error(String(error)),
+      'config-save-credentials'
+    )
+    throw error
+  }
 }
 
 /**
@@ -136,13 +145,21 @@ export async function updateToken(token: string): Promise<void> {
 export async function clearCredentials(): Promise<void> {
   if (typeof window === 'undefined') return
 
-  const storage = getStorage()
-  await storage.removeItem(STORAGE_KEYS.HA_URL)
-  await storage.removeItem(STORAGE_KEYS.HA_TOKEN)
-  await storage.removeItem(STORAGE_KEYS.SETUP_COMPLETE)
-  await storage.removeItem(STORAGE_KEYS.ENABLED_DOMAINS)
-  // Also clear OAuth credentials
-  await clearOAuthCredentials()
+  try {
+    const storage = getStorage()
+    await storage.removeItem(STORAGE_KEYS.HA_URL)
+    await storage.removeItem(STORAGE_KEYS.HA_TOKEN)
+    await storage.removeItem(STORAGE_KEYS.SETUP_COMPLETE)
+    await storage.removeItem(STORAGE_KEYS.ENABLED_DOMAINS)
+    // Also clear OAuth credentials
+    await clearOAuthCredentials()
+  } catch (error) {
+    void logError(
+      error instanceof Error ? error : new Error(String(error)),
+      'config-clear-credentials'
+    )
+    throw error
+  }
 }
 
 /**
@@ -158,7 +175,11 @@ export async function getEnabledDomains(): Promise<ConfigurableDomain[]> {
   try {
     const domains = JSON.parse(stored) as ConfigurableDomain[]
     return domains.length > 0 ? domains : DEFAULT_ENABLED_DOMAINS
-  } catch {
+  } catch (error) {
+    void logError(
+      error instanceof Error ? error : new Error(String(error)),
+      'config-parse-domains'
+    )
     return DEFAULT_ENABLED_DOMAINS
   }
 }

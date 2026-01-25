@@ -4,6 +4,7 @@
 import { STORAGE_KEYS } from './constants'
 import { getStorage, getSecureStorage } from './storage'
 import { logger } from './logger'
+import { logError, log } from './crashlytics'
 
 // Custom error types to distinguish between network and auth failures
 export class NetworkError extends Error {
@@ -105,8 +106,10 @@ export async function exchangeCodeForTokens(
   })
 
   if (!response.ok) {
-    const error = await response.text()
-    throw new Error(`Token exchange failed: ${error}`)
+    const errorText = await response.text()
+    const error = new Error(`Token exchange failed: ${errorText}`)
+    void logError(error, 'oauth-token-exchange')
+    throw error
   }
 
   return response.json() as Promise<OAuthTokens>
@@ -143,6 +146,10 @@ export async function refreshAccessToken(
   } catch (error) {
     // Network error (offline, DNS failure, timeout, etc.)
     logger.warn('OAuth', 'Network error during refresh:', error)
+    void logError(
+      error instanceof Error ? error : new Error(String(error)),
+      'oauth-refresh-network'
+    )
     throw new NetworkError(
       `Network error: ${error instanceof Error ? error.message : 'Unknown error'}`
     )
@@ -160,7 +167,9 @@ export async function refreshAccessToken(
         logger.debug('OAuth', 'Retrying refresh with current client_id')
         return refreshAccessToken(haUrl, refreshToken, undefined, true)
       }
-      throw new AuthError(`Token refresh failed: ${response.status} ${errorText}`)
+      const authError = new AuthError(`Token refresh failed: ${response.status} ${errorText}`)
+      void logError(authError, 'oauth-refresh-auth')
+      throw authError
     }
 
     // Server errors or other issues - treat as network/temporary
@@ -260,7 +269,11 @@ export async function getOAuthCredentials(): Promise<StoredOAuthCredentials | nu
     try {
       credentialsCache = JSON.parse(stored) as StoredOAuthCredentials
       return credentialsCache
-    } catch {
+    } catch (error) {
+      void logError(
+        error instanceof Error ? error : new Error(String(error)),
+        'oauth-parse-credentials'
+      )
       credentialsCache = null
       return null
     }
@@ -344,6 +357,7 @@ export async function getValidAccessToken(): Promise<TokenResult> {
 
   // Token is expired, try to refresh
   logger.debug('OAuth', 'Token expired, refreshing...')
+  void log('Refreshing OAuth token')
   try {
     // Use stored client_id to ensure refresh works even if accessed from different URL
     const newTokens = await refreshAccessToken(creds.ha_url, creds.refresh_token, creds.client_id)

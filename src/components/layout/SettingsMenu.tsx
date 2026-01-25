@@ -15,6 +15,9 @@ import {
   Thermometer,
   Droplet,
   LayoutGrid,
+  Copy,
+  Check,
+  Hash,
 } from 'lucide-react'
 import { t } from '@/lib/i18n'
 import { ConnectionSettingsModal } from '@/components/settings/ConnectionSettingsModal'
@@ -24,6 +27,7 @@ import { EditModeInfoModal } from '@/components/settings/EditModeInfoModal'
 import { RoomOrderingDisableDialog } from '@/components/settings/RoomOrderingDisableDialog'
 import { useDevMode } from '@/lib/hooks/useDevMode'
 import { useSettings } from '@/lib/hooks/useSettings'
+import { getDebugId } from '@/lib/crashlytics'
 import { clsx } from 'clsx'
 
 interface SettingsMenuProps {
@@ -48,6 +52,8 @@ export function SettingsMenu({
   const [showRoomOrderingDisable, setShowRoomOrderingDisable] = useState(false)
   const [displayOptionsOpen, setDisplayOptionsOpen] = useState(false)
   const [advancedOpen, setAdvancedOpen] = useState(false)
+  const [debugId, setDebugId] = useState<string | null>(null)
+  const [debugIdCopied, setDebugIdCopied] = useState(false)
   const { isDevMode, enableDevMode } = useDevMode()
   const {
     roomOrderingEnabled,
@@ -67,6 +73,32 @@ export function SettingsMenu({
   const [devModeClickCount, setDevModeClickCount] = useState(0)
   const [showDevModeToast, setShowDevModeToast] = useState(false)
   const devModeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Load debug ID when advanced section opens
+  useEffect(() => {
+    if (advancedOpen && !debugId) {
+      void getDebugId().then(setDebugId)
+    }
+  }, [advancedOpen, debugId])
+
+  const handleCopyDebugId = useCallback(async () => {
+    if (!debugId) return
+    try {
+      await navigator.clipboard.writeText(debugId)
+      setDebugIdCopied(true)
+      setTimeout(() => setDebugIdCopied(false), 2000)
+    } catch {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea')
+      textArea.value = debugId
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textArea)
+      setDebugIdCopied(true)
+      setTimeout(() => setDebugIdCopied(false), 2000)
+    }
+  }, [debugId])
 
   const handleSettingsHeaderClick = useCallback(() => {
     if (isDevMode) return // Already in dev mode
@@ -302,6 +334,32 @@ export function SettingsMenu({
                               : t.settings.advanced?.roomOrdering?.disabled || 'Disabled'}
                           </div>
                         </button>
+
+                        {/* Debug ID */}
+                        <div className="flex items-center gap-3 px-3 py-3 rounded-xl">
+                          <div className="p-2 rounded-lg bg-border/50">
+                            <Hash className="w-4 h-4 text-foreground" />
+                          </div>
+                          <div className="flex-1 text-left">
+                            <p className="text-sm font-medium text-foreground">
+                              {t.settings.advanced?.debugId?.title || 'Debug ID'}
+                            </p>
+                            <p className="text-xs text-muted font-mono">
+                              {debugId || '...'}
+                            </p>
+                          </div>
+                          <button
+                            onClick={handleCopyDebugId}
+                            className="p-2 rounded-lg bg-border/50 hover:bg-border transition-colors"
+                            aria-label="Copy debug ID"
+                          >
+                            {debugIdCopied ? (
+                              <Check className="w-4 h-4 text-success" />
+                            ) : (
+                              <Copy className="w-4 h-4 text-muted" />
+                            )}
+                          </button>
+                        </div>
                       </div>
                     </motion.div>
                   )}
