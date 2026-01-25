@@ -26,20 +26,20 @@ import Layout from '../layouts/Layout.astro';
         </p>
         <p class="text-muted leading-relaxed">
           <strong class="text-foreground">The short version:</strong> Stuga runs entirely on your device and connects
-          directly to your Home Assistant instance. We do not collect, store, or transmit any of your personal data.
+          directly to your Home Assistant instance. We collect anonymous crash reports to improve stability, but no personal data or Home Assistant information is ever collected.
         </p>
       </section>
 
       <section class="mb-12">
         <h2 class="text-2xl font-bold mb-4">Data Collection</h2>
         <p class="text-muted leading-relaxed mb-4">
-          <strong class="text-foreground">Stuga does not collect any data.</strong> The app operates locally on your
-          device and communicates only with your Home Assistant server.
+          <strong class="text-foreground">Stuga collects minimal anonymous data to improve app stability.</strong> The app operates locally on your
+          device and communicates only with your Home Assistant server for smart home control.
         </p>
         <ul class="list-disc list-inside text-muted space-y-2">
-          <li>No analytics or tracking</li>
-          <li>No crash reporting sent to us</li>
-          <li>No usage data collection</li>
+          <li>Anonymous crash reports via Firebase Crashlytics (to fix bugs)</li>
+          <li>No personal information or Home Assistant data is collected</li>
+          <li>No usage analytics or behavioral tracking</li>
           <li>No advertising or ad tracking</li>
         </ul>
       </section>
@@ -76,9 +76,15 @@ import Layout from '../layouts/Layout.astro';
 
       <section class="mb-12">
         <h2 class="text-2xl font-bold mb-4">Third-Party Services</h2>
-        <p class="text-muted leading-relaxed">
-          Stuga does not integrate with any third-party analytics, advertising, or tracking services.
-          The only external service used is font loading from Fontshare CDN for typography.
+        <p class="text-muted leading-relaxed mb-4">
+          Stuga uses the following third-party services:
+        </p>
+        <ul class="list-disc list-inside text-muted space-y-2">
+          <li><strong class="text-foreground">Firebase Crashlytics:</strong> For anonymous crash reporting to help us fix bugs. No personal data is collected.</li>
+          <li><strong class="text-foreground">Fontshare CDN:</strong> For loading the Satoshi font.</li>
+        </ul>
+        <p class="text-muted leading-relaxed mt-4">
+          Stuga does not use any advertising, behavioral analytics, or user tracking services.
         </p>
       </section>
 

@@ -15,7 +15,7 @@ BUILT FOR PHONES
 Designed for how you actually use your smart home on the go.
 
 PRIVACY FIRST
-No accounts. No analytics. Your data stays on your network.
+No accounts. Anonymous crash reporting. Your Home Assistant data stays on your network.
 
 Works with any Home Assistant installation, including local-only setups. No public URL or cloud subscription needed.
 
