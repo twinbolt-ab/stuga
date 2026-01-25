@@ -25,6 +25,8 @@
     "release:major": "./scripts/release.sh major"
   },
   "dependencies": {
+    "@capacitor-firebase/crashlytics": "^8.0.1",
+    "@capacitor-firebase/performance": "^8.0.1",
     "@capacitor/android": "^8.0.0",
     "@capacitor/app": "^8.0.0",
     "@capacitor/browser": "^8.0.0",
@@ -37,6 +39,7 @@
     "@iconify/react": "^6.0.2",
     "capacitor-secure-storage-plugin": "^0.13.0",
     "clsx": "^2.1.1",
+    "firebase": "^12.8.0",
     "framer-motion": "^11.12.0",
     "lucide-react": "^0.460.0",
     "react": "^18.3.0",

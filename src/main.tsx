@@ -3,14 +3,36 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { initStorage } from './lib/storage'
 import { initMetadataService } from './lib/metadata'
+import { initCrashlytics, logError } from './lib/crashlytics'
+import { initPerformance } from './lib/performance'
 import App from './App'
 import './index.css'
 
 // Disable right-click context menu globally (mobile-first app)
 document.addEventListener('contextmenu', (e) => e.preventDefault())
 
+// Global error handlers for Crashlytics
+window.addEventListener('error', (event) => {
+  if (event.error instanceof Error) {
+    void logError(event.error, 'uncaught')
+  } else {
+    void logError(new Error(event.message || 'Unknown error'), 'uncaught')
+  }
+})
+
+window.addEventListener('unhandledrejection', (event) => {
+  const error = event.reason instanceof Error
+    ? event.reason
+    : new Error(String(event.reason) || 'Unhandled promise rejection')
+  void logError(error, 'unhandled-promise')
+})
+
 async function bootstrap() {
   try {
+    // Initialize Firebase (Crashlytics first to catch any init errors)
+    await initCrashlytics()
+    await initPerformance()
+
     await initStorage()
     initMetadataService()
 
@@ -26,6 +48,9 @@ async function bootstrap() {
     )
   } catch (error) {
     console.error('[Bootstrap] Failed to initialize:', error)
+    if (error instanceof Error) {
+      void logError(error, 'bootstrap')
+    }
     const root = document.getElementById('root')
     if (root) {
       root.innerHTML = `
