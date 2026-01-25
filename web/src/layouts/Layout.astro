@@ -5,6 +5,8 @@ interface Props {
 }
 
 const { title, description = "A fast, beautiful dashboard for Home Assistant. Control your smart home with ease." } = Astro.props;
+const siteUrl = "https://stuga.app";
+const ogImage = `${siteUrl}/og-image.jpg`;
 ---
 
 <!doctype html>
@@ -15,16 +17,23 @@ const { title, description = "A fast, beautiful dashboard for Home Assistant. Co
     <meta name="description" content={description} />
 
     <!-- Open Graph -->
+    <meta property="og:site_name" content="Stuga" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://stuga.app" />
-    <meta property="og:image" content="https://stuga.app/og-image.png" />
+    <meta property="og:url" content={siteUrl} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Stuga - A beautiful dashboard for Home Assistant" />
+    <meta property="og:locale" content="en_US" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content="Stuga - A beautiful dashboard for Home Assistant" />
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/icon.png" />
