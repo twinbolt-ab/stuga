@@ -1,14 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence, useMotionValue, useDragControls, PanInfo } from 'framer-motion'
 import { X, Check, Loader2, AlertCircle, Eye, EyeOff, LogOut, LogIn, Key } from 'lucide-react'
-import { t, interpolate } from '@/lib/i18n'
+import { t } from '@/lib/i18n'
 import { updateUrl, updateToken, clearCredentials } from '@/lib/config'
 import { getStorage } from '@/lib/storage'
 import { STORAGE_KEYS } from '@/lib/constants'
 import { useHAConnection } from '@/lib/hooks/useHAConnection'
 import { logger } from '@/lib/logger'
 
-// Generate URL variants to try (handles missing protocol and protocol switching)
 // Generate URL variants to try (handles missing protocol, protocol switching, and port variations)
 function getUrlVariants(inputUrl: string): string[] {
   const trimmed = inputUrl.trim().replace(/\/+$/, '')
@@ -82,10 +81,8 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
-  const [alternativeUrl, setAlternativeUrl] = useState<{
-    original: string
-    working: string
-  } | null>(null)
+  const [workingUrls, setWorkingUrls] = useState<string[]>([])
+  const [selectedUrl, setSelectedUrl] = useState<string | null>(null)
 
   const y = useMotionValue(0)
   const sheetRef = useRef<HTMLDivElement>(null)
@@ -137,7 +134,8 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
       setError(null)
       setSuccess(false)
       setShowLogoutConfirm(false)
-      setAlternativeUrl(null)
+      setWorkingUrls([])
+      setSelectedUrl(null)
     }
   }, [isOpen, connectedUrl, isOAuth])
 
@@ -208,61 +206,70 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
     setIsLoading(true)
     setError(null)
     setSuccess(false)
-    setAlternativeUrl(null)
+    setWorkingUrls([])
+    setSelectedUrl(null)
 
     const trimmedToken = token.trim()
     const urlVariants = getUrlVariants(url)
+    const primaryUrl = urlVariants[0]
 
-    let workingUrl: string | null = null
+    // First, try the user's URL (with protocol added if needed)
+    const primaryWorks = await testConnection(primaryUrl, trimmedToken)
 
-    // Try each URL variant
-    for (const testUrl of urlVariants) {
-      const isValid = await testConnection(testUrl, trimmedToken)
-      if (isValid) {
-        workingUrl = testUrl
-        break
-      }
-    }
-
-    if (workingUrl) {
-      // Check if working URL is different from what we first tried
-      // (i.e., we had to try an alternative protocol or port)
-      if (workingUrl !== urlVariants[0]) {
-        // We connected with a different URL than expected - ask for confirmation
-        setAlternativeUrl({ original: urlVariants[0], working: workingUrl })
-        setIsLoading(false)
-        return
-      }
-
-      // Success! Save the working URL
-      await updateUrl(workingUrl)
+    if (primaryWorks) {
+      // User's URL works - proceed directly without showing alternatives
+      await updateUrl(primaryUrl)
       await updateToken(trimmedToken)
-      setUrl(workingUrl)
+      setUrl(primaryUrl)
       setSuccess(true)
       void reconnect()
 
-      // Auto close after success
       setTimeout(() => {
         onClose()
       }, 1500)
-    } else {
-      setError(t.settings.connection.error)
+      setIsLoading(false)
+      return
     }
 
+    // User's URL failed - try all alternative variants in parallel
+    const alternativeVariants = urlVariants.slice(1)
+
+    if (alternativeVariants.length > 0) {
+      const results = await Promise.all(
+        alternativeVariants.map(async (testUrl) => ({
+          url: testUrl,
+          works: await testConnection(testUrl, trimmedToken),
+        }))
+      )
+
+      const foundUrls = results.filter((r) => r.works).map((r) => r.url)
+
+      if (foundUrls.length > 0) {
+        // Found working alternatives - show selection
+        setWorkingUrls(foundUrls)
+        setSelectedUrl(foundUrls[0])
+        setIsLoading(false)
+        return
+      }
+    }
+
+    // No URLs work
+    setError(t.settings.connection.error)
     setIsLoading(false)
   }
 
-  // Handle user accepting the alternative URL
-  const handleAcceptAlternativeUrl = async () => {
-    if (!alternativeUrl) return
+  // Handle user selecting a URL and saving
+  const handleSelectUrlAndSave = async () => {
+    if (!selectedUrl) return
 
     setIsLoading(true)
     const trimmedToken = token.trim()
 
-    await updateUrl(alternativeUrl.working)
+    await updateUrl(selectedUrl)
     await updateToken(trimmedToken)
-    setUrl(alternativeUrl.working)
-    setAlternativeUrl(null)
+    setUrl(selectedUrl)
+    setWorkingUrls([])
+    setSelectedUrl(null)
     setSuccess(true)
     void reconnect()
 
@@ -274,9 +281,10 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
     setIsLoading(false)
   }
 
-  // Handle user rejecting the alternative URL
-  const handleRejectAlternativeUrl = () => {
-    setAlternativeUrl(null)
+  // Handle user wanting to try again
+  const handleTryAgain = () => {
+    setWorkingUrls([])
+    setSelectedUrl(null)
   }
 
   const handleLogout = async () => {
@@ -445,9 +453,9 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
                 </div>
               )}
 
-              {/* Alternative URL Confirmation */}
+              {/* URL Selection - shown when we find working URLs */}
               <AnimatePresence>
-                {alternativeUrl && (
+                {workingUrls.length > 0 && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
@@ -461,30 +469,61 @@ export function ConnectionSettingsModal({ isOpen, onClose }: ConnectionSettingsM
                           <Check className="w-4 h-4 text-green-500" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm text-foreground">
-                            {interpolate(
-                              t.setup?.url?.alternativeFound ||
-                                "We couldn't connect to {original}, but found Home Assistant at:",
-                              { original: alternativeUrl.original }
-                            )}
-                          </p>
-                          <p className="font-mono text-sm text-accent mt-1 break-all">
-                            {alternativeUrl.working}
+                          <p className="text-sm font-medium text-foreground">
+                            {workingUrls.length === 1
+                              ? t.setup?.url?.foundAt || 'Found Home Assistant at:'
+                              : t.setup?.url?.foundMultiple ||
+                                'Found Home Assistant at multiple addresses:'}
                           </p>
                         </div>
                       </div>
+
+                      {/* URL options */}
+                      <div className="space-y-2">
+                        {workingUrls.map((urlOption) => (
+                          <button
+                            key={urlOption}
+                            onClick={() => setSelectedUrl(urlOption)}
+                            className={`w-full p-3 rounded-xl text-left transition-all ${
+                              selectedUrl === urlOption
+                                ? 'bg-accent/20 border-2 border-accent'
+                                : 'bg-card border border-border hover:border-accent/50'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                                  selectedUrl === urlOption
+                                    ? 'border-accent bg-accent'
+                                    : 'border-muted'
+                                }`}
+                              >
+                                {selectedUrl === urlOption && (
+                                  <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                                )}
+                              </div>
+                              <span className="font-mono text-sm text-foreground break-all">
+                                {urlOption}
+                              </span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Action buttons */}
                       <div className="flex gap-3">
                         <button
-                          onClick={handleRejectAlternativeUrl}
+                          onClick={handleTryAgain}
                           className="flex-1 py-3 px-4 bg-border/50 text-foreground rounded-xl font-medium hover:bg-border transition-colors text-sm"
                         >
-                          {t.setup?.url?.keepOriginal || 'Try original again'}
+                          {t.setup?.url?.tryAgain || 'Try again'}
                         </button>
                         <button
-                          onClick={handleAcceptAlternativeUrl}
-                          className="flex-1 py-3 px-4 bg-green-500 text-white rounded-xl font-medium hover:bg-green-600 transition-colors text-sm"
+                          onClick={handleSelectUrlAndSave}
+                          disabled={!selectedUrl}
+                          className="flex-1 py-3 px-4 bg-green-500 text-white rounded-xl font-medium hover:bg-green-600 transition-colors text-sm disabled:opacity-50"
                         >
-                          {t.setup?.url?.useAlternative || 'Use this URL'}
+                          {t.setup?.url?.selectAndConnect || 'Connect'}
                         </button>
                       </div>
                     </div>

@@ -17,7 +17,7 @@ import {
   RefreshCw,
 } from 'lucide-react'
 import { saveCredentials } from '@/lib/config'
-import { t, interpolate } from '@/lib/i18n'
+import { t } from '@/lib/i18n'
 import { type ConnectionErrorType, type DiagnosticResult } from '@/lib/connection-diagnostics'
 import { logError, setCustomKey, log } from '@/lib/crashlytics'
 import { EditModal } from '@/components/ui/EditModal'
@@ -432,10 +432,8 @@ export function SetupWizard() {
   const [suggestions, setSuggestions] = useState<UrlSuggestion[]>([])
   const [isProbing, setIsProbing] = useState(false)
   const [urlVerified, setUrlVerified] = useState(false)
-  const [alternativeUrl, setAlternativeUrl] = useState<{
-    original: string
-    working: string
-  } | null>(null)
+  const [workingUrls, setWorkingUrls] = useState<string[]>([])
+  const [selectedUrl, setSelectedUrl] = useState<string | null>(null)
   const hasProbed = useRef(false)
   const userHasTyped = useRef(false)
   const urlInputRef = useRef<HTMLInputElement>(null)
@@ -708,7 +706,8 @@ export function SetupWizard() {
 
     setIsLoading(true)
     setError(null)
-    setAlternativeUrl(null)
+    setWorkingUrls([])
+    setSelectedUrl(null)
     setLiveDiagnostic({ show: false, httpsStatus: 'idle', websocketStatus: 'idle' })
 
     // Generate URL variants to try (handles missing protocol, protocol switching, and port variations)
@@ -716,70 +715,50 @@ export function SetupWizard() {
 
     // First verify URL if not already verified
     if (!urlVerified) {
-      let workingUrl: string | null = null
+      const primaryUrl = urlVariants[0]
 
-      // Try each URL variant
-      for (let i = 0; i < urlVariants.length; i++) {
-        const testUrl = urlVariants[i]
+      // First, try the user's URL (with protocol added if needed)
+      const primaryWorks = await testConnection(primaryUrl, undefined, 5000)
 
-        // Start a timer - show diagnostics after 500ms if still connecting (only for first URL)
-        let showDiagnosticsTimer: ReturnType<typeof setTimeout> | null = null
+      if (primaryWorks) {
+        // User's URL works - proceed directly without showing alternatives
+        setUrl(primaryUrl)
+        setUrlVerified(true)
 
-        // Run connection test
-        const connectionPromise = testConnection(testUrl, undefined, 10000)
-
-        // After 500ms, start showing live diagnostics (only for first attempt)
-        if (i === 0) {
-          showDiagnosticsTimer = setTimeout(() => {
-            void runLiveDiagnostics(testUrl)
-          }, 500)
+        if (authMethod === 'oauth') {
+          await handleOAuthLogin(primaryUrl)
+        } else {
+          await handleTokenSubmit(primaryUrl)
         }
-
-        const connected = await connectionPromise
-
-        // Clear the timer if connection completed quickly
-        if (showDiagnosticsTimer) {
-          clearTimeout(showDiagnosticsTimer)
-        }
-
-        if (connected) {
-          workingUrl = testUrl
-          // Hide diagnostics on success
-          setLiveDiagnostic({ show: false, httpsStatus: 'idle', websocketStatus: 'idle' })
-          break
-        } else if (i === 0 && urlVariants.length > 1) {
-          // First URL failed, will try alternative - clear diagnostics
-          setLiveDiagnostic({ show: false, httpsStatus: 'idle', websocketStatus: 'idle' })
-        }
+        return
       }
 
-      if (workingUrl) {
-        // Check if working URL is different from what we first tried
-        // (i.e., we had to try an alternative protocol or port)
-        if (workingUrl !== urlVariants[0]) {
-          // We connected with a different URL than expected - ask for confirmation
-          setAlternativeUrl({ original: urlVariants[0], working: workingUrl })
+      // User's URL failed - try all alternative variants in parallel
+      const alternativeVariants = urlVariants.slice(1)
+
+      if (alternativeVariants.length > 0) {
+        const results = await Promise.all(
+          alternativeVariants.map(async (testUrl) => ({
+            url: testUrl,
+            works: await testConnection(testUrl, undefined, 5000),
+          }))
+        )
+
+        const foundUrls = results.filter((r) => r.works).map((r) => r.url)
+
+        if (foundUrls.length > 0) {
+          // Found working alternatives - show selection
+          setWorkingUrls(foundUrls)
+          setSelectedUrl(foundUrls[0])
           setIsLoading(false)
           return
         }
-
-        // Success! Proceed with the working URL
-        setUrl(workingUrl)
-        setUrlVerified(true)
-
-        // Authenticate with the working URL (pass directly since state update is async)
-        if (authMethod === 'oauth') {
-          await handleOAuthLogin(workingUrl)
-        } else {
-          await handleTokenSubmit(workingUrl)
-        }
-        return
-      } else {
-        // All variants failed - run diagnostics on the first URL
-        await runLiveDiagnostics(urlVariants[0])
-        setIsLoading(false)
-        return
       }
+
+      // No URLs work - run diagnostics on the primary URL
+      await runLiveDiagnostics(primaryUrl)
+      setIsLoading(false)
+      return
     }
 
     // URL already verified, authenticate with current url state
@@ -790,27 +769,27 @@ export function SetupWizard() {
     }
   }
 
-  // Handle user accepting the alternative URL
-  const handleAcceptAlternativeUrl = async () => {
-    if (!alternativeUrl) return
+  // Handle user selecting a URL and connecting
+  const handleSelectUrlAndConnect = async () => {
+    if (!selectedUrl) return
 
-    const workingUrl = alternativeUrl.working
-    setUrl(workingUrl)
+    setUrl(selectedUrl)
     setUrlVerified(true)
-    setAlternativeUrl(null)
+    setWorkingUrls([])
     setIsLoading(true)
 
-    // Authenticate with the working URL (pass directly since state update is async)
+    // Authenticate with the selected URL (pass directly since state update is async)
     if (authMethod === 'oauth') {
-      await handleOAuthLogin(workingUrl)
+      await handleOAuthLogin(selectedUrl)
     } else {
-      await handleTokenSubmit(workingUrl)
+      await handleTokenSubmit(selectedUrl)
     }
   }
 
-  // Handle user rejecting the alternative URL
-  const handleRejectAlternativeUrl = () => {
-    setAlternativeUrl(null)
+  // Handle user wanting to try again with different input
+  const handleTryAgain = () => {
+    setWorkingUrls([])
+    setSelectedUrl(null)
     setUrlVerified(false)
   }
 
@@ -1179,9 +1158,9 @@ export function SetupWizard() {
                   )}
                 </AnimatePresence>
 
-                {/* Alternative URL Confirmation */}
+                {/* URL Selection - shown when we find working URLs */}
                 <AnimatePresence>
-                  {alternativeUrl && (
+                  {workingUrls.length > 0 && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
@@ -1195,30 +1174,61 @@ export function SetupWizard() {
                             <Check className="w-4 h-4 text-green-500" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm text-foreground">
-                              {interpolate(
-                                t.setup.url.alternativeFound ||
-                                  "We couldn't connect to {original}, but found Home Assistant at:",
-                                { original: alternativeUrl.original }
-                              )}
-                            </p>
-                            <p className="font-mono text-sm text-accent mt-1 break-all">
-                              {alternativeUrl.working}
+                            <p className="text-sm font-medium text-foreground">
+                              {workingUrls.length === 1
+                                ? t.setup.url.foundAt || 'Found Home Assistant at:'
+                                : t.setup.url.foundMultiple ||
+                                  'Found Home Assistant at multiple addresses:'}
                             </p>
                           </div>
                         </div>
+
+                        {/* URL options */}
+                        <div className="space-y-2">
+                          {workingUrls.map((urlOption) => (
+                            <button
+                              key={urlOption}
+                              onClick={() => setSelectedUrl(urlOption)}
+                              className={`w-full p-3 rounded-xl text-left transition-all ${
+                                selectedUrl === urlOption
+                                  ? 'bg-accent/20 border-2 border-accent'
+                                  : 'bg-card border border-border hover:border-accent/50'
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div
+                                  className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                                    selectedUrl === urlOption
+                                      ? 'border-accent bg-accent'
+                                      : 'border-muted'
+                                  }`}
+                                >
+                                  {selectedUrl === urlOption && (
+                                    <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                                  )}
+                                </div>
+                                <span className="font-mono text-sm text-foreground break-all">
+                                  {urlOption}
+                                </span>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* Action buttons */}
                         <div className="flex gap-3">
                           <button
-                            onClick={handleRejectAlternativeUrl}
+                            onClick={handleTryAgain}
                             className="flex-1 py-3 px-4 bg-border/50 text-foreground rounded-xl font-medium hover:bg-border transition-colors text-sm"
                           >
-                            {t.setup.url.keepOriginal || 'Try original again'}
+                            {t.setup.url.tryAgain || 'Try again'}
                           </button>
                           <button
-                            onClick={handleAcceptAlternativeUrl}
-                            className="flex-1 py-3 px-4 bg-green-500 text-white rounded-xl font-medium hover:bg-green-600 transition-colors text-sm"
+                            onClick={handleSelectUrlAndConnect}
+                            disabled={!selectedUrl}
+                            className="flex-1 py-3 px-4 bg-green-500 text-white rounded-xl font-medium hover:bg-green-600 transition-colors text-sm disabled:opacity-50"
                           >
-                            {t.setup.url.useAlternative || 'Use this URL'}
+                            {t.setup.url.selectAndConnect || 'Connect'}
                           </button>
                         </div>
                       </div>

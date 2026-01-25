@@ -34,9 +34,10 @@
       "error": "Could not connect. Check the URL and try again.",
       "scanning": "Scanning network...",
       "commonUrls": "Common addresses",
-      "alternativeFound": "We couldn't connect to {original}, but found Home Assistant at:",
-      "useAlternative": "Use this URL",
-      "keepOriginal": "Try original again"
+      "foundAt": "Found Home Assistant at:",
+      "foundMultiple": "Found Home Assistant at multiple addresses:",
+      "selectAndConnect": "Connect",
+      "tryAgain": "Try again"
     },
     "token": {
       "title": "Authentication",
