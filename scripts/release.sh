@@ -113,12 +113,12 @@ echo ""
 # Generate announcement with Claude
 echo -e "${CYAN}Generating release announcement with Claude...${NC}"
 
-CHANGELOG=$(claude -p "You are writing a release announcement for a mobile app (iOS/Android) called Stuga - a Home Assistant dashboard.
+CHANGELOG=$(claude -p "You are writing a release announcement for Stuga, a Home Assistant dashboard app for iOS and Android.
 
-Given these git commit messages since the last release, write a friendly release announcement.
+Given these git commit messages since the last release, write a friendly release announcement for app store users.
 
 Format:
-1. Start with a brief, conversational intro sentence summarizing what's in this release (e.g., 'This release focuses on...' or 'We've squashed some bugs and...')
+1. Start with a brief, conversational intro sentence summarizing what's in this release
 2. Then list the changes using bullet points (-)
 
 Rules:
@@ -190,12 +190,12 @@ while true; do
       ;;
     r|R)
       echo -e "${CYAN}Regenerating announcement...${NC}"
-      CHANGELOG=$(claude -p "You are writing a release announcement for a mobile app (iOS/Android) called Stuga - a Home Assistant dashboard.
+      CHANGELOG=$(claude -p "You are writing a release announcement for Stuga, a Home Assistant dashboard app for iOS and Android.
 
-Given these git commit messages since the last release, write a friendly release announcement.
+Given these git commit messages since the last release, write a friendly release announcement for app store users.
 
 Format:
-1. Start with a brief, conversational intro sentence summarizing what's in this release (e.g., 'This release focuses on...' or 'We've squashed some bugs and...')
+1. Start with a brief, conversational intro sentence summarizing what's in this release
 2. Then list the changes using bullet points (-)
 
 Rules:
@@ -287,6 +287,10 @@ $NEW_ENTRY
 EOF
 fi
 
+# Generate SEO-optimized web changelog JSON
+echo -e "${GREEN}Generating SEO-optimized web changelog...${NC}"
+"$SCRIPT_DIR/generate-seo-changelog.sh"
+
 # Update Android version (not tracked in git, but updated locally for native builds)
 echo -e "${GREEN}Updating Android version...${NC}"
 ANDROID_BUILD_GRADLE="android/app/build.gradle"
@@ -352,7 +356,7 @@ fi
 
 # Commit with changelog in message body
 # Using a special format that GHA can parse
-git add package.json CHANGELOG.md android-overrides/fastlane/metadata/android/en-US/changelogs/ ios-overrides/App/fastlane/metadata/en-US/release_notes.txt
+git add package.json CHANGELOG.md web/src/content/changelog.json android-overrides/fastlane/metadata/android/en-US/changelogs/ ios-overrides/App/fastlane/metadata/en-US/release_notes.txt
 if git diff --cached --quiet; then
   echo -e "${YELLOW}No changes to commit (version files may already be updated)${NC}"
   echo "Proceeding with tag creation..."

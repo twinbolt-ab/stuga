@@ -1,0 +1,170 @@
+---
+import Layout from '../layouts/Layout.astro';
+import changelog from '../content/changelog.json';
+
+const { releases } = changelog;
+const siteUrl = "https://stuga.app";
+
+function formatDate(dateStr: string) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+// Structured data for release list
+const releaseListSchema = {
+  "@type": "ItemList",
+  "name": "Stuga Release History",
+  "description": "Changelog and release notes for Stuga, the Home Assistant dashboard app",
+  "numberOfItems": releases.length,
+  "itemListElement": releases.slice(0, 10).map((release, index) => ({
+    "@type": "ListItem",
+    "position": index + 1,
+    "item": {
+      "@type": "SoftwareApplication",
+      "name": `Stuga v${release.version}`,
+      "version": release.version,
+      "datePublished": release.date,
+      "releaseNotes": release.seoSummary || release.summary,
+      "applicationCategory": "LifestyleApplication",
+      "operatingSystem": "Android, iOS, Web"
+    }
+  }))
+};
+
+const breadcrumbSchema = {
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Stuga",
+      "item": `${siteUrl}/`
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "What's New",
+      "item": `${siteUrl}/whats-new`
+    }
+  ]
+};
+
+const additionalSchema = [releaseListSchema, breadcrumbSchema];
+---
+
+<Layout
+  title="What's New in Stuga | Home Assistant Dashboard Updates & Changelog"
+  description="Official changelog for Stuga, the mobile-first Home Assistant dashboard. See release notes, new features, bug fixes, and improvements for iOS, Android, and web."
+  additionalSchema={additionalSchema}
+  ogType="article"
+>
+  <header class="px-4 py-4">
+    <div class="flex items-center justify-center gap-2">
+      <a href="/" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+        <img src="/icon.png" alt="Stuga" class="w-8 h-8 rounded-lg shadow-sm" />
+        <span class="font-bold text-lg">Stuga</span>
+      </a>
+    </div>
+  </header>
+
+  <nav aria-label="Breadcrumb" class="px-6 py-2 text-sm">
+    <ol class="flex items-center gap-2 max-w-lg mx-auto">
+      <li><a href="/" class="text-muted hover:text-accent transition-colors">Stuga</a></li>
+      <li class="text-muted">/</li>
+      <li class="text-foreground font-medium">What's New</li>
+    </ol>
+  </nav>
+
+  <main class="px-6 py-8">
+    <div class="max-w-lg mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight mb-2">What's New in Stuga</h1>
+      <p class="text-muted mb-4">
+        Official changelog and release notes for Stuga, the mobile-first Home Assistant dashboard app.
+      </p>
+      <p class="text-sm text-muted mb-6">
+        Track the latest features, improvements, and bug fixes for iOS, Android, and web.
+        Stuga brings your smart home devices together in a clean, fast interface that
+        requires no YAML configuration.
+      </p>
+
+      <section class="bg-card border border-border rounded-xl p-5 mb-8">
+        <h2 class="text-base font-bold mb-2">Why Stuga?</h2>
+        <p class="text-muted text-sm">
+          Unlike the default Home Assistant Lovelace dashboard which requires YAML configuration,
+          Stuga provides an opinionated, ready-to-use mobile interface. Each release focuses on
+          improving the touch experience based on feedback from our
+          <a href="https://github.com/twinbolt-ab/stuga" class="text-accent hover:underline">GitHub community</a>.
+        </p>
+      </section>
+
+      <nav class="mb-8 flex flex-wrap gap-2" aria-label="Jump to version">
+        {releases.slice(0, 5).map((release) => (
+          <a href={`#v${release.version}`} class="text-xs px-2 py-1 bg-card border border-border rounded-full hover:border-accent transition-colors">
+            v{release.version}
+          </a>
+        ))}
+      </nav>
+
+      <div class="space-y-6">
+        {releases.map((release, index) => (
+          <article class="border-b border-border pb-6 last:border-0">
+            <div class="flex items-center gap-3 mb-3">
+              <h2 class="font-bold text-lg" id={`v${release.version}`}>v{release.version}</h2>
+              <time datetime={release.date} class="text-sm text-muted">{formatDate(release.date)}</time>
+            </div>
+
+            <p class="text-muted mb-4">{release.seoSummary || release.summary}</p>
+
+            {release.sections.length > 0 && (
+              <details class="group" open={index < 3}>
+                <summary class="text-sm text-accent cursor-pointer hover:underline list-none flex items-center gap-1">
+                  <span class="group-open:hidden">Show details</span>
+                  <span class="hidden group-open:inline">Hide details</span>
+                  <svg class="w-4 h-4 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </summary>
+                <div class="mt-4 space-y-4">
+                  {release.sections.map((section) => (
+                    <div>
+                      <h3 class="text-sm font-semibold text-foreground mb-2">{section.title}</h3>
+                      <ul class="space-y-1">
+                        {section.items.map((item) => (
+                          <li class="text-sm text-muted flex gap-2">
+                            <span class="text-accent">•</span>
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </details>
+            )}
+          </article>
+        ))}
+      </div>
+
+      <div class="mt-12 pt-8 border-t border-border text-center">
+        <p class="text-muted text-sm mb-4">Ready to try the latest version?</p>
+        <a href="/#download" class="btn-primary inline-flex items-center gap-2 text-base px-6 py-3">
+          Get Stuga
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          </svg>
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="py-8 px-6 border-t border-border">
+    <div class="max-w-lg mx-auto flex items-center justify-between text-sm text-muted">
+      <span>&copy; 2026 Twinbolt AB</span>
+      <div class="flex gap-4">
+        <a href="/blog" class="hover:text-foreground transition-colors">Blog</a>
+        <a href="/privacy" class="hover:text-foreground transition-colors">Privacy</a>
+        <a href="https://github.com/twinbolt-ab/stuga" class="hover:text-foreground transition-colors">GitHub</a>
+      </div>
+    </div>
+  </footer>
+</Layout>

@@ -2,7 +2,7 @@
 
 ## [0.3.20] - 2026-01-26
 
-This release adds a handy new feature for managing your devices and improves connection troubleshooting.
+Control which smart home devices appear in your Home Assistant dashboard with new device visibility options.
 
 **New Features**
 - You can now choose to hide devices either just in Stuga or in Home Assistant too - giving you more control over what shows up where
@@ -13,7 +13,7 @@ This release adds a handy new feature for managing your devices and improves con
 
 ## [0.3.19] - 2026-01-25
 
-This release makes connecting to your Home Assistant a smoother experience.
+Improved Home Assistant connection setup with smarter URL detection for both local and remote access.
 
 **Improvements**
 - Smarter URL handling when setting up your connection - the app now automatically tries different protocols (http/https) and suggests alternatives if your initial URL doesn't work
@@ -26,7 +26,7 @@ This release makes connecting to your Home Assistant a smoother experience.
 
 ## [0.3.18] - 2026-01-25
 
-This release brings improved stability and better error reporting to help us fix issues faster.
+Stability improvements and bug fixes for the Home Assistant dashboard app on Android devices.
 
 **Improvements**
 - Added connection diagnostics to help troubleshoot connectivity issues
@@ -42,7 +42,7 @@ This release brings improved stability and better error reporting to help us fix
 
 ## [0.3.17] - 2026-01-23
 
-This release brings a refreshed editing experience and more control over how your rooms display information.
+Display temperature and humidity sensors in your Home Assistant room cards with new customization options.
 
 **Improvements**
 - Redesigned floor editing with a cleaner, more intuitive interface
@@ -57,51 +57,51 @@ This release brings a refreshed editing experience and more control over how you
 
 ## [0.3.16] - 2026-01-23
 
+Bug fixes for the Home Assistant mobile dashboard.
+
+**Bug Fixes**
 - Fixed video containers getting squashed when scrolling on phones
-- Bug fixes
 
 
 ## [0.3.15] - 2026-01-22
+
+Android app improvements for the Home Assistant dashboard with better compatibility and app store presence.
+
+**Improvements**
 - Improved Android app versioning for more reliable updates
 - Added screenshot gallery to the landing page
 - Added promotional video to app store listing
 - Updated screenshots and visuals
 - Improved compatibility with newer Android devices
-- Fixed Android app build issues
 - Improved app store listings with better descriptions and metadata
+
+**Bug Fixes**
+- Fixed Android app build issues
 
 
 ## [0.3.6] - 2026-01-22
+
+Organize your smart home by floors with improved navigation and editing in the Home Assistant dashboard.
 
 **Improvements**
 - Show floor name when swiping between floors
 - Add floating 'Create floor' button when editing floors
 - Swipe to dismiss dropdowns and pickers on mobile
-- Fix keyboard covering search results on iOS
-- Smoother drag and drop when reordering cards
+- Smoother drag and drop when reordering room cards
 - Better contrast for accent colored buttons
 - New segmented control for hide options (replaces dropdown)
 
 **Bug Fixes**
+- Fix keyboard covering search results on iOS
 - Fix cards jumping when starting to drag during reorder
 - Fix dragging cards between floors
 - Fix duplicate login messages
 - Fix connection status showing incorrectly on empty floors
 
 
-## [0.3.6] - 2026-01-22
-
-- Shows floor name when swiping between floors
-- Added floating 'Create floor' button in floor edit mode
-- Replaced dropdown with segmented control for hide options
-- Fixed keyboard covering search results on iOS
-- Fixed cards jumping when dragging to reorder
-- Fixed drag and drop working correctly across floors
-- Improved authentication loading screen
-- Various performance and stability improvements
-
-
 ## [0.3.5] - 2026-01-21
+
+Simplified Home Assistant login with easier authentication method selection.
 
 **Improvements**
 - Simplified the login method selection during setup
@@ -111,6 +111,8 @@ This release brings a refreshed editing experience and more control over how you
 
 
 ## [0.3.4] - 2026-01-21
+
+Drag and drop room organization for your Home Assistant dashboard with multi-select and cross-floor support.
 
 **Improvements**
 - Added multi-room drag selection with visual stacking when selecting multiple rooms

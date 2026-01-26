@@ -1,12 +1,64 @@
 ---
+interface FAQItem {
+  question: string;
+  answer: string;
+}
+
 interface Props {
   title: string;
   description?: string;
+  faqItems?: FAQItem[];
+  additionalSchema?: any[];
+  ogType?: string;
 }
 
-const { title, description = "A fast, beautiful dashboard for Home Assistant. Control your smart home with ease." } = Astro.props;
+const {
+  title,
+  description = "A fast, beautiful dashboard for Home Assistant. Control your smart home with ease.",
+  faqItems,
+  additionalSchema = [],
+  ogType = "website"
+} = Astro.props;
 const siteUrl = "https://stuga.app";
 const ogImage = `${siteUrl}/og-image.png`;
+const canonicalUrl = new URL(Astro.url.pathname, siteUrl).href;
+
+const schemaGraph: any[] = [
+  {
+    "@type": "Organization",
+    "name": "Twinbolt AB",
+    "url": "https://twinbolt.se"
+  },
+  {
+    "@type": "SoftwareApplication",
+    "name": "Stuga",
+    "applicationCategory": "LifestyleApplication",
+    "operatingSystem": "Android, iOS, Web",
+    "description": description,
+    "url": siteUrl,
+    "author": { "@type": "Organization", "name": "Twinbolt AB" },
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+];
+
+if (faqItems && faqItems.length > 0) {
+  schemaGraph.push({
+    "@type": "FAQPage",
+    "mainEntity": faqItems.map(item => ({
+      "@type": "Question",
+      "name": item.question,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": item.answer
+      }
+    }))
+  });
+}
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [...schemaGraph, ...additionalSchema]
+};
 ---
 
 <!doctype html>
@@ -15,13 +67,14 @@ const ogImage = `${siteUrl}/og-image.png`;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
 
     <!-- Open Graph -->
     <meta property="og:site_name" content="Stuga" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content={siteUrl} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:url" content={canonicalUrl} />
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -42,6 +95,9 @@ const ogImage = `${siteUrl}/og-image.png`;
     <!-- Theme colors -->
     <meta name="theme-color" content="#FAFAF9" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0D0D0C" media="(prefers-color-scheme: dark)" />
+
+    <!-- Structured Data -->
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
     <title>{title}</title>
   </head>
