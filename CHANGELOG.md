@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.3.20] - 2026-01-26
+
+This release adds a handy new feature for managing your devices and improves connection troubleshooting.
+
+**New Features**
+- You can now choose to hide devices either just in Stuga or in Home Assistant too - giving you more control over what shows up where
+
+**Improvements**
+- Better error messages when there are SSL/TLS or DNS connection issues, making it easier to troubleshoot connection problems
+
+
 ## [0.3.19] - 2026-01-25
 
 This release makes connecting to your Home Assistant a smoother experience.
