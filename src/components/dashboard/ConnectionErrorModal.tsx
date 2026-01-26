@@ -32,6 +32,9 @@ interface ConnectionErrorModalProps {
 
 const ERROR_CONFIG: Record<ConnectionErrorType, { icon: typeof WifiOff; color: string }> = {
   network: { icon: WifiOff, color: 'text-red-500' },
+  'ssl-error': { icon: ShieldOff, color: 'text-red-500' },
+  'ssl-hostname-mismatch': { icon: ShieldOff, color: 'text-amber-500' },
+  'dns-resolution': { icon: WifiOff, color: 'text-red-500' },
   'websocket-blocked': { icon: ShieldOff, color: 'text-amber-500' },
   auth: { icon: ShieldOff, color: 'text-red-500' },
   'server-down': { icon: ServerOff, color: 'text-red-500' },
@@ -41,6 +44,9 @@ const ERROR_CONFIG: Record<ConnectionErrorType, { icon: typeof WifiOff; color: s
 function getErrorTitle(errorType: ConnectionErrorType): string {
   const titles: Record<ConnectionErrorType, string> = {
     network: t.connectionError.errorNetwork,
+    'ssl-error': t.connectionError.errorSsl,
+    'ssl-hostname-mismatch': t.connectionError.errorSslHostname,
+    'dns-resolution': t.connectionError.errorDns,
     'websocket-blocked': t.connectionError.errorWebsocket,
     auth: t.connectionError.errorAuth,
     'server-down': t.connectionError.errorServerDown,
@@ -52,6 +58,9 @@ function getErrorTitle(errorType: ConnectionErrorType): string {
 function getTroubleshootingText(errorType: ConnectionErrorType): string {
   const tips: Record<ConnectionErrorType, string> = {
     network: t.connectionError.troubleshootNetwork,
+    'ssl-error': t.connectionError.troubleshootSsl,
+    'ssl-hostname-mismatch': t.connectionError.troubleshootSslHostname,
+    'dns-resolution': t.connectionError.troubleshootDns,
     'websocket-blocked': t.connectionError.troubleshootWebsocket,
     auth: t.connectionError.troubleshootAuth,
     'server-down': t.connectionError.troubleshootServerDown,
@@ -69,6 +78,29 @@ function getTroubleshootingSteps(errorType: ConnectionErrorType): string[] {
       'Make sure Home Assistant is running and accessible',
       "If using a local address, ensure you're on the same network as Home Assistant",
       'Try accessing the URL directly in a web browser to verify it works',
+    ],
+    'ssl-error': [
+      'The SSL/TLS certificate could not be verified',
+      'If using a self-signed certificate, try accessing the URL in a browser first and accept the certificate warning',
+      'Check if your certificate has expired and needs renewal',
+      "If using Let's Encrypt, verify the certificate is properly configured",
+      'Try using HTTP instead of HTTPS if your server supports it',
+    ],
+    'ssl-hostname-mismatch': [
+      'The SSL certificate doesn\'t match the server address you\'re connecting to',
+      'If you\'re using DNS rebinding (router maps your domain to a local IP), your phone may be using a different DNS server',
+      'On Android: Go to Settings → Network & Internet → Private DNS and set it to "Off" to use your router\'s DNS',
+      'On Samsung: Settings → Connections → More → Private DNS → Off',
+      'Alternatively, try connecting via the local IP address with HTTP instead',
+      'If using Nabu Casa or similar, ensure you\'re using the correct external URL',
+    ],
+    'dns-resolution': [
+      'The hostname could not be resolved to an IP address',
+      'Check that you typed the address correctly',
+      'If using a local hostname (like homeassistant.local), ensure mDNS is working on your network',
+      'Try using the IP address directly instead of the hostname',
+      'Check your internet connection',
+      'If using custom DNS, verify it can resolve the hostname',
     ],
     'websocket-blocked': [
       'WebSocket connections are being blocked by your network or a proxy',
@@ -358,6 +390,18 @@ export function ConnectionErrorModal({
                         ? t.connectionError.statusOk
                         : t.connectionError.statusFailed}
                     </span>
+                  </div>
+                )}
+                {/* Show error details if available */}
+                {diagnostic.errorDetails && (
+                  <div className="pt-2 mt-2 border-t border-border/50">
+                    <span className="text-muted block mb-1">
+                      {t.connectionError.errorDetailsLabel}
+                    </span>
+                    <code className="text-xs text-foreground/70 bg-background/50 px-2 py-1 rounded block break-all">
+                      {diagnostic.errorCode && `[${diagnostic.errorCode}] `}
+                      {diagnostic.errorDetails}
+                    </code>
                   </div>
                 )}
               </div>
