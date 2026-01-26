@@ -1,0 +1,207 @@
+---
+import BlogLayout from '../../layouts/BlogLayout.astro';
+
+const meta = {
+  title: "Why Mobile-First Design Matters for Smart Home Control",
+  description: "Discover why Stuga's mobile-first approach delivers a better smart home experience than desktop-focused dashboards like Lovelace.",
+  publishDate: "2026-01-25",
+  readingTime: "5 min read",
+  heroImage: "/screenshots-app/medium/room-expanded.webp",
+  heroImageAlt: "Stuga's mobile interface showing touch-optimized smart home controls",
+  keywords: [
+    "mobile smart home",
+    "home assistant mobile",
+    "smart home app",
+    "touch interface",
+    "mobile dashboard",
+    "home assistant phone",
+    "smart home control"
+  ]
+};
+---
+
+<BlogLayout {...meta}>
+  <p>
+    Think about how you actually use your smart home. When was the last time you sat down at a computer to turn off the living room lights? Probably never. <strong>Smart home control happens on your phone</strong>, often while walking through your house, one-handed, without looking at the screen.
+  </p>
+
+  <p>
+    Yet most Home Assistant dashboards are designed for desktop browsers first, with mobile as an afterthought. This creates frustrating experiences: tiny buttons, cramped layouts, and interactions that don't work well with touch.
+  </p>
+
+  <p>
+    Stuga takes the opposite approach. Every design decision starts with the question: "How does this feel on a phone?"
+  </p>
+
+  <h2>The Problem with Desktop-First Design</h2>
+
+  <p>
+    Home Assistant's default Lovelace dashboard is incredibly powerful. You can create complex layouts with multiple columns, detailed charts, and intricate automations. But that power comes at a cost when viewed on mobile devices:
+  </p>
+
+  <ul>
+    <li><strong>Small tap targets</strong>: Buttons designed for mouse precision are too small for fingers</li>
+    <li><strong>Multi-column layouts</strong>: Beautiful on desktop, cramped on phone screens</li>
+    <li><strong>Hover interactions</strong>: Don't exist on touchscreens</li>
+    <li><strong>Complex navigation</strong>: Works with a mouse, frustrating with thumbs</li>
+  </ul>
+
+  <p>
+    You can customize Lovelace for mobile, but it requires significant effort. Conditional cards, custom button sizes, separate mobile views. Many users give up and just live with the compromised experience.
+  </p>
+
+  <h2>Designing for Touch First</h2>
+
+  <p>
+    Mobile-first design isn't just about making things bigger. It's about understanding how people interact with touchscreens and designing specifically for those interactions.
+  </p>
+
+  <h3>Thumb-Friendly Tap Targets</h3>
+
+  <p>
+    Apple's Human Interface Guidelines recommend a minimum tap target of 44x44 points. Stuga exceeds this everywhere. Room cards are generously sized for easy one-handed use, even when you're in a hurry.
+  </p>
+
+  <p>
+    More importantly, the most common actions are positioned where your thumb naturally rests. Toggle a room's lights with a single tap, right in the middle of the screen, without awkward reaching.
+  </p>
+
+  <h3>Swipe-Based Navigation</h3>
+
+  <p>
+    Desktop interfaces rely on clicking navigation menus. Mobile users expect to swipe. Stuga embraces this:
+  </p>
+
+  <ul>
+    <li><strong>Swipe between floors</strong>: Navigate your home with natural gestures</li>
+    <li><strong>Swipe to dismiss</strong>: Close dialogs, dropdowns, and pickers with a flick</li>
+    <li><strong>Pull-to-refresh</strong>: Update your dashboard with a familiar gesture</li>
+  </ul>
+
+  <h3>Context Over Configuration</h3>
+
+  <p>
+    Desktop dashboards often show everything at once, letting you scan and click what you need. On mobile, screen space is precious. Stuga uses progressive disclosure: you see your rooms first, then tap to see devices, then tap to access detailed controls.
+  </p>
+
+  <p>
+    This isn't limiting; it's clarifying. You're never overwhelmed with options, and you can always get to what you need in just a few taps.
+  </p>
+
+  <h2>Real-Time Feedback Matters More on Mobile</h2>
+
+  <p>
+    When you tap a button on your phone, you expect immediate feedback. A desktop user might wait a moment for a page to reload. A mobile user will tap again, assuming the first tap didn't register.
+  </p>
+
+  <p>
+    Stuga uses WebSocket connections for instant updates. When you tap a light, you see it change immediately in the app, typically within 100 milliseconds. The satisfying instant response makes the app feel reliable and responsive.
+  </p>
+
+  <p>
+    This also means you see changes from other sources instantly. If someone turns on a light from Home Assistant or another app, your Stuga dashboard updates in real-time.
+  </p>
+
+  <h2>The "Walking Through Your House" Test</h2>
+
+  <p>
+    Here's a practical test for any smart home interface: can you use it while walking through your house?
+  </p>
+
+  <p>
+    Picture this scenario: you're heading upstairs to bed. As you walk, you want to turn off the kitchen lights, check that the garage door is closed, and turn on the bedroom lamp. With a well-designed mobile interface, this should be quick and intuitive, done without breaking stride.
+  </p>
+
+  <p>
+    With Stuga:
+  </p>
+
+  <ol>
+    <li>Glance at the kitchen room card, tap to turn off lights</li>
+    <li>Swipe to see the garage, confirm the door status</li>
+    <li>Swipe to bedroom floor, tap to turn on the lamp</li>
+  </ol>
+
+  <p>
+    All done in seconds, with large tap targets that you can hit without precise aim, using just your thumb.
+  </p>
+
+  <h2>Multi-Room Control for Common Scenarios</h2>
+
+  <p>
+    Another insight from mobile-first thinking: what actions do people actually want to perform? One of the most common is controlling multiple rooms at once.
+  </p>
+
+  <p>
+    "Turn off all the downstairs lights." "Dim the living room and dining room for movie night." "Turn everything off, I'm going to bed."
+  </p>
+
+  <p>
+    Stuga's multi-select feature was designed specifically for these scenarios. Long-press a room, tap additional rooms to select them, and control them all at once with the bottom control bar. It's faster than going room by room, and it's designed for touch interaction.
+  </p>
+
+  <h2>Scandinavian Minimal Aesthetic</h2>
+
+  <p>
+    Mobile-first isn't just about functionality. It's also about visual design that works on smaller screens.
+  </p>
+
+  <p>
+    Many dashboard interfaces are visually busy: icons, labels, status indicators, badges, borders everywhere. On a phone, this visual noise becomes overwhelming.
+  </p>
+
+  <p>
+    Stuga follows Scandinavian design principles: generous whitespace, restrained color use, and clear visual hierarchy. The warm color palette with brass accents feels distinctive without being distracting. Every element has a purpose.
+  </p>
+
+  <p>
+    The result is an interface that's pleasant to look at on a small screen, where your eye immediately finds what it needs without hunting through visual clutter.
+  </p>
+
+  <h2>When Desktop-First Makes Sense</h2>
+
+  <p>
+    To be fair, there are scenarios where desktop-focused dashboards excel:
+  </p>
+
+  <ul>
+    <li><strong>Wall-mounted tablets</strong>: A dedicated home control panel might benefit from information-dense layouts</li>
+    <li><strong>Complex monitoring</strong>: Energy graphs, detailed sensor history, automation debugging</li>
+    <li><strong>Initial setup</strong>: Configuring your smart home is easier on a bigger screen</li>
+  </ul>
+
+  <p>
+    Stuga doesn't try to replace these use cases. It focuses on being the best phone experience for daily smart home control. For complex configuration, Home Assistant's web interface is still the right tool.
+  </p>
+
+  <h2>The Native App Advantage</h2>
+
+  <p>
+    Stuga isn't just a responsive website. It's a native app built with Capacitor for iOS and Android. This provides advantages that web-only solutions can't match:
+  </p>
+
+  <ul>
+    <li><strong>Local network access</strong>: Connect directly to your Home Assistant without exposing it to the internet</li>
+    <li><strong>Secure credential storage</strong>: Tokens stored in iOS Keychain or Android KeyStore</li>
+    <li><strong>Better performance</strong>: Native components and optimized rendering</li>
+    <li><strong>Home screen integration</strong>: Launch directly to your dashboard</li>
+  </ul>
+
+  <p>
+    Many Home Assistant users keep their installation local-only for security and privacy. Native apps can connect to these setups directly, while browser-based solutions require HTTPS (and often Nabu Casa or a reverse proxy).
+  </p>
+
+  <h2>Try It Yourself</h2>
+
+  <p>
+    The best way to understand mobile-first design is to experience it. Download Stuga and spend a few days using it for your daily smart home control. Notice how interactions feel natural, how you can control your home without thinking about the interface.
+  </p>
+
+  <p>
+    Then compare it to your current dashboard on mobile. The difference in everyday usability becomes clear quickly.
+  </p>
+
+  <p>
+    Stuga is available now on <a href="https://play.google.com/store/apps/details?id=com.twinbolt.stuga">Google Play</a>, with iOS coming soon. You can also <a href="https://stuga.app/run">try the web version</a> if you have HTTPS access to your Home Assistant.
+  </p>
+</BlogLayout>

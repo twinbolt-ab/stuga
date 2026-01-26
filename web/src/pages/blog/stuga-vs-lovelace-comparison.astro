@@ -1,0 +1,354 @@
+---
+import BlogLayout from '../../layouts/BlogLayout.astro';
+
+const meta = {
+  title: "Stuga vs Lovelace: Choosing the Right Home Assistant Dashboard",
+  description: "An honest comparison between Stuga and Home Assistant's default Lovelace dashboard. Find out which solution fits your smart home needs.",
+  publishDate: "2026-01-24",
+  readingTime: "8 min read",
+  heroImage: "/screenshots-app/medium/room-grid.webp",
+  heroImageAlt: "Stuga dashboard interface compared to traditional Home Assistant dashboards",
+  keywords: [
+    "stuga vs lovelace",
+    "home assistant dashboard comparison",
+    "lovelace alternative",
+    "home assistant dashboard",
+    "best home assistant dashboard",
+    "mushroom cards alternative",
+    "home assistant mobile dashboard"
+  ]
+};
+---
+
+<BlogLayout {...meta}>
+  <p>
+    If you're exploring dashboard options for Home Assistant, you've likely encountered Lovelace, the built-in customizable dashboard. You might also be wondering how Stuga compares. Both serve the same fundamental purpose, controlling your smart home, but they take very different approaches.
+  </p>
+
+  <p>
+    This comparison aims to be honest about the strengths and limitations of each. <strong>Stuga isn't trying to replace Lovelace</strong>. They're designed for different priorities. Understanding those priorities will help you choose the right tool, or decide to use both.
+  </p>
+
+  <h2>Quick Comparison</h2>
+
+  <table class="comparison-table">
+    <thead>
+      <tr>
+        <th>Feature</th>
+        <th>Stuga</th>
+        <th>Lovelace</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Setup time</strong></td>
+        <td>Minutes</td>
+        <td>Hours to days</td>
+      </tr>
+      <tr>
+        <td><strong>Configuration</strong></td>
+        <td>Zero YAML required</td>
+        <td>YAML or visual editor</td>
+      </tr>
+      <tr>
+        <td><strong>Mobile experience</strong></td>
+        <td>Mobile-first design</td>
+        <td>Desktop-first, responsive</td>
+      </tr>
+      <tr>
+        <td><strong>Customization</strong></td>
+        <td>Limited, opinionated</td>
+        <td>Unlimited, highly flexible</td>
+      </tr>
+      <tr>
+        <td><strong>Card types</strong></td>
+        <td>Fixed (rooms, devices)</td>
+        <td>Dozens of built-in + custom</td>
+      </tr>
+      <tr>
+        <td><strong>Native apps</strong></td>
+        <td>Yes (iOS, Android)</td>
+        <td>Via Companion app</td>
+      </tr>
+      <tr>
+        <td><strong>Local HTTP support</strong></td>
+        <td>Yes (native apps)</td>
+        <td>Yes</td>
+      </tr>
+      <tr>
+        <td><strong>Complex automations</strong></td>
+        <td>No</td>
+        <td>Yes</td>
+      </tr>
+      <tr>
+        <td><strong>Charts/graphs</strong></td>
+        <td>No</td>
+        <td>Yes</td>
+      </tr>
+      <tr>
+        <td><strong>Price</strong></td>
+        <td>Free</td>
+        <td>Free</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Philosophy: Opinionated vs Flexible</h2>
+
+  <p>
+    The fundamental difference between Stuga and Lovelace is philosophical.
+  </p>
+
+  <p>
+    <strong>Lovelace is a blank canvas.</strong> It gives you every possible tool and lets you build exactly what you want. Want a card that shows your washing machine's cycle progress alongside today's weather and your energy consumption? You can build that. The only limit is your imagination and willingness to learn YAML.
+  </p>
+
+  <p>
+    <strong>Stuga is opinionated.</strong> It makes choices for you about how a smart home dashboard should work. Rooms are cards. Devices are toggles. The layout is fixed. You can't add a weather card or energy graph because that's not what Stuga is designed for.
+  </p>
+
+  <p>
+    Neither approach is objectively better. It depends on what you value:
+  </p>
+
+  <ul>
+    <li><strong>Value customization?</strong> Lovelace wins, no contest.</li>
+    <li><strong>Value simplicity?</strong> Stuga wins by deliberately limiting options.</li>
+  </ul>
+
+  <h2>Setup Experience</h2>
+
+  <h3>Stuga Setup</h3>
+
+  <ol>
+    <li>Download the app</li>
+    <li>Enter your Home Assistant URL</li>
+    <li>Log in with OAuth</li>
+    <li>Done. Your rooms and devices appear automatically.</li>
+  </ol>
+
+  <p>
+    Total time: about 2 minutes.
+  </p>
+
+  <p>
+    Stuga reads your existing Home Assistant configuration and presents it immediately. If you've organized your devices into areas, those become your rooms. If you haven't, you'll see a flat list of all devices. The app works instantly either way.
+  </p>
+
+  <h3>Lovelace Setup</h3>
+
+  <p>
+    Lovelace comes pre-configured with an auto-generated dashboard that shows all your entities. But most users quickly realize they want something more customized:
+  </p>
+
+  <ol>
+    <li>Plan your dashboard layout</li>
+    <li>Learn about card types (button, entity, grid, stack, gauge, etc.)</li>
+    <li>Create views and add cards</li>
+    <li>Customize colors, icons, behaviors</li>
+    <li>Install custom cards from HACS for additional functionality</li>
+    <li>Optimize for mobile (conditional cards, different views)</li>
+  </ol>
+
+  <p>
+    Total time: hours to days, depending on complexity.
+  </p>
+
+  <p>
+    This isn't a criticism. Many users <em>enjoy</em> building their perfect dashboard. It's a satisfying project that results in something uniquely yours. But if you just want a working mobile interface today, the learning curve is significant.
+  </p>
+
+  <h2>Mobile Experience</h2>
+
+  <p>
+    This is where Stuga has a clear advantage. It was designed exclusively for phones.
+  </p>
+
+  <h3>Stuga on Mobile</h3>
+
+  <ul>
+    <li>44px+ tap targets throughout</li>
+    <li>Single-column layout optimized for one-handed use</li>
+    <li>Swipe gestures for navigation</li>
+    <li>Controls positioned in thumb-friendly zones</li>
+    <li>No pinching or zooming needed</li>
+  </ul>
+
+  <h3>Lovelace on Mobile</h3>
+
+  <ul>
+    <li>Responsive design that adapts to screen size</li>
+    <li>Multi-column layouts collapse on narrow screens</li>
+    <li>Tap targets depend on how you configure cards</li>
+    <li>Can be optimized with custom CSS and mobile-specific views</li>
+    <li>Requires effort to create a good mobile experience</li>
+  </ul>
+
+  <p>
+    Lovelace <em>can</em> be great on mobile. But you have to make it great. Stuga is great on mobile by default.
+  </p>
+
+  <h2>Customization Depth</h2>
+
+  <p>
+    If customization is important to you, Lovelace is the clear choice.
+  </p>
+
+  <h3>What You Can Do with Lovelace</h3>
+
+  <ul>
+    <li>Completely custom layouts with rows, columns, and grids</li>
+    <li>Dozens of card types: gauges, history graphs, calendars, maps, media players</li>
+    <li>Custom cards from the community (via HACS)</li>
+    <li>Custom themes with complete visual control</li>
+    <li>Conditional cards that appear based on states</li>
+    <li>Complex tap actions including service calls and navigation</li>
+  </ul>
+
+  <h3>What You Can Do with Stuga</h3>
+
+  <ul>
+    <li>Edit room names and icons</li>
+    <li>Reorder rooms</li>
+    <li>Hide devices</li>
+    <li>Organize rooms into floors</li>
+    <li>Choose light/dark mode</li>
+  </ul>
+
+  <p>
+    Stuga's limited customization is intentional. Fewer options mean faster setup and a more consistent experience. But if you want to display weather forecasts, energy consumption, camera feeds, or custom visualizations, Lovelace is your only option.
+  </p>
+
+  <h2>Performance and Responsiveness</h2>
+
+  <p>
+    Both solutions use WebSocket connections for real-time updates, so both can be fast.
+  </p>
+
+  <p>
+    In practice, Stuga tends to feel snappier because:
+  </p>
+
+  <ul>
+    <li>Simpler UI means less to render</li>
+    <li>Native apps benefit from platform optimizations</li>
+    <li>Focused feature set means less overhead</li>
+  </ul>
+
+  <p>
+    That said, a well-optimized Lovelace dashboard can be very fast too. Performance depends heavily on how many entities you're displaying and whether you're using resource-heavy custom cards.
+  </p>
+
+  <h2>Local Network Access</h2>
+
+  <p>
+    Many Home Assistant users prefer not to expose their installation to the internet. Both solutions support local access, but differently:
+  </p>
+
+  <h3>Stuga</h3>
+
+  <ul>
+    <li>Native apps connect directly to local HTTP (no SSL required)</li>
+    <li>Web app requires HTTPS</li>
+    <li>No need for Nabu Casa or reverse proxy for native apps</li>
+  </ul>
+
+  <h3>Lovelace</h3>
+
+  <ul>
+    <li>Built into Home Assistant, works wherever HA is accessible</li>
+    <li>Home Assistant Companion app handles local connections</li>
+    <li>No additional setup needed if you can already access HA</li>
+  </ul>
+
+  <p>
+    Both work well for local-only setups. The Companion app and Stuga's native apps both handle local connections smoothly.
+  </p>
+
+  <h2>Use Cases: When to Choose Each</h2>
+
+  <h3>Choose Stuga If...</h3>
+
+  <ul>
+    <li>You want a working mobile dashboard immediately</li>
+    <li>You don't enjoy configuring YAML</li>
+    <li>Your primary use is controlling lights and common devices</li>
+    <li>You value a clean, minimal aesthetic</li>
+    <li>You're frustrated with Lovelace's mobile experience</li>
+  </ul>
+
+  <h3>Choose Lovelace If...</h3>
+
+  <ul>
+    <li>You want complete control over your dashboard design</li>
+    <li>You need to display complex information (graphs, calendars, custom data)</li>
+    <li>You enjoy the process of building and tweaking your dashboard</li>
+    <li>You're primarily using a tablet or desktop to control your home</li>
+    <li>You need features beyond basic device control</li>
+  </ul>
+
+  <h3>Use Both If...</h3>
+
+  <p>
+    Many users find value in using both:
+  </p>
+
+  <ul>
+    <li><strong>Stuga on your phone</strong> for quick daily controls while walking around</li>
+    <li><strong>Lovelace on a wall tablet</strong> for at-a-glance status and detailed information</li>
+    <li><strong>Lovelace on desktop</strong> for configuration and monitoring</li>
+  </ul>
+
+  <p>
+    They're not mutually exclusive. Use the right tool for each context.
+  </p>
+
+  <h2>What About Mushroom Cards?</h2>
+
+  <p>
+    If you're researching Home Assistant dashboards, you've probably heard of Mushroom cards. They're a popular HACS add-on that provides a modern, mobile-friendly design for Lovelace.
+  </p>
+
+  <p>
+    Mushroom bridges some of the gap between Lovelace and Stuga's aesthetics. The cards are well-designed with good touch targets and a clean look. However, you still need to:
+  </p>
+
+  <ul>
+    <li>Install and configure the cards</li>
+    <li>Build your layout manually</li>
+    <li>Maintain the configuration over time</li>
+  </ul>
+
+  <p>
+    Mushroom is a great option if you want Lovelace's flexibility with better mobile aesthetics. But it's still fundamentally a Lovelace customization, not a zero-config alternative like Stuga.
+  </p>
+
+  <h2>Conclusion</h2>
+
+  <p>
+    Stuga and Lovelace solve the same problem differently. Lovelace gives you unlimited power and flexibility. Stuga gives you a polished mobile experience with zero effort.
+  </p>
+
+  <p>
+    There's no universal "best" choice. It depends on:
+  </p>
+
+  <ul>
+    <li>How much time you want to spend on configuration</li>
+    <li>What devices and information you need to display</li>
+    <li>Whether you primarily use mobile or desktop</li>
+    <li>How much you value customization vs simplicity</li>
+  </ul>
+
+  <p>
+    If you're reading this article, there's a good chance you're frustrated with something about your current setup. If that frustration is about mobile experience and configuration complexity, <a href="/#download">give Stuga a try</a>. It's free, and you can be up and running in minutes.
+  </p>
+
+  <p>
+    If your frustration is about needing more features and flexibility, Lovelace (perhaps with Mushroom cards) is probably the better investment of your time.
+  </p>
+
+  <p>
+    And remember: you don't have to choose just one. Use both where they each excel.
+  </p>
+</BlogLayout>

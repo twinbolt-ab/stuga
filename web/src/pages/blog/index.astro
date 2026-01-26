@@ -1,0 +1,162 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+const siteUrl = "https://stuga.app";
+
+const blogPosts = [
+  {
+    slug: "getting-started-with-stuga",
+    title: "Getting Started with Stuga: A Better Home Assistant Dashboard",
+    description: "Learn how to set up Stuga, the mobile-first Home Assistant dashboard that requires zero YAML configuration. Connect your smart home in minutes.",
+    publishDate: "2026-01-26",
+    readingTime: "6 min read",
+    category: "Tutorial"
+  },
+  {
+    slug: "mobile-first-smart-home-control",
+    title: "Why Mobile-First Design Matters for Smart Home Control",
+    description: "Discover why Stuga's mobile-first approach delivers a better smart home experience than desktop-focused dashboards like Lovelace.",
+    publishDate: "2026-01-25",
+    readingTime: "5 min read",
+    category: "Design"
+  },
+  {
+    slug: "stuga-vs-lovelace-comparison",
+    title: "Stuga vs Lovelace: Choosing the Right Home Assistant Dashboard",
+    description: "An honest comparison between Stuga and Home Assistant's default Lovelace dashboard. Find out which solution fits your smart home needs.",
+    publishDate: "2026-01-24",
+    readingTime: "8 min read",
+    category: "Comparison"
+  }
+];
+
+function formatDate(dateStr: string) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+const blogListSchema = {
+  "@type": "Blog",
+  "name": "Stuga Blog",
+  "description": "Tips, tutorials, and insights about Home Assistant dashboards and smart home control",
+  "url": `${siteUrl}/blog`,
+  "blogPost": blogPosts.map(post => ({
+    "@type": "BlogPosting",
+    "headline": post.title,
+    "description": post.description,
+    "datePublished": post.publishDate,
+    "url": `${siteUrl}/blog/${post.slug}`
+  }))
+};
+
+const breadcrumbSchema = {
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Stuga",
+      "item": `${siteUrl}/`
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Blog",
+      "item": `${siteUrl}/blog`
+    }
+  ]
+};
+
+const additionalSchema = [blogListSchema, breadcrumbSchema];
+---
+
+<Layout
+  title="Blog | Stuga - Home Assistant Dashboard Tips & Tutorials"
+  description="Tips, tutorials, and insights about Home Assistant dashboards and smart home control. Learn how to get the most out of your smart home with Stuga."
+  additionalSchema={additionalSchema}
+  ogType="website"
+>
+  <header class="px-4 py-4 border-b border-border">
+    <div class="flex items-center justify-center gap-2">
+      <a href="/" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+        <img src="/icon.png" alt="Stuga" class="w-8 h-8 rounded-lg shadow-sm" />
+        <span class="font-bold text-lg">Stuga</span>
+      </a>
+    </div>
+  </header>
+
+  <nav aria-label="Breadcrumb" class="px-6 py-3 text-sm border-b border-border/50">
+    <ol class="flex items-center gap-2 max-w-2xl mx-auto">
+      <li><a href="/" class="text-muted hover:text-accent transition-colors">Stuga</a></li>
+      <li class="text-muted">/</li>
+      <li class="text-foreground font-medium">Blog</li>
+    </ol>
+  </nav>
+
+  <main class="px-6 py-12">
+    <div class="max-w-2xl mx-auto">
+      <header class="mb-10">
+        <h1 class="text-3xl sm:text-4xl font-bold tracking-tight mb-4">Blog</h1>
+        <p class="text-lg text-muted leading-relaxed">
+          Tips, tutorials, and insights about Home Assistant dashboards and smart home control.
+        </p>
+      </header>
+
+      <section class="space-y-8">
+        {blogPosts.map((post) => (
+          <article class="group">
+            <a href={`/blog/${post.slug}`} class="block bg-card border border-border rounded-xl p-6 transition-all duration-200 hover:border-accent hover:shadow-warm">
+              <div class="flex items-center gap-3 text-sm mb-3">
+                <span class="px-2 py-0.5 bg-accent/10 text-accent text-xs font-medium rounded-full">
+                  {post.category}
+                </span>
+                <time datetime={post.publishDate} class="text-muted">
+                  {formatDate(post.publishDate)}
+                </time>
+                <span class="text-muted">{post.readingTime}</span>
+              </div>
+              <h2 class="text-xl font-bold mb-2 group-hover:text-accent transition-colors">
+                {post.title}
+              </h2>
+              <p class="text-muted leading-relaxed">
+                {post.description}
+              </p>
+              <span class="inline-flex items-center gap-1 text-accent text-sm font-medium mt-4">
+                Read more
+                <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </span>
+            </a>
+          </article>
+        ))}
+      </section>
+
+      <section class="mt-16 pt-10 border-t border-border">
+        <div class="bg-card border border-border rounded-xl p-6">
+          <h2 class="text-lg font-bold mb-2">Looking for updates?</h2>
+          <p class="text-muted text-sm mb-4">
+            Check out our changelog for the latest features and improvements to Stuga.
+          </p>
+          <a href="/whats-new" class="text-accent hover:underline text-sm font-medium inline-flex items-center gap-1">
+            View changelog
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </a>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="py-8 px-6 border-t border-border">
+    <div class="max-w-2xl mx-auto flex items-center justify-between text-sm text-muted">
+      <span>&copy; 2026 Twinbolt AB</span>
+      <div class="flex gap-4">
+        <a href="/blog" class="hover:text-foreground transition-colors">Blog</a>
+        <a href="/privacy" class="hover:text-foreground transition-colors">Privacy</a>
+        <a href="https://github.com/twinbolt-ab/stuga" class="hover:text-foreground transition-colors">GitHub</a>
+      </div>
+    </div>
+  </footer>
+</Layout>

@@ -1,0 +1,243 @@
+---
+import BlogLayout from '../../layouts/BlogLayout.astro';
+
+const meta = {
+  title: "Getting Started with Stuga: A Better Home Assistant Dashboard",
+  description: "Learn how to set up Stuga, the mobile-first Home Assistant dashboard that requires zero YAML configuration. Connect your smart home in minutes.",
+  publishDate: "2026-01-26",
+  readingTime: "6 min read",
+  heroImage: "/screenshots-app/medium/room-grid.webp",
+  heroImageAlt: "Stuga app showing a clean grid of smart home rooms with lights and climate controls",
+  keywords: [
+    "home assistant dashboard",
+    "home assistant mobile app",
+    "smart home dashboard",
+    "home assistant setup",
+    "lovelace alternative",
+    "home assistant ios",
+    "home assistant android"
+  ]
+};
+---
+
+<BlogLayout {...meta}>
+  <p>
+    If you've spent hours configuring YAML files for your Home Assistant dashboard, you're not alone. The default Lovelace interface is powerful but comes with a steep learning curve. <strong>Stuga offers a different approach</strong>: a ready-to-use mobile dashboard that reads your existing Home Assistant setup and just works.
+  </p>
+
+  <p>
+    In this guide, you'll learn how to set up Stuga on your phone and start controlling your smart home in under five minutes.
+  </p>
+
+  <h2>What You'll Need</h2>
+
+  <p>
+    Before getting started, make sure you have:
+  </p>
+
+  <ul>
+    <li><strong>Home Assistant 2023.1 or newer</strong> running on your network</li>
+    <li><strong>An Android or iOS device</strong> (or a browser with HTTPS access to your HA instance)</li>
+    <li><strong>Your devices organized into areas</strong> in Home Assistant (optional, but recommended)</li>
+  </ul>
+
+  <p>
+    Stuga works with any Home Assistant installation, including:
+  </p>
+
+  <ul>
+    <li>Home Assistant OS on Raspberry Pi</li>
+    <li>Home Assistant Container (Docker)</li>
+    <li>Home Assistant Supervised</li>
+    <li>Home Assistant Core</li>
+  </ul>
+
+  <h2>Step 1: Install the App</h2>
+
+  <p>
+    Download Stuga from your device's app store:
+  </p>
+
+  <ul>
+    <li><strong>Android</strong>: <a href="https://play.google.com/store/apps/details?id=com.twinbolt.stuga">Get it on Google Play</a></li>
+    <li><strong>iOS</strong>: Coming soon to the App Store</li>
+    <li><strong>Web</strong>: Visit <a href="https://stuga.app/run">stuga.app/run</a> (requires HTTPS access to your Home Assistant)</li>
+  </ul>
+
+  <p>
+    The native apps work with local Home Assistant installations that aren't exposed to the internet. If you only have local HTTP access (no SSL certificate), the mobile apps are your best option.
+  </p>
+
+  <h2>Step 2: Connect to Home Assistant</h2>
+
+  <p>
+    When you first open Stuga, you'll see a setup screen asking for your Home Assistant URL.
+  </p>
+
+  <ol>
+    <li>Enter your Home Assistant address (e.g., <code>http://homeassistant.local:8123</code>)</li>
+    <li>Stuga will detect available connection options and suggest alternatives if needed</li>
+    <li>Choose your preferred authentication method:
+      <ul>
+        <li><strong>OAuth (recommended)</strong>: Log in through Home Assistant's built-in login page</li>
+        <li><strong>Long-lived access token</strong>: Paste a token from your HA profile (useful for advanced setups)</li>
+      </ul>
+    </li>
+    <li>Authorize Stuga to access your Home Assistant</li>
+  </ol>
+
+  <div class="tip">
+    <p class="tip-title">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      Tip: Finding your Home Assistant URL
+    </p>
+    <p>
+      Not sure what URL to use? Try <code>http://homeassistant.local:8123</code> or check your router for the IP address of your Home Assistant device. Stuga will help suggest alternatives if your initial URL doesn't work.
+    </p>
+  </div>
+
+  <h2>Step 3: Explore Your Rooms</h2>
+
+  <p>
+    Once connected, Stuga automatically displays your Home Assistant areas as room cards. Each card shows:
+  </p>
+
+  <ul>
+    <li><strong>Room name and icon</strong></li>
+    <li><strong>Number of lights on</strong> (if any)</li>
+    <li><strong>Current temperature</strong> (if sensors are assigned to the area)</li>
+    <li><strong>Humidity</strong> (if available)</li>
+  </ul>
+
+  <p>
+    Tap any room card to expand it and see all devices in that area. Tap a device to toggle it, or long-press for more controls like brightness sliders for lights.
+  </p>
+
+  <figure class="phone-screenshot">
+    <img src="/screenshots-app/medium/room-expanded.webp" alt="Expanded room view in Stuga showing individual device controls including lights and switches" loading="lazy" />
+    <figcaption>Tap a room to see and control individual devices</figcaption>
+  </figure>
+
+  <h2>Step 4: Customize Your Dashboard</h2>
+
+  <p>
+    Stuga lets you personalize your dashboard without touching any configuration files:
+  </p>
+
+  <h3>Edit Room Names and Icons</h3>
+
+  <p>
+    Long-press any room card and tap the edit icon. You can change the room's display name and icon. These changes are saved directly to Home Assistant, so they'll appear in your other dashboards too.
+  </p>
+
+  <figure class="phone-screenshot">
+    <img src="/screenshots-app/medium/room-editor.webp" alt="In-app room editor showing how to customize room name and icon in Stuga" loading="lazy" />
+    <figcaption>Customize room names and icons without editing YAML</figcaption>
+  </figure>
+
+  <h3>Reorder Rooms</h3>
+
+  <p>
+    Want your most-used rooms at the top? Open Settings (tap the gear icon) and select "Reorder rooms." Drag and drop rooms to arrange them how you like. You can even drag rooms between floors.
+  </p>
+
+  <h3>Hide Devices</h3>
+
+  <p>
+    Have devices you don't want to see in Stuga? Long-press a device and choose to hide it. You can hide devices just in Stuga (they'll still appear in Home Assistant) or hide them everywhere.
+  </p>
+
+  <h2>Step 5: Use Multi-Room Control</h2>
+
+  <p>
+    One of Stuga's most useful features is multi-room selection. To control multiple rooms at once:
+  </p>
+
+  <ol>
+    <li>Long-press a room card to enter selection mode</li>
+    <li>Tap additional rooms to select them</li>
+    <li>Use the control bar at the bottom to turn all lights on/off or adjust brightness</li>
+  </ol>
+
+  <figure class="phone-screenshot">
+    <img src="/screenshots-app/medium/multi-select.webp" alt="Multi-room selection in Stuga allowing control of lights across multiple Home Assistant areas" loading="lazy" />
+    <figcaption>Select multiple rooms for quick whole-home control</figcaption>
+  </figure>
+
+  <p>
+    This is perfect for scenarios like turning off all lights when leaving home or dimming lights across your living spaces for movie night.
+  </p>
+
+  <h2>Working with Floors</h2>
+
+  <p>
+    If you've organized your Home Assistant areas into floors, Stuga displays them as swipeable tabs. Swipe left or right to navigate between floors, or tap the floor tabs at the top.
+  </p>
+
+  <p>
+    You can also create and edit floors directly in Stuga:
+  </p>
+
+  <ul>
+    <li>Tap the floor tabs to enter floor edit mode</li>
+    <li>Tap "Create floor" to add a new floor</li>
+    <li>Drag rooms between floors by holding over a floor tab</li>
+  </ul>
+
+  <h2>Privacy and Data</h2>
+
+  <p>
+    Stuga is designed with privacy in mind:
+  </p>
+
+  <ul>
+    <li><strong>No accounts required</strong>: Your credentials stay on your device</li>
+    <li><strong>No cloud sync</strong>: All communication is directly with your Home Assistant</li>
+    <li><strong>Local-first</strong>: Works with local-only Home Assistant installations</li>
+    <li><strong>Optional crash reports</strong>: Anonymous and opt-in only</li>
+  </ul>
+
+  <h2>Troubleshooting Common Issues</h2>
+
+  <h3>Can't Connect to Home Assistant</h3>
+
+  <ul>
+    <li>Make sure your phone is on the same network as Home Assistant</li>
+    <li>Try using the IP address instead of hostname (e.g., <code>http://192.168.1.100:8123</code>)</li>
+    <li>Check that Home Assistant is running and accessible</li>
+    <li>For the web app, ensure you have HTTPS set up</li>
+  </ul>
+
+  <h3>Rooms or Devices Not Showing</h3>
+
+  <ul>
+    <li>Stuga only shows devices that are assigned to areas in Home Assistant</li>
+    <li>Go to Settings > Devices & Services > Devices in Home Assistant to assign devices to areas</li>
+    <li>Check if you've accidentally hidden rooms or devices in Stuga</li>
+  </ul>
+
+  <h3>Changes Not Saving</h3>
+
+  <ul>
+    <li>Stuga needs appropriate permissions to modify your Home Assistant configuration</li>
+    <li>Make sure you're using an account with admin access</li>
+  </ul>
+
+  <h2>Next Steps</h2>
+
+  <p>
+    Now that you're up and running with Stuga, here are some things to explore:
+  </p>
+
+  <ul>
+    <li><strong>Organize your areas</strong>: Take time to properly assign devices to areas in Home Assistant for the best Stuga experience</li>
+    <li><strong>Try different themes</strong>: Stuga supports light and dark modes, automatically following your device settings</li>
+    <li><strong>Provide feedback</strong>: Visit our <a href="https://github.com/twinbolt-ab/stuga">GitHub repository</a> to report issues or suggest features</li>
+  </ul>
+
+  <p>
+    Stuga is actively developed with regular updates based on community feedback. Check out the <a href="/whats-new">changelog</a> to see what's new, or follow the project on GitHub to stay updated.
+  </p>
+</BlogLayout>
