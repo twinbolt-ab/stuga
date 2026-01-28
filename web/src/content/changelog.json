@@ -1,10 +1,31 @@
 {
   "releases": [
     {
+      "version": "0.3.22",
+      "date": "2026-01-28",
+      "summary": "This release brings temperature display improvements and better support for Android sideloading.",
+      "seoSummary": "Control your Home Assistant temperature sensors in Celsius or Fahrenheit with this mobile dashboard update. Android users can now sideload the APK directly.",
+      "sections": [
+        {
+          "title": "Improvements",
+          "items": [
+            "Temperature now displays in your preferred unit (Celsius or Fahrenheit) based on your Home Assistant settings",
+            "Android users can now download the APK directly for sideloading or use with Obtainium"
+          ]
+        },
+        {
+          "title": "Bug fix",
+          "items": [
+            "Removed accidental advertising ID from Android manifesto"
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.3.21",
       "date": "2026-01-28",
       "summary": "This release brings temperature display improvements and better support for Android sideloading.",
-      "seoSummary": "Display temperature sensors in Celsius or Fahrenheit based on your Home Assistant unit settings. Android users can now sideload the smart home dashboard app via APK download.",
+      "seoSummary": "Manage Home Assistant temperature display in your preferred units. This smart home dashboard update adds Android APK downloads for easy sideloading.",
       "sections": [
         {
           "title": "Improvements",
@@ -19,7 +40,7 @@
       "version": "0.3.20",
       "date": "2026-01-26",
       "summary": "Control which smart home devices appear in your Home Assistant dashboard with new device visibility options.",
-      "seoSummary": "Customize your Home Assistant dashboard by hiding devices from view. Control which smart home lights, switches, and sensors appear in your mobile app with flexible visibility settings.",
+      "seoSummary": "Customize your Home Assistant dashboard by hiding smart home devices from view. Control device visibility to organize your lights, switches, and sensors exactly how you want.",
       "sections": [
         {
           "title": "New Features",
@@ -39,7 +60,7 @@
       "version": "0.3.19",
       "date": "2026-01-25",
       "summary": "Improved Home Assistant connection setup with smarter URL detection for both local and remote access.",
-      "seoSummary": "Connect to your Home Assistant server more easily with smarter URL detection. The mobile dashboard app now auto-detects local and remote access options for your smart home.",
+      "seoSummary": "Connect to your Home Assistant server more easily with smarter URL detection. This mobile dashboard update automatically finds the best connection for local and remote access.",
       "sections": [
         {
           "title": "Improvements",
@@ -61,7 +82,7 @@
       "version": "0.3.18",
       "date": "2026-01-25",
       "summary": "Stability improvements and bug fixes for the Home Assistant dashboard app on Android devices.",
-      "seoSummary": "Improved stability for the Home Assistant dashboard on Android devices. Better compatibility with Huawei phones and smoother touch controls for managing your smart home.",
+      "seoSummary": "Improved stability for the Home Assistant mobile dashboard on Android devices. Includes connection diagnostics and fixes for Huawei Android 12 compatibility.",
       "sections": [
         {
           "title": "Improvements",
@@ -86,7 +107,7 @@
       "version": "0.3.17",
       "date": "2026-01-23",
       "summary": "Display temperature and humidity sensors in your Home Assistant room cards with new customization options.",
-      "seoSummary": "View temperature and humidity sensors directly in your Home Assistant room cards. Customize which climate data displays and control which lights and switches are included in room toggles.",
+      "seoSummary": "Display temperature and humidity sensors directly on Home Assistant room cards. Customize which lights and switches appear in your smart home dashboard with no YAML required.",
       "sections": [
         {
           "title": "Improvements",
@@ -110,7 +131,7 @@
       "version": "0.3.16",
       "date": "2026-01-23",
       "summary": "Bug fixes for the Home Assistant mobile dashboard.",
-      "seoSummary": "Fixed scrolling issues in the Home Assistant mobile dashboard app for a smoother touch-friendly experience on iOS and Android.",
+      "seoSummary": "Bug fixes for the Home Assistant mobile dashboard, improving video display when scrolling on iOS and Android devices.",
       "sections": [
         {
           "title": "Bug Fixes",
@@ -124,7 +145,7 @@
       "version": "0.3.15",
       "date": "2026-01-22",
       "summary": "Android app improvements for the Home Assistant dashboard with better compatibility and app store presence.",
-      "seoSummary": "Major Android improvements for the Home Assistant dashboard mobile app. Better device compatibility and enhanced app store presence for the smart home control interface.",
+      "seoSummary": "Enhanced Android app for the Home Assistant dashboard with improved device compatibility. Better app store presence makes it easier to find this smart home mobile app.",
       "sections": [
         {
           "title": "Improvements",
@@ -149,7 +170,7 @@
       "version": "0.3.6",
       "date": "2026-01-22",
       "summary": "Organize your smart home by floors with improved navigation and editing in the Home Assistant dashboard.",
-      "seoSummary": "Organize your Home Assistant smart home by floors with intuitive swipe navigation. Create and manage floor layouts with drag and drop room cards on iOS and Android.",
+      "seoSummary": "Organize your Home Assistant smart home by floors with improved touch-friendly navigation. Drag and drop to reorder rooms in this mobile-first dashboard.",
       "sections": [
         {
           "title": "Improvements",
@@ -178,7 +199,7 @@
       "version": "0.3.5",
       "date": "2026-01-21",
       "summary": "Simplified Home Assistant login with easier authentication method selection.",
-      "seoSummary": "Streamlined Home Assistant login with a simpler authentication setup. Connect your smart home dashboard faster with improved mobile-first onboarding.",
+      "seoSummary": "Simplified login for your Home Assistant dashboard with easier authentication setup. Connect to your smart home faster with streamlined method selection.",
       "sections": [
         {
           "title": "Improvements",
@@ -198,7 +219,7 @@
       "version": "0.3.4",
       "date": "2026-01-21",
       "summary": "Drag and drop room organization for your Home Assistant dashboard with multi-select and cross-floor support.",
-      "seoSummary": "Customize your Home Assistant dashboard layout with drag and drop room organization. Select multiple rooms and move them across floors with a touch-friendly interface on iOS and Android.",
+      "seoSummary": "Organize your Home Assistant dashboard with intuitive drag and drop. Select multiple rooms and move them across floors to customize your smart home layout.",
       "sections": [
         {
           "title": "Improvements",
