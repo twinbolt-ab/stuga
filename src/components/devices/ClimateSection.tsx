@@ -8,6 +8,7 @@ import { EntityBadges } from '@/components/ui/EntityBadge'
 import { getEntityIcon } from '@/lib/ha-websocket'
 import { useLongPress } from '@/lib/hooks/useLongPress'
 import { t } from '@/lib/i18n'
+import { formatTemperatureCompact } from '@/lib/temperature'
 import type { EntityMeta } from '@/lib/hooks/useAllEntities'
 
 function getEntityDisplayName(entity: HAEntity): string {
@@ -150,8 +151,12 @@ function ClimateItem({
             )}
           </div>
           <div className="flex items-center gap-3 mt-0.5 text-xs text-muted">
-            {currentTemp !== undefined && <span>Current: {currentTemp}°</span>}
-            {targetTemp !== undefined && !isOff && <span>Target: {targetTemp}°</span>}
+            {currentTemp !== undefined && (
+              <span>Current: {formatTemperatureCompact(currentTemp)}</span>
+            )}
+            {targetTemp !== undefined && !isOff && (
+              <span>Target: {formatTemperatureCompact(targetTemp, { decimals: 0 })}</span>
+            )}
           </div>
         </div>
 

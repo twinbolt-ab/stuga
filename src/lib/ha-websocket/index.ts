@@ -216,6 +216,10 @@ export const updateEntityLabels = (entityId: string, labels: string[]) =>
 // State access (for metadata service)
 export const getState = () => state
 
+// Config access
+export const getConfig = () => state.config
+export const getTemperatureUnit = () => state.config?.unit_system?.temperature ?? '°C'
+
 // Re-export types
 export type {
   HAWebSocketState,
@@ -223,6 +227,8 @@ export type {
   ConnectionHandler,
   RegistryHandler,
   ConnectionErrorHandler,
+  HAConfig,
+  HAUnitSystem,
 } from './types'
 export type { HAEntity, HALabel, HAFloor, AreaRegistryEntry, EntityRegistryEntry }
 export type { DiagnosticResult, ConnectionErrorType } from '@/lib/connection-diagnostics'

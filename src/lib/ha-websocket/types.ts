@@ -20,6 +20,22 @@ export interface PendingCallback {
   timeout: NodeJS.Timeout
 }
 
+// Home Assistant unit system from config
+export interface HAUnitSystem {
+  length: string
+  mass: string
+  temperature: string // "°C" or "°F"
+  volume: string
+}
+
+// Home Assistant config response
+export interface HAConfig {
+  unit_system: HAUnitSystem
+  location_name?: string
+  time_zone?: string
+  version?: string
+}
+
 // Shared state interface - internal state accessible by all modules
 export interface HAWebSocketState {
   // Connection
@@ -33,6 +49,9 @@ export interface HAWebSocketState {
   isInitialConnection: boolean
   lastDiagnostic: DiagnosticResult | null
 
+  // HA config (unit system, etc.)
+  config: HAConfig | null
+
   // Message IDs for registry fetches
   statesMessageId: number
   entityRegistryMessageId: number
@@ -40,6 +59,7 @@ export interface HAWebSocketState {
   labelRegistryMessageId: number
   floorRegistryMessageId: number
   deviceRegistryMessageId: number
+  configMessageId: number
 
   // Entities
   entities: Map<string, HAEntity>
@@ -75,12 +95,15 @@ export function createInitialState(): HAWebSocketState {
     isInitialConnection: true,
     lastDiagnostic: null,
 
+    config: null,
+
     statesMessageId: 0,
     entityRegistryMessageId: 0,
     areaRegistryMessageId: 0,
     labelRegistryMessageId: 0,
     floorRegistryMessageId: 0,
     deviceRegistryMessageId: 0,
+    configMessageId: 0,
 
     entities: new Map(),
     entityAreas: new Map(),

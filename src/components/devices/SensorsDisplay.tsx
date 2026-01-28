@@ -6,6 +6,7 @@ import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox'
 import { getEntityIcon } from '@/lib/ha-websocket'
 import { useLongPress } from '@/lib/hooks/useLongPress'
 import { t } from '@/lib/i18n'
+import { formatTemperature } from '@/lib/temperature'
 
 function getEntityDisplayName(entity: HAEntity): string {
   return entity.attributes.friendly_name || entity.entity_id.split('.')[1]
@@ -111,7 +112,7 @@ export function SensorsDisplay({
             key={sensor.entity_id}
             sensor={sensor}
             fallbackIcon={<Thermometer className="w-4 h-4" />}
-            value={`${parseFloat(sensor.state).toFixed(1)}°C`}
+            value={formatTemperature(parseFloat(sensor.state))}
             isInEditMode={isInEditMode}
             isSelected={isSelected(sensor.entity_id)}
             onToggleSelection={onToggleSelection}

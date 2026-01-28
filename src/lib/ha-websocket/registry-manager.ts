@@ -1,5 +1,5 @@
 import type { HAEntity, HALabel, HAFloor, AreaRegistryEntry, EntityRegistryEntry } from '@/types/ha'
-import type { HAWebSocketState } from './types'
+import type { HAWebSocketState, HAConfig } from './types'
 import { send, getNextMessageId } from './connection'
 import { notifyMessageHandlers, notifyRegistryHandlers } from './message-router'
 import { clearOptimisticState } from './entity-service'
@@ -13,14 +13,23 @@ export function subscribeToStateChanges(state: HAWebSocketState): void {
   })
 }
 
-/** Called after auth to load labels, floors, areas, devices, entities, and states. */
+/** Called after auth to load config, labels, floors, areas, devices, entities, and states. */
 export function fetchAllRegistries(state: HAWebSocketState): void {
+  fetchConfig(state)
   fetchLabelRegistry(state)
   fetchFloorRegistry(state)
   fetchAreaRegistry(state)
   fetchDeviceRegistry(state)
   fetchEntityRegistry(state)
   fetchAllStates(state)
+}
+
+function fetchConfig(state: HAWebSocketState): void {
+  state.configMessageId = getNextMessageId(state)
+  send(state, {
+    id: state.configMessageId,
+    type: 'get_config',
+  })
 }
 
 function fetchAreaRegistry(state: HAWebSocketState): void {
@@ -76,6 +85,13 @@ export function handleRegistryResult(
   messageId: number,
   result: unknown
 ): boolean {
+  // Handle config (not an array)
+  if (messageId === state.configMessageId && result && typeof result === 'object') {
+    state.config = result as HAConfig
+    logger.debug('HA WS', 'Loaded config, temperature unit:', state.config.unit_system?.temperature)
+    return true
+  }
+
   if (!Array.isArray(result)) return false
 
   if (messageId === state.labelRegistryMessageId) {

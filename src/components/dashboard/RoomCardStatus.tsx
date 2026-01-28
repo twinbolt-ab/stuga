@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { Lightbulb, LightbulbOff, Thermometer, ChevronDown } from 'lucide-react'
 import { t, interpolate } from '@/lib/i18n'
+import { formatTemperatureCompact } from '@/lib/temperature'
 
 interface RoomCardStatusProps {
   temperature?: number
@@ -33,7 +34,7 @@ export function RoomCardStatus({
         {temperature !== undefined ? (
           <span className="flex items-center gap-1">
             <Thermometer className="w-3.5 h-3.5" />
-            <span>{temperature.toFixed(1)}°</span>
+            <span>{formatTemperatureCompact(temperature)}</span>
           </span>
         ) : (
           totalLights > 0 && (
