@@ -1,10 +1,25 @@
 {
   "releases": [
     {
+      "version": "0.3.21",
+      "date": "2026-01-28",
+      "summary": "This release brings temperature display improvements and better support for Android sideloading.",
+      "seoSummary": "Display temperature sensors in Celsius or Fahrenheit based on your Home Assistant unit settings. Android users can now sideload the smart home dashboard app via APK download.",
+      "sections": [
+        {
+          "title": "Improvements",
+          "items": [
+            "Temperature now displays in your preferred unit (Celsius or Fahrenheit) based on your Home Assistant settings",
+            "Android users can now download the APK directly for sideloading or use with Obtainium"
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.3.20",
       "date": "2026-01-26",
       "summary": "Control which smart home devices appear in your Home Assistant dashboard with new device visibility options.",
-      "seoSummary": "Manage device visibility in your Home Assistant dashboard with new options to hide smart home devices in Stuga only or across Home Assistant entirely.",
+      "seoSummary": "Customize your Home Assistant dashboard by hiding devices from view. Control which smart home lights, switches, and sensors appear in your mobile app with flexible visibility settings.",
       "sections": [
         {
           "title": "New Features",
@@ -24,7 +39,7 @@
       "version": "0.3.19",
       "date": "2026-01-25",
       "summary": "Improved Home Assistant connection setup with smarter URL detection for both local and remote access.",
-      "seoSummary": "Connect to Home Assistant more easily with smarter URL detection that automatically finds local and remote access options for your smart home dashboard.",
+      "seoSummary": "Connect to your Home Assistant server more easily with smarter URL detection. The mobile dashboard app now auto-detects local and remote access options for your smart home.",
       "sections": [
         {
           "title": "Improvements",
@@ -46,7 +61,7 @@
       "version": "0.3.18",
       "date": "2026-01-25",
       "summary": "Stability improvements and bug fixes for the Home Assistant dashboard app on Android devices.",
-      "seoSummary": "Android stability update for the Home Assistant mobile dashboard with improved diagnostics and fixes for Huawei devices and touch controls.",
+      "seoSummary": "Improved stability for the Home Assistant dashboard on Android devices. Better compatibility with Huawei phones and smoother touch controls for managing your smart home.",
       "sections": [
         {
           "title": "Improvements",
@@ -71,7 +86,7 @@
       "version": "0.3.17",
       "date": "2026-01-23",
       "summary": "Display temperature and humidity sensors in your Home Assistant room cards with new customization options.",
-      "seoSummary": "Show temperature and humidity sensors directly in Home Assistant room cards with new customization options for lights and switches in your smart home dashboard.",
+      "seoSummary": "View temperature and humidity sensors directly in your Home Assistant room cards. Customize which climate data displays and control which lights and switches are included in room toggles.",
       "sections": [
         {
           "title": "Improvements",
@@ -95,7 +110,7 @@
       "version": "0.3.16",
       "date": "2026-01-23",
       "summary": "Bug fixes for the Home Assistant mobile dashboard.",
-      "seoSummary": "Fixed video display issues in the Home Assistant mobile dashboard for a smoother smart home experience on iOS and Android.",
+      "seoSummary": "Fixed scrolling issues in the Home Assistant mobile dashboard app for a smoother touch-friendly experience on iOS and Android.",
       "sections": [
         {
           "title": "Bug Fixes",
@@ -109,7 +124,7 @@
       "version": "0.3.15",
       "date": "2026-01-22",
       "summary": "Android app improvements for the Home Assistant dashboard with better compatibility and app store presence.",
-      "seoSummary": "Android app update for the Home Assistant dashboard mobile app with improved device compatibility and enhanced app store presence.",
+      "seoSummary": "Major Android improvements for the Home Assistant dashboard mobile app. Better device compatibility and enhanced app store presence for the smart home control interface.",
       "sections": [
         {
           "title": "Improvements",
@@ -134,7 +149,7 @@
       "version": "0.3.6",
       "date": "2026-01-22",
       "summary": "Organize your smart home by floors with improved navigation and editing in the Home Assistant dashboard.",
-      "seoSummary": "Organize your Home Assistant smart home by floors with improved touch-friendly navigation, drag and drop room cards, and enhanced mobile controls.",
+      "seoSummary": "Organize your Home Assistant smart home by floors with intuitive swipe navigation. Create and manage floor layouts with drag and drop room cards on iOS and Android.",
       "sections": [
         {
           "title": "Improvements",
@@ -163,7 +178,7 @@
       "version": "0.3.5",
       "date": "2026-01-21",
       "summary": "Simplified Home Assistant login with easier authentication method selection.",
-      "seoSummary": "Simplified login setup for your Home Assistant dashboard with easier authentication method selection—no YAML configuration needed.",
+      "seoSummary": "Streamlined Home Assistant login with a simpler authentication setup. Connect your smart home dashboard faster with improved mobile-first onboarding.",
       "sections": [
         {
           "title": "Improvements",
@@ -183,7 +198,7 @@
       "version": "0.3.4",
       "date": "2026-01-21",
       "summary": "Drag and drop room organization for your Home Assistant dashboard with multi-select and cross-floor support.",
-      "seoSummary": "Customize your Home Assistant dashboard layout with intuitive drag and drop room organization, multi-select support, and cross-floor room management.",
+      "seoSummary": "Customize your Home Assistant dashboard layout with drag and drop room organization. Select multiple rooms and move them across floors with a touch-friendly interface on iOS and Android.",
       "sections": [
         {
           "title": "Improvements",

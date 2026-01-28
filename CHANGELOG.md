@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.21] - 2026-01-28
+
+This release brings temperature display improvements and better support for Android sideloading.
+
+**Improvements**
+- Temperature now displays in your preferred unit (Celsius or Fahrenheit) based on your Home Assistant settings
+- Android users can now download the APK directly for sideloading or use with Obtainium
+
+
 ## [0.3.20] - 2026-01-26
 
 Control which smart home devices appear in your Home Assistant dashboard with new device visibility options.
