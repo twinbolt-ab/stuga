@@ -218,8 +218,8 @@ Write ONLY the announcement text:")
       echo ""
       ;;
     p|P)
-      # Get changelog from previous release
-      PREV_CHANGELOG=$(gh release view "$LATEST_RELEASE" --json body -q .body 2>/dev/null | sed '1,/## What/d' | sed '/Full Changelog/,$d' | sed 's/^[[:space:]]*//')
+      # Get changelog from previous release (skip header, remove footer)
+      PREV_CHANGELOG=$(gh release view "$LATEST_RELEASE" --json body -q .body 2>/dev/null | sed '1,/^$/d' | sed '/^\*\*Full Changelog/,$d' | sed '/^[[:space:]]*$/d')
       if [[ -n "$PREV_CHANGELOG" ]]; then
         CHANGELOG="$PREV_CHANGELOG"
         echo ""
