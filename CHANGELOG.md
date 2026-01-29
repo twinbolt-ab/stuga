@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.24] - 2026-01-29
+
+This release contains only internal build system fixes - no user-facing changes.
+
+**Technical**
+- Fixed build configuration for Android releases
+
+
 ## [0.3.23] - 2026-01-29
 
 This release focuses on behind-the-scenes improvements to our release process.
