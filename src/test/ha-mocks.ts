@@ -15,6 +15,8 @@ export const mockSetAreaTemperatureSensor = vi.fn().mockResolvedValue(undefined)
 export const mockGetAreaTemperatureSensor = vi.fn().mockReturnValue(null)
 export const mockGetEntityRegistry = vi.fn().mockReturnValue(new Map<string, EntityRegistryEntry>())
 export const mockIsEntityHidden = vi.fn().mockReturnValue(false)
+export const mockIsEntityHiddenInStuga = vi.fn().mockReturnValue(false)
+export const mockIsEntityAuxiliary = vi.fn().mockReturnValue(false)
 
 // Reset all mocks helper
 export function resetAllHAMocks() {
@@ -31,6 +33,8 @@ export function resetAllHAMocks() {
   mockGetAreaTemperatureSensor.mockClear().mockReturnValue(null)
   mockGetEntityRegistry.mockClear().mockReturnValue(new Map())
   mockIsEntityHidden.mockClear().mockReturnValue(false)
+  mockIsEntityHiddenInStuga.mockClear().mockReturnValue(false)
+  mockIsEntityAuxiliary.mockClear().mockReturnValue(false)
 }
 
 // Mock module factory - use this in vi.mock()
@@ -46,6 +50,8 @@ export const haWebsocketMock = {
   deleteFloor: mockDeleteFloor,
   getEntityRegistry: mockGetEntityRegistry,
   isEntityHidden: mockIsEntityHidden,
+  isEntityHiddenInStuga: mockIsEntityHiddenInStuga,
+  isEntityAuxiliary: mockIsEntityAuxiliary,
 }
 
 export const metadataMock = {

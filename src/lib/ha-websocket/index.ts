@@ -155,6 +155,7 @@ export const updateEntity = (
   }
 ) => entitySvc.updateEntity(state, entityId, updates)
 export const isEntityHidden = (entityId: string) => entitySvc.isEntityHidden(state, entityId)
+export const isEntityAuxiliary = (entityId: string) => entitySvc.isEntityAuxiliary(state, entityId)
 export const getHiddenEntities = () => entitySvc.getHiddenEntities(state)
 export const setEntityHidden = (entityId: string, hidden: boolean) =>
   entitySvc.setEntityHidden(state, entityId, hidden)

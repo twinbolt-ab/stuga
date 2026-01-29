@@ -6,6 +6,7 @@ import * as metadata from '../metadata'
 import { generateMockData } from '../mock-data'
 import type { HAEntity, RoomWithDevices } from '@/types/ha'
 import { DEFAULT_ORDER } from '../constants'
+import { isEntityAuxiliary } from '../ha-websocket'
 
 function slugify(name: string): string {
   return name
@@ -53,6 +54,8 @@ export function useRooms() {
       // Skip hidden entities in normal room view (they're visible in All Devices)
       if (hiddenEntities.has(entity.entity_id)) continue
       if (stugaHiddenEntities.has(entity.entity_id)) continue
+      // Skip auxiliary entities (config/diagnostic) like UniFi PoE ports
+      if (isEntityAuxiliary(entity.entity_id)) continue
 
       const areaName = extractAreaFromEntity(entity)
       if (areaName) {

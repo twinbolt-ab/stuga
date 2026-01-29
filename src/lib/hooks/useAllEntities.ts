@@ -2,7 +2,7 @@ import { useMemo, useState, useCallback } from 'react'
 import { useHAConnection } from './useHAConnection'
 import { useEnabledDomains } from './useEnabledDomains'
 import { useDevMode } from './useDevMode'
-import { isEntityHidden, isEntityHiddenInStuga } from '../ha-websocket'
+import { isEntityHidden, isEntityHiddenInStuga, isEntityAuxiliary } from '../ha-websocket'
 import { generateMockData } from '../mock-data'
 import type { HAEntity, ConfigurableDomain } from '@/types/ha'
 import { ALL_CONFIGURABLE_DOMAINS } from '@/types/ha'
@@ -64,6 +64,9 @@ export function useAllEntities() {
 
       // Skip if domain is not enabled
       if (!enabledDomains.includes(domain)) continue
+
+      // Skip auxiliary entities (config/diagnostic) like UniFi PoE ports
+      if (isEntityAuxiliary(entity.entity_id)) continue
 
       // Apply search filter
       if (searchQuery) {

@@ -55,6 +55,7 @@ export interface EntityRegistryEntry {
   hidden_by?: string
   device_class?: string | null
   original_device_class?: string | null
+  entity_category?: 'config' | 'diagnostic' | null
 }
 
 export interface HADevice {

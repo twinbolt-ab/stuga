@@ -273,6 +273,16 @@ export function isEntityHidden(state: HAWebSocketState, entityId: string): boole
   return !!entity?.hidden_by
 }
 
+/**
+ * Checks if an entity has entity_category 'config' or 'diagnostic'.
+ * These are auxiliary entities (e.g., UniFi PoE ports, diagnostic sensors)
+ * that shouldn't be shown in the main device view.
+ */
+export function isEntityAuxiliary(state: HAWebSocketState, entityId: string): boolean {
+  const entity = state.entityRegistry.get(entityId)
+  return entity?.entity_category === 'config' || entity?.entity_category === 'diagnostic'
+}
+
 export function getHiddenEntities(state: HAWebSocketState): Set<string> {
   const hidden = new Set<string>()
   for (const [entityId, entity] of state.entityRegistry) {

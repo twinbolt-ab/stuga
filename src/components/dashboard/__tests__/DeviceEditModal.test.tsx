@@ -14,6 +14,7 @@ import {
   mockDeleteScene,
   mockGetEntityRegistry,
   mockIsEntityHidden,
+  mockIsEntityHiddenInStuga,
   resetAllHAMocks,
 } from '@/test/ha-mocks'
 
@@ -21,9 +22,11 @@ import {
 vi.mock('@/lib/ha-websocket', () => ({
   updateEntity: (...args: unknown[]) => mockUpdateEntity(...args),
   setEntityHidden: (...args: unknown[]) => mockSetEntityHidden(...args),
+  setEntityHiddenInStuga: vi.fn().mockResolvedValue(undefined),
   deleteScene: (...args: unknown[]) => mockDeleteScene(...args),
   getEntityRegistry: () => mockGetEntityRegistry(),
   isEntityHidden: (id: string) => mockIsEntityHidden(id),
+  isEntityHiddenInStuga: (id: string) => mockIsEntityHiddenInStuga(id),
   createArea: vi.fn().mockResolvedValue('new-area-id'),
 }))
 
