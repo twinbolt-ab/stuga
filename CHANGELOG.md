@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.23] - 2026-01-29
+
+This release focuses on behind-the-scenes improvements to our release process.
+
+- No user-facing changes in this version - just internal fixes to make future releases smoother
+
+
 ## [0.3.22] - 2026-01-28
 
 This release brings temperature display improvements and better support for Android sideloading.

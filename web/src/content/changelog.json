@@ -1,243 +1,120 @@
 {
   "releases": [
     {
+      "version": "0.3.23",
+      "date": "2026-01-29",
+      "summary": "This release focuses on behind-the-scenes improvements to our release process.",
+      "seoSummary": "Internal improvements to the Stuga Home Assistant dashboard app release process for smoother future updates.",
+      "sections": [
+        { "title": "Changes", "items": ["No user-facing changes in this version - just internal fixes to make future releases smoother"] }
+      ]
+    },
+    {
       "version": "0.3.22",
       "date": "2026-01-28",
       "summary": "This release brings temperature display improvements and better support for Android sideloading.",
-      "seoSummary": "Control your Home Assistant temperature sensors in Celsius or Fahrenheit with this mobile dashboard update. Android users can now sideload the APK directly.",
+      "seoSummary": "Enhanced temperature sensor display in your Home Assistant dashboard with Celsius and Fahrenheit support, plus Android APK sideloading for Obtainium users.",
       "sections": [
-        {
-          "title": "Improvements",
-          "items": [
-            "Temperature now displays in your preferred unit (Celsius or Fahrenheit) based on your Home Assistant settings",
-            "Android users can now download the APK directly for sideloading or use with Obtainium"
-          ]
-        },
-        {
-          "title": "Bug fix",
-          "items": [
-            "Removed accidental advertising ID from Android manifesto"
-          ]
-        }
+        { "title": "Improvements", "items": ["Temperature now displays in your preferred unit (Celsius or Fahrenheit) based on your Home Assistant settings", "Android users can now download the APK directly for sideloading or use with Obtainium"] },
+        { "title": "Bug fix", "items": ["Removed accidental advertising ID from Android manifesto"] }
       ]
     },
     {
       "version": "0.3.21",
       "date": "2026-01-28",
       "summary": "This release brings temperature display improvements and better support for Android sideloading.",
-      "seoSummary": "Manage Home Assistant temperature display in your preferred units. This smart home dashboard update adds Android APK downloads for easy sideloading.",
+      "seoSummary": "Control temperature display units in your Home Assistant smart home dashboard with support for both Celsius and Fahrenheit preferences.",
       "sections": [
-        {
-          "title": "Improvements",
-          "items": [
-            "Temperature now displays in your preferred unit (Celsius or Fahrenheit) based on your Home Assistant settings",
-            "Android users can now download the APK directly for sideloading or use with Obtainium"
-          ]
-        }
+        { "title": "Improvements", "items": ["Temperature now displays in your preferred unit (Celsius or Fahrenheit) based on your Home Assistant settings", "Android users can now download the APK directly for sideloading or use with Obtainium"] }
       ]
     },
     {
       "version": "0.3.20",
       "date": "2026-01-26",
       "summary": "Control which smart home devices appear in your Home Assistant dashboard with new device visibility options.",
-      "seoSummary": "Customize your Home Assistant dashboard by hiding smart home devices from view. Control device visibility to organize your lights, switches, and sensors exactly how you want.",
+      "seoSummary": "Manage device visibility in your Home Assistant dashboard - hide lights, switches, and sensors either in Stuga only or across your entire smart home setup.",
       "sections": [
-        {
-          "title": "New Features",
-          "items": [
-            "You can now choose to hide devices either just in Stuga or in Home Assistant too - giving you more control over what shows up where"
-          ]
-        },
-        {
-          "title": "Improvements",
-          "items": [
-            "Better error messages when there are SSL/TLS or DNS connection issues, making it easier to troubleshoot connection problems"
-          ]
-        }
+        { "title": "New Features", "items": ["You can now choose to hide devices either just in Stuga or in Home Assistant too - giving you more control over what shows up where"] },
+        { "title": "Improvements", "items": ["Better error messages when there are SSL/TLS or DNS connection issues, making it easier to troubleshoot connection problems"] }
       ]
     },
     {
       "version": "0.3.19",
       "date": "2026-01-25",
       "summary": "Improved Home Assistant connection setup with smarter URL detection for both local and remote access.",
-      "seoSummary": "Connect to your Home Assistant server more easily with smarter URL detection. This mobile dashboard update automatically finds the best connection for local and remote access.",
+      "seoSummary": "Simplified Home Assistant connection setup with automatic protocol detection for local and remote smart home access on iOS and Android.",
       "sections": [
-        {
-          "title": "Improvements",
-          "items": [
-            "Smarter URL handling when setting up your connection - the app now automatically tries different protocols (http/https) and suggests alternatives if your initial URL doesn't work",
-            "When multiple connection options are found, you can now easily pick the one that works best for you"
-          ]
-        },
-        {
-          "title": "Bug Fixes",
-          "items": [
-            "Fixed an issue where the setup wizard wouldn't scroll properly when the keyboard appeared",
-            "Fixed a timing issue that could cause connection testing to behave unexpectedly"
-          ]
-        }
+        { "title": "Improvements", "items": ["Smarter URL handling when setting up your connection - the app now automatically tries different protocols (http/https) and suggests alternatives if your initial URL doesn't work", "When multiple connection options are found, you can now easily pick the one that works best for you"] },
+        { "title": "Bug Fixes", "items": ["Fixed an issue where the setup wizard wouldn't scroll properly when the keyboard appeared", "Fixed a timing issue that could cause connection testing to behave unexpectedly"] }
       ]
     },
     {
       "version": "0.3.18",
       "date": "2026-01-25",
       "summary": "Stability improvements and bug fixes for the Home Assistant dashboard app on Android devices.",
-      "seoSummary": "Improved stability for the Home Assistant mobile dashboard on Android devices. Includes connection diagnostics and fixes for Huawei Android 12 compatibility.",
+      "seoSummary": "Improved stability for the Home Assistant mobile dashboard on Android, including Huawei device compatibility and better touch-friendly slider controls.",
       "sections": [
-        {
-          "title": "Improvements",
-          "items": [
-            "Added connection diagnostics to help troubleshoot connectivity issues",
-            "Updated privacy policy to reflect our crash reporting practices"
-          ]
-        },
-        {
-          "title": "Bug Fixes",
-          "items": [
-            "Fixed compatibility issues on Huawei Android 12 devices",
-            "Fixed modal sheets sometimes closing unexpectedly when swiping",
-            "Fixed slider controls flickering while dragging",
-            "Fixed icon picker scrolling issues on Android",
-            "Fixed room card layout and sizing inconsistencies"
-          ]
-        }
+        { "title": "Improvements", "items": ["Added connection diagnostics to help troubleshoot connectivity issues", "Updated privacy policy to reflect our crash reporting practices"] },
+        { "title": "Bug Fixes", "items": ["Fixed compatibility issues on Huawei Android 12 devices", "Fixed modal sheets sometimes closing unexpectedly when swiping", "Fixed slider controls flickering while dragging", "Fixed icon picker scrolling issues on Android", "Fixed room card layout and sizing inconsistencies"] }
       ]
     },
     {
       "version": "0.3.17",
       "date": "2026-01-23",
       "summary": "Display temperature and humidity sensors in your Home Assistant room cards with new customization options.",
-      "seoSummary": "Display temperature and humidity sensors directly on Home Assistant room cards. Customize which lights and switches appear in your smart home dashboard with no YAML required.",
+      "seoSummary": "Customize your Home Assistant dashboard room cards with temperature and humidity sensors, plus control which lights and switches respond to room toggles.",
       "sections": [
-        {
-          "title": "Improvements",
-          "items": [
-            "Redesigned floor editing with a cleaner, more intuitive interface",
-            "Room cards now show humidity alongside temperature",
-            "New settings to show or hide temperature and humidity in room cards",
-            "You can now exclude specific lights or switches from the room toggle",
-            "Simplified grid layout with a cleaner 2-column default"
-          ]
-        },
-        {
-          "title": "Bug Fixes",
-          "items": [
-            "Switches now behave correctly based on their device type when toggling rooms"
-          ]
-        }
+        { "title": "Improvements", "items": ["Redesigned floor editing with a cleaner, more intuitive interface", "Room cards now show humidity alongside temperature", "New settings to show or hide temperature and humidity in room cards", "You can now exclude specific lights or switches from the room toggle", "Simplified grid layout with a cleaner 2-column default"] },
+        { "title": "Bug Fixes", "items": ["Switches now behave correctly based on their device type when toggling rooms"] }
       ]
     },
     {
       "version": "0.3.16",
       "date": "2026-01-23",
       "summary": "Bug fixes for the Home Assistant mobile dashboard.",
-      "seoSummary": "Bug fixes for the Home Assistant mobile dashboard, improving video display when scrolling on iOS and Android devices.",
+      "seoSummary": "Fixed video display issues in the Home Assistant mobile dashboard for a smoother smart home control experience on phones.",
       "sections": [
-        {
-          "title": "Bug Fixes",
-          "items": [
-            "Fixed video containers getting squashed when scrolling on phones"
-          ]
-        }
+        { "title": "Bug Fixes", "items": ["Fixed video containers getting squashed when scrolling on phones"] }
       ]
     },
     {
       "version": "0.3.15",
       "date": "2026-01-22",
       "summary": "Android app improvements for the Home Assistant dashboard with better compatibility and app store presence.",
-      "seoSummary": "Enhanced Android app for the Home Assistant dashboard with improved device compatibility. Better app store presence makes it easier to find this smart home mobile app.",
+      "seoSummary": "Enhanced Android compatibility for the Home Assistant dashboard app with improved app store presence and reliable updates for your smart home control.",
       "sections": [
-        {
-          "title": "Improvements",
-          "items": [
-            "Improved Android app versioning for more reliable updates",
-            "Added screenshot gallery to the landing page",
-            "Added promotional video to app store listing",
-            "Updated screenshots and visuals",
-            "Improved compatibility with newer Android devices",
-            "Improved app store listings with better descriptions and metadata"
-          ]
-        },
-        {
-          "title": "Bug Fixes",
-          "items": [
-            "Fixed Android app build issues"
-          ]
-        }
+        { "title": "Improvements", "items": ["Improved Android app versioning for more reliable updates", "Added screenshot gallery to the landing page", "Added promotional video to app store listing", "Updated screenshots and visuals", "Improved compatibility with newer Android devices", "Improved app store listings with better descriptions and metadata"] },
+        { "title": "Bug Fixes", "items": ["Fixed Android app build issues"] }
       ]
     },
     {
       "version": "0.3.6",
       "date": "2026-01-22",
       "summary": "Organize your smart home by floors with improved navigation and editing in the Home Assistant dashboard.",
-      "seoSummary": "Organize your Home Assistant smart home by floors with improved touch-friendly navigation. Drag and drop to reorder rooms in this mobile-first dashboard.",
+      "seoSummary": "Organize your Home Assistant smart home by floors with intuitive drag and drop room management and mobile-first swipe navigation.",
       "sections": [
-        {
-          "title": "Improvements",
-          "items": [
-            "Show floor name when swiping between floors",
-            "Add floating 'Create floor' button when editing floors",
-            "Swipe to dismiss dropdowns and pickers on mobile",
-            "Smoother drag and drop when reordering room cards",
-            "Better contrast for accent colored buttons",
-            "New segmented control for hide options (replaces dropdown)"
-          ]
-        },
-        {
-          "title": "Bug Fixes",
-          "items": [
-            "Fix keyboard covering search results on iOS",
-            "Fix cards jumping when starting to drag during reorder",
-            "Fix dragging cards between floors",
-            "Fix duplicate login messages",
-            "Fix connection status showing incorrectly on empty floors"
-          ]
-        }
+        { "title": "Improvements", "items": ["Show floor name when swiping between floors", "Add floating 'Create floor' button when editing floors", "Swipe to dismiss dropdowns and pickers on mobile", "Smoother drag and drop when reordering room cards", "Better contrast for accent colored buttons", "New segmented control for hide options (replaces dropdown)"] },
+        { "title": "Bug Fixes", "items": ["Fix keyboard covering search results on iOS", "Fix cards jumping when starting to drag during reorder", "Fix dragging cards between floors", "Fix duplicate login messages", "Fix connection status showing incorrectly on empty floors"] }
       ]
     },
     {
       "version": "0.3.5",
       "date": "2026-01-21",
       "summary": "Simplified Home Assistant login with easier authentication method selection.",
-      "seoSummary": "Simplified login for your Home Assistant dashboard with easier authentication setup. Connect to your smart home faster with streamlined method selection.",
+      "seoSummary": "Simplified Home Assistant authentication setup with easier login method selection - no YAML configuration needed.",
       "sections": [
-        {
-          "title": "Improvements",
-          "items": [
-            "Simplified the login method selection during setup"
-          ]
-        },
-        {
-          "title": "Bug Fixes",
-          "items": [
-            "Fixed missing text for switching between login methods"
-          ]
-        }
+        { "title": "Improvements", "items": ["Simplified the login method selection during setup"] },
+        { "title": "Bug Fixes", "items": ["Fixed missing text for switching between login methods"] }
       ]
     },
     {
       "version": "0.3.4",
       "date": "2026-01-21",
       "summary": "Drag and drop room organization for your Home Assistant dashboard with multi-select and cross-floor support.",
-      "seoSummary": "Organize your Home Assistant dashboard with intuitive drag and drop. Select multiple rooms and move them across floors to customize your smart home layout.",
+      "seoSummary": "Organize your Home Assistant dashboard with drag and drop room management, multi-select support, and cross-floor room movement for easier smart home customization.",
       "sections": [
-        {
-          "title": "Improvements",
-          "items": [
-            "Added multi-room drag selection with visual stacking when selecting multiple rooms",
-            "Added ghost placeholders showing where rooms will be placed during drag",
-            "Added ability to drag rooms between floors by holding over a floor tab",
-            "Added option to disable room ordering in Advanced settings",
-            "Improved visual consistency of floor tabs in edit mode"
-          ]
-        },
-        {
-          "title": "Bug Fixes",
-          "items": [
-            "Fixed floor edit mode exit causing unexpected page animation",
-            "Fixed edit mode sometimes opening on the wrong floor"
-          ]
-        }
+        { "title": "Improvements", "items": ["Added multi-room drag selection with visual stacking when selecting multiple rooms", "Added ghost placeholders showing where rooms will be placed during drag", "Added ability to drag rooms between floors by holding over a floor tab", "Added option to disable room ordering in Advanced settings", "Improved visual consistency of floor tabs in edit mode"] },
+        { "title": "Bug Fixes", "items": ["Fixed floor edit mode exit causing unexpected page animation", "Fixed edit mode sometimes opening on the wrong floor"] }
       ]
     }
   ]

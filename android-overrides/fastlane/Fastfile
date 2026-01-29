@@ -7,7 +7,7 @@ platform :android do
       task: "bundle",
       build_type: "Release",
       properties: {
-        "RELEASE_STORE_FILE" => "stuga_keystore_private.jks",
+        "RELEASE_STORE_FILE" => ENV["KEYSTORE_PATH"] || "../stuga_keystore_private.jks",
         "RELEASE_STORE_PASSWORD" => ENV["KEYSTORE_PASSWORD"],
         "RELEASE_KEY_ALIAS" => "stuga",
         "RELEASE_KEY_PASSWORD" => ENV["KEYSTORE_PASSWORD"]
