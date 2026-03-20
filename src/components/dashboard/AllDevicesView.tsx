@@ -13,8 +13,6 @@ import {
   LightsSection,
   SwitchesSection,
   InputsSection,
-  ClimateSection,
-  CoversSection,
   FansSection,
 } from '@/components/devices'
 
@@ -256,30 +254,6 @@ export function AllDevicesView() {
         isSelected={isSelected}
         onBooleanToggle={handlers.handleInputBooleanToggle}
         onNumberChange={handlers.handleInputNumberChange}
-        onToggleSelection={toggleSelection}
-        onEnterEditModeWithSelection={handleEnterEditModeWithSelection}
-        selectedIds={selectedIds}
-      />
-
-      <ClimateSection
-        climates={climates}
-        entityMeta={entityMeta}
-        isInEditMode={isInEditMode && selectedDomain === 'climate'}
-        isSelected={isSelected}
-        onToggle={handlers.handleClimateToggle}
-        onToggleSelection={toggleSelection}
-        onEnterEditModeWithSelection={handleEnterEditModeWithSelection}
-        selectedIds={selectedIds}
-      />
-
-      <CoversSection
-        covers={covers}
-        entityMeta={entityMeta}
-        isInEditMode={isInEditMode && selectedDomain === 'cover'}
-        isSelected={isSelected}
-        onOpen={handlers.handleCoverOpen}
-        onClose={handlers.handleCoverClose}
-        onStop={handlers.handleCoverStop}
         onToggleSelection={toggleSelection}
         onEnterEditModeWithSelection={handleEnterEditModeWithSelection}
         selectedIds={selectedIds}

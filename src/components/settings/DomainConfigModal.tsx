@@ -17,8 +17,6 @@ const DOMAIN_INFO: Record<ConfigurableDomain, { label: string; icon: string }> =
   scene: { label: 'Scenes', icon: 'palette' },
   input_boolean: { label: 'Toggles', icon: 'check-square' },
   input_number: { label: 'Sliders', icon: 'sliders' },
-  climate: { label: 'Climate', icon: 'thermometer' },
-  cover: { label: 'Covers', icon: 'blinds' },
   fan: { label: 'Fans', icon: 'fan' },
   vacuum: { label: 'Vacuums', icon: 'bot' },
   media_player: { label: 'Media', icon: 'play-circle' },

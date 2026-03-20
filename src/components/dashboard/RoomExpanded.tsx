@@ -15,8 +15,6 @@ import {
   LightsSection,
   SwitchesSection,
   InputsSection,
-  ClimateSection,
-  CoversSection,
   FansSection,
   SensorsDisplay,
 } from '@/components/devices'
@@ -311,36 +309,6 @@ function RoomExpandedContent({ room, allRooms: _allRooms, isExpanded }: RoomExpa
               onEnterEditModeWithSelection={handleEnterEditModeWithSelection}
               entityOrder={getDomainOrder('input_boolean')}
               onReorderEntities={(entities) => updateDomainOrder('input_boolean', entities)}
-              selectedIds={selectedIds}
-            />
-          </DomainSection>
-
-          <DomainSection domain="climate" selectedDomain={selectedDomain}>
-            <ClimateSection
-              climates={climates}
-              isInEditMode={isInEditMode && selectedDomain === 'climate'}
-              isSelected={isSelected}
-              onToggle={handlers.handleClimateToggle}
-              onToggleSelection={toggleSelection}
-              onEnterEditModeWithSelection={handleEnterEditModeWithSelection}
-              entityOrder={getDomainOrder('climate')}
-              onReorderEntities={(entities) => updateDomainOrder('climate', entities)}
-              selectedIds={selectedIds}
-            />
-          </DomainSection>
-
-          <DomainSection domain="cover" selectedDomain={selectedDomain}>
-            <CoversSection
-              covers={covers}
-              isInEditMode={isInEditMode && selectedDomain === 'cover'}
-              isSelected={isSelected}
-              onOpen={handlers.handleCoverOpen}
-              onClose={handlers.handleCoverClose}
-              onStop={handlers.handleCoverStop}
-              onToggleSelection={toggleSelection}
-              onEnterEditModeWithSelection={handleEnterEditModeWithSelection}
-              entityOrder={getDomainOrder('cover')}
-              onReorderEntities={(entities) => updateDomainOrder('cover', entities)}
               selectedIds={selectedIds}
             />
           </DomainSection>

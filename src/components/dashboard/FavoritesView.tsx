@@ -8,14 +8,7 @@ import { ReorderableGrid } from './ReorderableGrid'
 import { ReorderableList } from './ReorderableList'
 import { RoomCard } from './RoomCard'
 import { ROOM_EXPAND_DURATION } from '@/lib/constants'
-import {
-  LightsSection,
-  SwitchesSection,
-  InputsSection,
-  ClimateSection,
-  CoversSection,
-  FansSection,
-} from '@/components/devices'
+import { LightsSection, SwitchesSection, InputsSection, FansSection } from '@/components/devices'
 import { SectionHeader } from '@/components/ui/SectionHeader'
 import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox'
 import { MdiIcon } from '@/components/ui/MdiIcon'
@@ -529,50 +522,6 @@ export function FavoritesView({
                   isSelected={isSelected}
                   onBooleanToggle={handlers.handleInputBooleanToggle}
                   onNumberChange={handlers.handleInputNumberChange}
-                  onToggleSelection={(id) =>
-                    isEntitiesEditMode
-                      ? handleToggleSelection(id, 'entity')
-                      : handleEnterEditModeWithSelection(id, 'entity')
-                  }
-                  onEnterEditModeWithSelection={(id) =>
-                    handleEnterEditModeWithSelection(id, 'entity')
-                  }
-                  entityMeta={entityMeta}
-                  onReorderEntities={handleReorderEntities}
-                  selectedIds={selectedIds}
-                />
-              </DomainSection>
-            )}
-            {entityGroups.climates.length > 0 && (
-              <DomainSection domain="climate" selectedDomain={selectedDomain}>
-                <ClimateSection
-                  climates={entityGroups.climates}
-                  isInEditMode={isEntitiesEditMode && selectedDomain === 'climate'}
-                  isSelected={isSelected}
-                  onToggle={handlers.handleClimateToggle}
-                  onToggleSelection={(id) =>
-                    isEntitiesEditMode
-                      ? handleToggleSelection(id, 'entity')
-                      : handleEnterEditModeWithSelection(id, 'entity')
-                  }
-                  onEnterEditModeWithSelection={(id) =>
-                    handleEnterEditModeWithSelection(id, 'entity')
-                  }
-                  entityMeta={entityMeta}
-                  onReorderEntities={handleReorderEntities}
-                  selectedIds={selectedIds}
-                />
-              </DomainSection>
-            )}
-            {entityGroups.covers.length > 0 && (
-              <DomainSection domain="cover" selectedDomain={selectedDomain}>
-                <CoversSection
-                  covers={entityGroups.covers}
-                  isInEditMode={isEntitiesEditMode && selectedDomain === 'cover'}
-                  isSelected={isSelected}
-                  onOpen={handlers.handleCoverOpen}
-                  onClose={handlers.handleCoverClose}
-                  onStop={handlers.handleCoverStop}
                   onToggleSelection={(id) =>
                     isEntitiesEditMode
                       ? handleToggleSelection(id, 'entity')

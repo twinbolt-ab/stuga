@@ -8,8 +8,6 @@ export type EntityDomain =
   | 'scene'
   | 'input_boolean'
   | 'input_number'
-  | 'climate'
-  | 'cover'
   | 'fan'
   | 'vacuum'
   | 'media_player'
@@ -24,8 +22,6 @@ export function getEntityDomain(entityId: string): EntityDomain | null {
     'scene',
     'input_boolean',
     'input_number',
-    'climate',
-    'cover',
     'fan',
     'vacuum',
     'media_player',

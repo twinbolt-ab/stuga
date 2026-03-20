@@ -40,37 +40,6 @@ export function useDeviceHandlers() {
     [callService]
   )
 
-  const handleClimateToggle = useCallback(
-    (climate: HAEntity) => {
-      const newState = climate.state === 'off' ? 'heat' : 'off'
-      setOptimisticState(climate.entity_id, newState)
-      const service = climate.state === 'off' ? 'turn_on' : 'turn_off'
-      void callService('climate', service, { entity_id: climate.entity_id })
-    },
-    [callService]
-  )
-
-  const handleCoverOpen = useCallback(
-    (cover: HAEntity) => {
-      void callService('cover', 'open_cover', { entity_id: cover.entity_id })
-    },
-    [callService]
-  )
-
-  const handleCoverClose = useCallback(
-    (cover: HAEntity) => {
-      void callService('cover', 'close_cover', { entity_id: cover.entity_id })
-    },
-    [callService]
-  )
-
-  const handleCoverStop = useCallback(
-    (cover: HAEntity) => {
-      void callService('cover', 'stop_cover', { entity_id: cover.entity_id })
-    },
-    [callService]
-  )
-
   const handleFanToggle = useCallback(
     (fan: HAEntity) => {
       const newState = fan.state === 'on' ? 'off' : 'on'
@@ -86,10 +55,6 @@ export function useDeviceHandlers() {
     handleSwitchToggle,
     handleInputBooleanToggle,
     handleInputNumberChange,
-    handleClimateToggle,
-    handleCoverOpen,
-    handleCoverClose,
-    handleCoverStop,
     handleFanToggle,
   }
 }
