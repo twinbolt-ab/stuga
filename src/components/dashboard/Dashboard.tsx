@@ -53,7 +53,7 @@ function DashboardContent() {
   const { customOrderEnabled } = useSettings()
 
   // Data is ready when we've received data (live or cached) or in demo mode
-  const isDataReady = hasReceivedData || activeMockScenario !== 'none'
+  const _isDataReady = hasReceivedData || activeMockScenario !== 'none'
 
   // Get favorites
   const { hasFavorites, favoriteScenes, favoriteRooms, favoriteEntities } = useFavorites(
@@ -104,15 +104,9 @@ function DashboardContent() {
   const [showCreateFloor, setShowCreateFloor] = useState(false)
 
   // State for connection error modal and settings
-  const [showConnectionError, setShowConnectionError] = useState(false)
+  const [connectionErrorDismissed, setConnectionErrorDismissed] = useState(false)
+  const showConnectionError = !!connectionError && !hasReceivedData && !connectionErrorDismissed
   const [showConnectionSettings, setShowConnectionSettings] = useState(false)
-
-  // Show connection error modal when there's a diagnostic error
-  useEffect(() => {
-    if (connectionError && !hasReceivedData) {
-      setShowConnectionError(true)
-    }
-  }, [connectionError, hasReceivedData])
 
   // Migrate room order from HA labels to localStorage on first connection
   useEffect(() => {
@@ -142,56 +136,48 @@ function DashboardContent() {
     activeMockScenario,
     isEntityVisible,
     hasFavorites,
-    onFloorChange: closeExpandedRoom,
+    onFloorChange: (newFloorId) => {
+      closeExpandedRoom()
+      showFloorToastForId(newFloorId)
+    },
   })
 
   // Floor toast state (shown when swiping between floors)
   const [toastFloorName, setToastFloorName] = useState<string | null>(null)
   const [showFloorToast, setShowFloorToast] = useState(false)
   const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const isInitialMountRef = useRef(true)
 
-  // Show toast when floor changes (but not on initial mount)
-  useEffect(() => {
-    // Skip the initial mount
-    if (isInitialMountRef.current) {
-      isInitialMountRef.current = false
-      return
-    }
+  const showFloorToastForId = useCallback(
+    (floorId: string | null) => {
+      // Don't show toast for all devices view
+      if (floorId === '__all_devices__') return
 
-    // Don't show toast for all devices view
-    if (selectedFloorId === '__all_devices__') return
-
-    // Get floor name - handle favorites tab specially
-    let floorName: string | null = null
-    if (selectedFloorId === FAVORITES_FLOOR_ID) {
-      floorName = t.favorites.title
-    } else {
-      const floor = floors.find((f) => f.floor_id === selectedFloorId)
-      floorName = floor?.name || (selectedFloorId === null ? t.floors.other : null)
-    }
-
-    if (floorName) {
-      // Clear existing timeout
-      if (toastTimeoutRef.current) {
-        clearTimeout(toastTimeoutRef.current)
+      // Get floor name - handle favorites tab specially
+      let floorName: string | null = null
+      if (floorId === FAVORITES_FLOOR_ID) {
+        floorName = t.favorites.title
+      } else {
+        const floor = floors.find((f) => f.floor_id === floorId)
+        floorName = floor?.name || (floorId === null ? t.floors.other : null)
       }
 
-      setToastFloorName(floorName)
-      setShowFloorToast(true)
+      if (floorName) {
+        // Clear existing timeout
+        if (toastTimeoutRef.current) {
+          clearTimeout(toastTimeoutRef.current)
+        }
 
-      // Hide after 1.5 seconds
-      toastTimeoutRef.current = setTimeout(() => {
-        setShowFloorToast(false)
-      }, 1500)
-    }
+        setToastFloorName(floorName)
+        setShowFloorToast(true)
 
-    return () => {
-      if (toastTimeoutRef.current) {
-        clearTimeout(toastTimeoutRef.current)
+        // Hide after 1.5 seconds
+        toastTimeoutRef.current = setTimeout(() => {
+          setShowFloorToast(false)
+        }, 1500)
       }
-    }
-  }, [selectedFloorId, floors])
+    },
+    [floors]
+  )
 
   // Handler to open the create floor modal
   const handleAddFloor = useCallback(() => {
@@ -200,17 +186,17 @@ function DashboardContent() {
 
   // Handlers for connection error modal
   const handleCloseConnectionError = useCallback(() => {
-    setShowConnectionError(false)
+    setConnectionErrorDismissed(true)
     clearConnectionError()
   }, [clearConnectionError])
 
   const handleRetryConnection = useCallback(() => {
-    setShowConnectionError(false)
+    setConnectionErrorDismissed(true)
     retryConnection()
   }, [retryConnection])
 
   const handleOpenConnectionSettings = useCallback(() => {
-    setShowConnectionError(false)
+    setConnectionErrorDismissed(true)
     setShowConnectionSettings(true)
   }, [])
 

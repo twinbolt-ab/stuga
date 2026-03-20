@@ -113,8 +113,6 @@ export function AllDevicesView() {
     [entitiesByDomain]
   )
   const inputNumbers = useMemo(() => entitiesByDomain.get('input_number') || [], [entitiesByDomain])
-  const climates = useMemo(() => entitiesByDomain.get('climate') || [], [entitiesByDomain])
-  const covers = useMemo(() => entitiesByDomain.get('cover') || [], [entitiesByDomain])
   const fans = useMemo(() => entitiesByDomain.get('fan') || [], [entitiesByDomain])
 
   const isEmpty =
@@ -123,8 +121,6 @@ export function AllDevicesView() {
     scenes.length === 0 &&
     inputBooleans.length === 0 &&
     inputNumbers.length === 0 &&
-    climates.length === 0 &&
-    covers.length === 0 &&
     fans.length === 0
 
   // Build subtitle text

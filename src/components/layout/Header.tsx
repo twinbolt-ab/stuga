@@ -141,7 +141,7 @@ export function BottomNav({
   isEditMode: isRoomEditMode = false,
   onViewAllDevices,
   onEditFloor,
-  editingFloorId,
+  editingFloorId: _editingFloorId,
   dragPosition,
   hoveredFloorId,
   onDragEnterFloor,

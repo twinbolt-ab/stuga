@@ -11,7 +11,7 @@ interface UseFloorNavigationOptions {
   /** Whether favorites exist (for showing favorites tab) */
   hasFavorites?: boolean
   /** Called when floor selection changes (for closing expanded rooms, etc.) */
-  onFloorChange?: () => void
+  onFloorChange?: (newFloorId: string | null) => void
 }
 
 interface UseFloorNavigationReturn {
@@ -136,7 +136,7 @@ export function useFloorNavigation({
   const handleSelectFloor = useCallback(
     (floorId: string | null) => {
       if (floorId !== selectedFloorId) {
-        onFloorChange?.() // Notify parent (e.g., to close expanded rooms)
+        onFloorChange?.(floorId) // Notify parent (e.g., to close expanded rooms)
       }
       setUserSelectedFloorId(floorId)
     },
@@ -144,7 +144,7 @@ export function useFloorNavigation({
   )
 
   const handleViewAllDevices = useCallback(() => {
-    onFloorChange?.() // Notify parent (e.g., to close expanded rooms)
+    onFloorChange?.('__all_devices__') // Notify parent (e.g., to close expanded rooms)
     setUserSelectedFloorId('__all_devices__') // Special ID for all devices view
   }, [onFloorChange])
 

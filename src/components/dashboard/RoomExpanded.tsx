@@ -112,20 +112,6 @@ function RoomExpandedContent({ room, allRooms: _allRooms, isExpanded }: RoomExpa
         : [],
     [room.devices, enabledDomains]
   )
-  const climates = useMemo(
-    () =>
-      enabledDomains.includes('climate')
-        ? room.devices.filter((d) => d.entity_id.startsWith('climate.'))
-        : [],
-    [room.devices, enabledDomains]
-  )
-  const covers = useMemo(
-    () =>
-      enabledDomains.includes('cover')
-        ? room.devices.filter((d) => d.entity_id.startsWith('cover.'))
-        : [],
-    [room.devices, enabledDomains]
-  )
   const fans = useMemo(
     () =>
       enabledDomains.includes('fan')
@@ -160,8 +146,6 @@ function RoomExpandedContent({ room, allRooms: _allRooms, isExpanded }: RoomExpa
     scenes.length > 0 ||
     inputBooleans.length > 0 ||
     inputNumbers.length > 0 ||
-    climates.length > 0 ||
-    covers.length > 0 ||
     fans.length > 0
 
   // Measure content height whenever it might change
@@ -191,18 +175,7 @@ function RoomExpandedContent({ room, allRooms: _allRooms, isExpanded }: RoomExpa
       cancelAnimationFrame(rafId)
       resizeObserver.disconnect()
     }
-  }, [
-    lights,
-    switches,
-    scenes,
-    inputBooleans,
-    inputNumbers,
-    climates,
-    covers,
-    fans,
-    hasDevices,
-    isExpanded,
-  ])
+  }, [lights, switches, scenes, inputBooleans, inputNumbers, fans, hasDevices, isExpanded])
 
   return (
     <div

@@ -262,7 +262,7 @@ export function SettingsMenu({
                   icon={<Sparkles className="w-5 h-5 text-amber-500" />}
                   iconBgClass="bg-amber-500/10"
                   title={t.news?.menuTitle || "What's new"}
-                  description={getLatestEntry()?.summary?.slice(0, 60) + '...'}
+                  description={(getLatestEntry()?.summary?.slice(0, 60) ?? '') + '...'}
                   onClick={() => menuState.openModal('news')}
                 />
               )}
@@ -289,9 +289,7 @@ export function SettingsMenu({
                 {/* Custom Order Toggle */}
                 <SubMenuItem
                   icon={<GripVertical className="w-4 h-4 text-foreground" />}
-                  title={
-                    t.settings.advanced?.customOrder?.title || 'Custom room & device order'
-                  }
+                  title={t.settings.advanced?.customOrder?.title || 'Custom room & device order'}
                   description={
                     t.settings.advanced?.customOrder?.description ||
                     'Reorder rooms and devices by dragging'
@@ -435,7 +433,7 @@ export function SettingsMenu({
                     description="Debug drag behavior on mobile"
                     onClick={() => {
                       onClose()
-                      navigate('/drag-test')
+                      void navigate('/drag-test')
                     }}
                   />
                 </>

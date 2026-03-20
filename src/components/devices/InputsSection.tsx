@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { ToggleLeft, SlidersHorizontal } from 'lucide-react'
 import { clsx } from 'clsx'
 import type { HAEntity } from '@/types/ha'
@@ -65,15 +65,8 @@ function InputNumberItem({
   const inputIcon = getEntityIcon(input.entity_id)
 
   // Use local state while dragging to prevent flickering from HA state updates
-  const [localValue, setLocalValue] = useState(entityValue)
-  const isDraggingRef = useRef(false)
-
-  // Sync local value with entity value when not dragging
-  useEffect(() => {
-    if (!isDraggingRef.current) {
-      setLocalValue(entityValue)
-    }
-  }, [entityValue])
+  const [localOverride, setLocalOverride] = useState<number | null>(null)
+  const localValue = localOverride ?? entityValue
 
   const longPress = useLongPress({
     duration: 500,
@@ -81,21 +74,17 @@ function InputNumberItem({
     onLongPress: () => onEnterEditModeWithSelection?.(input.entity_id),
   })
 
-  const handleSliderStart = () => {
-    isDraggingRef.current = true
-  }
-
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = parseFloat(e.target.value)
-    setLocalValue(newValue)
+    setLocalOverride(newValue)
   }
 
   const handleSliderEnd = () => {
-    isDraggingRef.current = false
     // Only call onNumberChange when drag ends
     if (localValue !== entityValue) {
       onNumberChange(input, localValue)
     }
+    setLocalOverride(null)
   }
 
   if (isInEditMode) {
@@ -133,7 +122,9 @@ function InputNumberItem({
             )}
           </div>
           {entityMeta?.roomName && (
-            <span className="text-sm text-muted truncate w-20 text-right">{entityMeta.roomName}</span>
+            <span className="text-sm text-muted truncate w-20 text-right">
+              {entityMeta.roomName}
+            </span>
           )}
         </div>
       </button>
@@ -177,7 +168,9 @@ function InputNumberItem({
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               {entityMeta?.roomName && (
-                <span className="text-sm text-muted truncate w-20 text-right">{entityMeta.roomName}</span>
+                <span className="text-sm text-muted truncate w-20 text-right">
+                  {entityMeta.roomName}
+                </span>
               )}
               <span className="text-xs text-muted tabular-nums w-12 text-right">
                 {localValue}
@@ -191,8 +184,6 @@ function InputNumberItem({
             max={max}
             step={step}
             value={localValue}
-            onPointerDown={handleSliderStart}
-            onTouchStart={handleSliderStart}
             onChange={handleSliderChange}
             onPointerUp={handleSliderEnd}
             onTouchEnd={handleSliderEnd}

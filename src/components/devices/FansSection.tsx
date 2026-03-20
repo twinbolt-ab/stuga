@@ -133,7 +133,9 @@ function FanItem({
         {/* Room name and state indicators */}
         <div className="flex items-center gap-2 flex-shrink-0">
           {entityMeta?.roomName && (
-            <span className="text-sm text-muted truncate w-20 text-right">{entityMeta.roomName}</span>
+            <span className="text-sm text-muted truncate w-20 text-right">
+              {entityMeta.roomName}
+            </span>
           )}
           {/* Speed indicator */}
           {isOn && percentage !== undefined && (

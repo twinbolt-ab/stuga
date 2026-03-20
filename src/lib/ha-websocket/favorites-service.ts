@@ -516,7 +516,7 @@ export async function updateEntityFavoriteOrder(
  */
 export async function updateEntityFavoriteOrderBatch(
   state: HAWebSocketState,
-  updates: Array<{ entityId: string; order: number }>
+  updates: { entityId: string; order: number }[]
 ): Promise<void> {
   await Promise.all(
     updates.map(({ entityId, order }) =>
@@ -545,7 +545,9 @@ async function updateAreaFavoriteOrderInternal(
   const newLabelId = await ensureFavoriteLabel(state, 'room', newOrder)
 
   // Replace the label
-  const newLabels = (area.labels || []).filter((id) => id !== favoriteInfo.labelId).concat(newLabelId)
+  const newLabels = (area.labels || [])
+    .filter((id) => id !== favoriteInfo.labelId)
+    .concat(newLabelId)
 
   return new Promise((resolve, reject) => {
     const msgId = getNextMessageId(state)
@@ -585,7 +587,7 @@ export async function updateAreaFavoriteOrder(
  */
 export async function updateAreaFavoriteOrderBatch(
   state: HAWebSocketState,
-  updates: Array<{ areaId: string; order: number }>
+  updates: { areaId: string; order: number }[]
 ): Promise<void> {
   await Promise.all(
     updates.map(({ areaId, order }) => updateAreaFavoriteOrderInternal(state, areaId, order, true))

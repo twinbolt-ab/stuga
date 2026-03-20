@@ -135,7 +135,12 @@ function createRoomDevices(
 
 export function generateComplexHome(): MockData {
   const floors: HAFloor[] = [
-    { floor_id: 'sub_basement', name: 'Sub-Basement', level: -2, icon: 'mdi:home-floor-negative-1' },
+    {
+      floor_id: 'sub_basement',
+      name: 'Sub-Basement',
+      level: -2,
+      icon: 'mdi:home-floor-negative-1',
+    },
     { floor_id: 'basement', name: 'Basement', level: -1, icon: 'mdi:home-floor-b' },
     { floor_id: 'ground_floor', name: 'Ground', level: 0, icon: 'mdi:home-floor-g' },
     { floor_id: 'upper_floor', name: 'Upper', level: 1, icon: 'mdi:home-floor-1' },

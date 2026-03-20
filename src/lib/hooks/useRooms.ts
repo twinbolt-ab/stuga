@@ -252,7 +252,6 @@ export function useRooms() {
   const effectiveIsConnected = activeMockScenario !== 'none' ? true : isConnected
   const effectiveHasReceivedData = activeMockScenario !== 'none' ? true : hasReceivedData
 
-
   // Use cached layout before live data arrives
   const effectiveRooms = effectiveHasReceivedData ? rooms : (cachedLayout?.rooms ?? rooms)
   const effectiveFloors = effectiveHasReceivedData ? floors : (cachedLayout?.floors ?? floors)

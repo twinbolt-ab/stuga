@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 export function Loader() {
   return (
     <div className="flex items-center justify-center gap-1">
-      {[...Array(3)].map((_, i) => (
+      {[...Array<unknown>(3)].map((_, i) => (
         <motion.div
           key={i}
           className="h-3 w-3 rounded-full bg-accent"

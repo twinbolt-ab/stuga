@@ -43,7 +43,7 @@ export function connect(state: HAWebSocketState, onMessage: MessageCallback): vo
       logger.debug('HA WS', 'Disconnected')
       state.isAuthenticated = false
       notifyConnectionHandlers(state, false)
-      handleConnectionFailure(state, onMessage)
+      void handleConnectionFailure(state, onMessage)
     }
 
     state.ws.onerror = (error) => {
@@ -53,7 +53,7 @@ export function connect(state: HAWebSocketState, onMessage: MessageCallback): vo
   } catch (error) {
     logger.error('HA WS', 'Connection failed:', error)
     void logError(error instanceof Error ? error : new Error(String(error)), 'websocket-connect')
-    handleConnectionFailure(state, onMessage)
+    void handleConnectionFailure(state, onMessage)
   }
 }
 

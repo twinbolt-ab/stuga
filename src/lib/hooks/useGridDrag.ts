@@ -53,7 +53,7 @@ export function useGridDrag<T>({
 }: UseGridDragOptions<T>): UseGridDragReturn<T> {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const [dragOffset, setDragOffset] = useState<Position>({ x: 0, y: 0 })
-  const [dragStartPos, setDragStartPos] = useState<Position>({ x: 0, y: 0 })
+  const [_dragStartPos, setDragStartPos] = useState<Position>({ x: 0, y: 0 })
   const [orderedItems, setOrderedItems] = useState<T[]>(items)
   const [draggedIndices, setDraggedIndices] = useState<number[]>([])
   const lastEdgeRef = useRef<'left' | 'right' | null>(null)

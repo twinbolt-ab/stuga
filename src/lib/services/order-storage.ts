@@ -31,7 +31,7 @@ export async function getRoomOrder(areaId: string): Promise<number> {
   if (!stored) return DEFAULT_ORDER
 
   try {
-    const orderMap: RoomOrderMap = JSON.parse(stored)
+    const orderMap = JSON.parse(stored) as RoomOrderMap
     return orderMap[areaId] ?? DEFAULT_ORDER
   } catch {
     return DEFAULT_ORDER
@@ -48,7 +48,7 @@ export async function setRoomOrder(areaId: string, order: number): Promise<void>
   let orderMap: RoomOrderMap = {}
   if (stored) {
     try {
-      orderMap = JSON.parse(stored)
+      orderMap = JSON.parse(stored) as RoomOrderMap
     } catch {
       orderMap = {}
     }
@@ -68,7 +68,7 @@ export async function getAllRoomOrders(): Promise<RoomOrderMap> {
   if (!stored) return {}
 
   try {
-    return JSON.parse(stored)
+    return JSON.parse(stored) as RoomOrderMap
   } catch {
     return {}
   }
@@ -211,7 +211,7 @@ export async function isRoomOrderHASyncEnabled(): Promise<boolean> {
  */
 export async function setRoomOrderHASync(
   enabled: boolean
-): Promise<{ rooms: number; devices: number } | void> {
+): Promise<{ rooms: number; devices: number } | undefined> {
   const storage = getStorage()
   await storage.setItem(STORAGE_KEYS.ROOM_ORDER_SYNC_TO_HA, enabled ? 'true' : 'false')
 
@@ -255,7 +255,7 @@ export async function getEntityOrder(roomSlug: string, domain: string): Promise<
   if (!stored) return {}
 
   try {
-    const entityOrderMap: EntityOrderMap = JSON.parse(stored)
+    const entityOrderMap = JSON.parse(stored) as EntityOrderMap
     return entityOrderMap[domain] ?? {}
   } catch {
     return {}
@@ -278,7 +278,7 @@ export async function setEntityOrder(
   let entityOrderMap: EntityOrderMap = {}
   if (stored) {
     try {
-      entityOrderMap = JSON.parse(stored)
+      entityOrderMap = JSON.parse(stored) as EntityOrderMap
     } catch {
       entityOrderMap = {}
     }
@@ -308,7 +308,7 @@ export async function setDomainEntityOrders(
   let entityOrderMap: EntityOrderMap = {}
   if (stored) {
     try {
-      entityOrderMap = JSON.parse(stored)
+      entityOrderMap = JSON.parse(stored) as EntityOrderMap
     } catch {
       entityOrderMap = {}
     }
@@ -329,7 +329,7 @@ export async function getAllEntityOrders(roomSlug: string): Promise<EntityOrderM
   if (!stored) return {}
 
   try {
-    return JSON.parse(stored)
+    return JSON.parse(stored) as EntityOrderMap
   } catch {
     return {}
   }
@@ -446,7 +446,7 @@ export async function syncEntityOrderToHA(): Promise<number> {
     if (!stored) continue
 
     try {
-      const entityOrderMap: EntityOrderMap = JSON.parse(stored)
+      const entityOrderMap = JSON.parse(stored) as EntityOrderMap
 
       // Sync each domain's entities
       for (const domainOrder of Object.values(entityOrderMap)) {

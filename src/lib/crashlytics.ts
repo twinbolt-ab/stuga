@@ -240,7 +240,7 @@ export interface ErrorReportInfo {
 export async function formatErrorReport(info: ErrorReportInfo): Promise<string> {
   const debugId = await getDebugId()
   const platform = Capacitor.getPlatform()
-  const appVersion = import.meta.env.VITE_APP_VERSION || 'unknown'
+  const appVersion = (import.meta.env.VITE_APP_VERSION as string) || 'unknown'
 
   let report = `**Debug ID:** ${debugId}\n`
   report += `**Platform:** ${platform}\n`
@@ -281,7 +281,7 @@ export async function copyErrorReport(info: ErrorReportInfo): Promise<boolean> {
       textArea.value = report
       document.body.appendChild(textArea)
       textArea.select()
-      document.execCommand('copy')
+      document.execCommand('copy') // eslint-disable-line @typescript-eslint/no-deprecated
       document.body.removeChild(textArea)
       return true
     } catch {

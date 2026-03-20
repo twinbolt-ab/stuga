@@ -236,10 +236,9 @@ export const updateEntityFavoriteOrder = (entityId: string, newOrder: number) =>
   favoritesSvc.updateEntityFavoriteOrder(state, entityId, newOrder)
 export const updateAreaFavoriteOrder = (areaId: string, newOrder: number) =>
   favoritesSvc.updateAreaFavoriteOrder(state, areaId, newOrder)
-export const updateEntityFavoriteOrderBatch = (
-  updates: Array<{ entityId: string; order: number }>
-) => favoritesSvc.updateEntityFavoriteOrderBatch(state, updates)
-export const updateAreaFavoriteOrderBatch = (updates: Array<{ areaId: string; order: number }>) =>
+export const updateEntityFavoriteOrderBatch = (updates: { entityId: string; order: number }[]) =>
+  favoritesSvc.updateEntityFavoriteOrderBatch(state, updates)
+export const updateAreaFavoriteOrderBatch = (updates: { areaId: string; order: number }[]) =>
   favoritesSvc.updateAreaFavoriteOrderBatch(state, updates)
 
 // State access (for metadata service)

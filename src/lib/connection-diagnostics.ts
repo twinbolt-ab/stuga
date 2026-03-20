@@ -324,7 +324,7 @@ async function testWebSocketConnectivity(url: string, token: string): Promise<We
 
       ws.onmessage = (event) => {
         try {
-          const message = JSON.parse(event.data as string)
+          const message = JSON.parse(event.data as string) as { type: string }
 
           if (message.type === 'auth_required') {
             // WebSocket is connected, now test auth

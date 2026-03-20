@@ -138,8 +138,6 @@ export type ConfigurableDomain =
   | 'scene'
   | 'input_boolean'
   | 'input_number'
-  | 'climate'
-  | 'cover'
   | 'fan'
   | 'vacuum'
   | 'media_player'
@@ -158,8 +156,6 @@ export const ALL_CONFIGURABLE_DOMAINS: ConfigurableDomain[] = [
   'scene',
   'input_boolean',
   'input_number',
-  'climate',
-  'cover',
   'fan',
 ]
 

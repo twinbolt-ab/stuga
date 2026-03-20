@@ -118,7 +118,7 @@ export function DomainConfigModal({ isOpen, onClose }: DomainConfigModalProps) {
                 {ALL_CONFIGURABLE_DOMAINS.map((domain) => {
                   const isEnabled = enabledDomains.includes(domain)
                   const info = DOMAIN_INFO[domain]
-                  const domainLabel = t.domains?.[domain] || info.label
+                  const domainLabel = t.domains[domain as keyof typeof t.domains] || info.label
 
                   return (
                     <button

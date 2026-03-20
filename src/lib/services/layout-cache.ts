@@ -118,7 +118,7 @@ export async function loadLayoutCache(): Promise<{
   if (!stored) return null
 
   try {
-    const cache: LayoutCache = JSON.parse(stored)
+    const cache = JSON.parse(stored) as LayoutCache
 
     // Check version
     if (cache.version !== CACHE_VERSION) {
