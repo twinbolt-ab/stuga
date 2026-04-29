@@ -55,6 +55,59 @@ Native apps need manual token exchange for HTTP (local HA instances).
 - Order stored in HA using `stuga-room-order-XX` labels on areas
 - Managed via WebSocket commands to label/area registry
 
+### HA-State Contracts (CRITICAL)
+
+Stuga stores user data **inside Home Assistant**, not in app storage, using labels with prefixes:
+
+| Prefix | Purpose | Owner file |
+|--------|---------|------------|
+| `stuga-room-order-XX` | Room (area) order | `lib/ha-websocket/area-service.ts` |
+| `stuga-favorite-A-XX` | Favorited scenes | `lib/ha-websocket/favorites-service.ts` |
+| `stuga-favorite-B-XX` | Favorited rooms | `lib/ha-websocket/favorites-service.ts` |
+| `stuga-favorite-C-XX` | Favorited entities | `lib/ha-websocket/favorites-service.ts` |
+| `stuga-hidden` | Entities hidden in Stuga only | `lib/ha-websocket/entity-service.ts` |
+| `stuga-temp-sensor.<entity_id>` | Per-area temperature sensor | `lib/ha-websocket/area-service.ts` |
+
+Rules:
+- **Never invent a new `stuga-*` label prefix without updating this table.**
+- **Never bulk-delete labels** without checking owner file first — users have years of state encoded in them.
+- Changes to label schemas need a migration path (read old, write new) — there is no version field to fall back on.
+- All label mutation goes through WebSocket commands to HA's label/area/entity registry, not app storage.
+
+## Sources of Truth
+
+When in doubt, trust the code over prose docs. These are the authoritative locations:
+
+| Topic | Source of truth |
+|-------|-----------------|
+| Directory map of `src/` | `src/CLAUDE.md` |
+| HA entity / area / floor types | `src/types/ha.ts` |
+| HA WebSocket public API | `src/lib/ha-websocket/index.ts` (the barrel — only export from here) |
+| HA WebSocket internals | `src/lib/ha-websocket/CLAUDE.md` |
+| Hooks index + groupings | `src/lib/hooks/CLAUDE.md` |
+| Dashboard orchestration | `src/components/dashboard/CLAUDE.md` |
+| Storage keys | `src/lib/constants.ts` (`STORAGE_KEYS`) |
+| HA-side data contracts (labels) | `src/lib/ha-websocket/area-service.ts`, `favorites-service.ts`, `entity-service.ts` |
+| UI text | `src/lib/i18n/en.json` (use `t.key` or `interpolate()`) |
+| Routes | `src/routes/` |
+| OAuth client IDs | `src/lib/ha-oauth.ts` (`getClientId`) |
+| Theme tokens | `tailwind.config.ts` |
+| Module boundaries | `eslint.config.js` (`no-restricted-imports`) |
+
+## Doc Loading Guide
+
+Read the relevant CLAUDE.md before touching that area — don't grep blindly.
+
+| Task | Read first |
+|------|-----------|
+| Anything in `src/` | `src/CLAUDE.md` |
+| Add or modify a hook | `src/lib/hooks/CLAUDE.md` |
+| HA WebSocket / commands / labels | `src/lib/ha-websocket/CLAUDE.md` |
+| Dashboard layout, grid, drag, edit mode | `src/components/dashboard/CLAUDE.md` |
+| OAuth or auth flow | `src/lib/ha-oauth.ts` + Platform Rules section above |
+| Release / version bump | `docs/RELEASE_SETUP.md` |
+| Add or change UI text | `src/lib/i18n/en.json` |
+
 ## Code Style
 
 - Prefer strict TypeScript; avoid `any` except in tests

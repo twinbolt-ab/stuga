@@ -11,7 +11,7 @@ import { EntityBadges } from '@/components/ui/EntityBadge'
 import { getEntityIcon } from '@/lib/ha-websocket'
 import { useLongPress } from '@/lib/hooks/useLongPress'
 import { sortEntitiesByOrder } from '@/lib/utils/entity-sort'
-import { ReorderableList } from '@/components/dashboard/ReorderableList'
+import { ReorderableList } from '@/components/shared/ReorderableList'
 import { t } from '@/lib/i18n'
 import type { EntityMeta } from '@/lib/hooks/useAllEntities'
 

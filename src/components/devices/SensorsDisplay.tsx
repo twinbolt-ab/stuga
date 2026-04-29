@@ -9,7 +9,7 @@ import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox'
 import { getEntityIcon } from '@/lib/ha-websocket'
 import { useLongPress } from '@/lib/hooks/useLongPress'
 import { sortEntitiesByOrder } from '@/lib/utils/entity-sort'
-import { ReorderableList } from '@/components/dashboard/ReorderableList'
+import { ReorderableList } from '@/components/shared/ReorderableList'
 import { t } from '@/lib/i18n'
 import { formatTemperature } from '@/lib/temperature'
 

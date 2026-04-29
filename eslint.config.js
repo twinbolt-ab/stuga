@@ -85,6 +85,49 @@ export default tseslint.config(
     },
   },
 
+  // Module boundaries: ui/ may not import feature folders; devices/ may not import dashboard/
+  {
+    files: ['src/components/ui/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: [
+                '@/components/dashboard/*',
+                '@/components/devices/*',
+                '@/components/settings/*',
+                '@/components/setup/*',
+                '@/components/layout/*',
+                '@/components/shared/*',
+              ],
+              message:
+                'components/ui/ is leaf-only for feature code. UI primitives must not import from feature folders. (lib/hooks is allowed for now — see src/CLAUDE.md.)',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/components/devices/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@/components/dashboard/*'],
+              message:
+                'devices/ must not import from dashboard/. Move shared components to components/shared/.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
   // Test file overrides
   {
     files: ['**/*.test.{ts,tsx}', '**/*.spec.{ts,tsx}', '**/test/**/*.{ts,tsx}'],

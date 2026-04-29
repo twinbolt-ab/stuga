@@ -5,7 +5,7 @@ import type { DomainOrderMap } from '@/types/ordering'
 import { SectionHeader } from '@/components/ui/SectionHeader'
 import { DeviceToggleButton } from '@/components/ui/DeviceToggleButton'
 import { sortEntitiesByOrder } from '@/lib/utils/entity-sort'
-import { ReorderableList } from '@/components/dashboard/ReorderableList'
+import { ReorderableList } from '@/components/shared/ReorderableList'
 import { t } from '@/lib/i18n'
 import type { EntityMeta } from '@/lib/hooks/useAllEntities'
 

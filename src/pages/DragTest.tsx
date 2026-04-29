@@ -3,7 +3,7 @@
  */
 
 import { useState } from 'react'
-import { ReorderableList } from '@/components/dashboard/ReorderableList'
+import { ReorderableList } from '@/components/shared/ReorderableList'
 
 interface TestItem {
   id: string
