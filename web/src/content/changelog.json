@@ -1,13 +1,20 @@
 {
   "releases": [
     {
+      "version": "0.3.37",
+      "date": "2026-04-29",
+      "summary": "This release is all behind-the-scenes work to keep Stuga shipping smoothly — no user-facing changes this time.",
+      "seoSummary": "Internal improvements to the Stuga Home Assistant dashboard app, ensuring smoother future releases on iOS and Android.",
+      "sections": []
+    },
+    {
       "version": "0.3.36",
       "date": "2026-04-29",
       "summary": "A few small refinements in this release.",
-      "seoSummary": "Refinements to the Stuga Home Assistant dashboard, including improved logout behavior and a polished mobile experience on iOS and Android.",
+      "seoSummary": "Refinements to the Stuga Home Assistant dashboard, including proper layout reset on logout and a streamlined mobile experience.",
       "sections": [
         {
-          "title": "Changes",
+          "title": "Improvements",
           "items": [
             "Layout and room order now reset properly when you log out",
             "Removed climate and covers from the UI for now while we polish them",
@@ -20,7 +27,7 @@
       "version": "0.3.35",
       "date": "2026-02-10",
       "summary": "This is a small maintenance release focused on bug fixes and reliability.",
-      "seoSummary": "Reliability improvements for the Stuga Home Assistant dashboard, fixing device type settings and external link handling on iOS and Android.",
+      "seoSummary": "Maintenance update for the Stuga Home Assistant dashboard, improving reliability of device settings and external links on iOS and Android.",
       "sections": [
         {
           "title": "Bug Fixes",
@@ -37,7 +44,7 @@
       "version": "0.3.34",
       "date": "2026-02-10",
       "summary": "This release focuses on stability and fixing a handful of annoying bugs.",
-      "seoSummary": "Stability fixes for the Stuga Home Assistant smart home dashboard, including device type persistence and link handling on iOS and Android.",
+      "seoSummary": "Stability fixes for the Stuga Home Assistant dashboard app, resolving device settings issues and external link handling on iOS and Android.",
       "sections": [
         {
           "title": "Bug Fixes",
@@ -53,7 +60,7 @@
       "version": "0.3.33",
       "date": "2026-02-10",
       "summary": "This release fixes several bugs and improves the overall experience.",
-      "seoSummary": "Bug fixes for the Stuga Home Assistant dashboard mobile app, improving device settings reliability and external link handling on iOS and Android.",
+      "seoSummary": "Bug fixes for the Stuga Home Assistant dashboard, improving device control reliability and the smart home experience on mobile.",
       "sections": [
         {
           "title": "Bug Fixes",
@@ -69,7 +76,7 @@
       "version": "0.3.32",
       "date": "2026-02-10",
       "summary": "This release cleans up a few rough edges and fixes some annoying bugs.",
-      "seoSummary": "Polish and bug fixes for the Stuga Home Assistant dashboard, ensuring device type settings persist and links open correctly on iOS and Android.",
+      "seoSummary": "Polish update for the Stuga Home Assistant dashboard, fixing device type settings and external link behavior on iOS and Android.",
       "sections": [
         {
           "title": "Improvements",
@@ -90,7 +97,7 @@
       "version": "0.3.31",
       "date": "2026-02-10",
       "summary": "This release squashes a handful of bugs and tidies things up.",
-      "seoSummary": "Bug squash release for the Stuga Home Assistant smart home dashboard, fixing device settings persistence and external link behavior on iOS and Android.",
+      "seoSummary": "Bug fixes for the Stuga Home Assistant dashboard app, improving device settings persistence and external link handling on iOS and Android.",
       "sections": [
         {
           "title": "Bug Fixes",
@@ -106,7 +113,7 @@
       "version": "0.3.30",
       "date": "2026-02-06",
       "summary": "This update fixes a couple of annoying bugs to make things smoother.",
-      "seoSummary": "Smoother navigation in the Stuga Home Assistant dashboard with fixes for swiping between floors and room card selection on mobile.",
+      "seoSummary": "Smoother navigation in the Stuga Home Assistant dashboard, with fixes for swiping between floors and room card selection on mobile.",
       "sections": [
         {
           "title": "Bug Fixes",
@@ -121,7 +128,7 @@
       "version": "0.3.29",
       "date": "2026-02-03",
       "summary": "This release brings a smoother experience when organizing your favorites.",
-      "seoSummary": "Organize favorite rooms and devices more smoothly in the Stuga Home Assistant dashboard with improved custom ordering and visual feedback.",
+      "seoSummary": "Organize favorite smart home devices and rooms more easily in the Stuga Home Assistant dashboard with a refined custom order experience.",
       "sections": [
         {
           "title": "Improvements",
@@ -142,8 +149,8 @@
     {
       "version": "0.3.28",
       "date": "2026-02-02",
-      "summary": "This update brings the all-new Favorites view – a dedicated tab where you can pin your most-used devices and scenes for quick access. We're also rolling out a few improvements from earlier today that you might have missed.",
-      "seoSummary": "Pin your most-used Home Assistant devices, scenes, and temperature sensors with the new Favorites tab in Stuga, plus drag-and-drop reordering on iOS and Android.",
+      "summary": "This update brings the all-new **Favorites view** – a dedicated tab where you can pin your most-used devices and scenes for quick access. We're also rolling out a few improvements from earlier today that you might have missed.",
+      "seoSummary": "Pin your most-used Home Assistant devices, scenes, and sensors with the new Favorites tab in Stuga, plus drag-and-drop reordering and faster dashboard loading on iOS and Android.",
       "sections": [
         {
           "title": "New Features",
@@ -179,7 +186,7 @@
       "version": "0.3.27",
       "date": "2026-02-02",
       "summary": "This update brings a much-requested feature: you can now reorder devices, scenes, and sensors within your rooms! We've also added a news section to settings and made several quality-of-life improvements.",
-      "seoSummary": "Reorder Home Assistant devices, scenes, and temperature sensors in any room with drag-and-drop in the Stuga smart home dashboard for iOS and Android.",
+      "seoSummary": "Reorder Home Assistant devices, scenes, and sensors within rooms in Stuga, with a new drag-and-drop interface and the option to sync custom order back to Home Assistant.",
       "sections": [
         {
           "title": "New Features",
@@ -205,7 +212,7 @@
       "version": "0.3.26",
       "date": "2026-01-30",
       "summary": "This release brings a refreshed settings experience and several quality-of-life improvements.",
-      "seoSummary": "Refreshed settings menu and smoother room reordering in the Stuga Home Assistant dashboard, with cleaner navigation for mobile smart home control.",
+      "seoSummary": "Refreshed settings experience in the Stuga Home Assistant dashboard with a full-screen menu, smoother room reordering, and easier server switching on mobile.",
       "sections": [
         {
           "title": "Improvements",
@@ -230,7 +237,7 @@
       "version": "0.3.25",
       "date": "2026-01-30",
       "summary": "This release brings a refreshed settings experience and several quality-of-life improvements.",
-      "seoSummary": "Customize and organize your Home Assistant rooms more easily with a redesigned settings experience in the Stuga mobile dashboard.",
+      "seoSummary": "Refreshed settings menu and quality-of-life improvements in the Stuga Home Assistant dashboard, with smoother room reordering on iOS and Android.",
       "sections": [
         {
           "title": "Improvements",
@@ -255,7 +262,7 @@
       "version": "0.3.24",
       "date": "2026-01-29",
       "summary": "This release contains only internal build system fixes - no user-facing changes.",
-      "seoSummary": "Internal build improvements for the Stuga Home Assistant dashboard Android app, ensuring reliable releases on Google Play.",
+      "seoSummary": "Internal build fixes for the Stuga Home Assistant dashboard Android release pipeline — no user-facing changes.",
       "sections": [
         {
           "title": "Technical",
@@ -269,10 +276,10 @@
       "version": "0.3.23",
       "date": "2026-01-29",
       "summary": "This release focuses on behind-the-scenes improvements to our release process.",
-      "seoSummary": "Behind-the-scenes release process improvements for the Stuga Home Assistant smart home dashboard, paving the way for smoother future updates.",
+      "seoSummary": "Behind-the-scenes release pipeline improvements for the Stuga Home Assistant dashboard app on iOS and Android.",
       "sections": [
         {
-          "title": "Changes",
+          "title": "Notes",
           "items": [
             "No user-facing changes in this version - just internal fixes to make future releases smoother"
           ]
@@ -283,7 +290,7 @@
       "version": "0.3.22",
       "date": "2026-01-28",
       "summary": "This release brings temperature display improvements and better support for Android sideloading.",
-      "seoSummary": "Display Home Assistant temperatures in Celsius or Fahrenheit and sideload the Stuga Android app directly via APK or Obtainium.",
+      "seoSummary": "Display temperature in Celsius or Fahrenheit based on your Home Assistant preferences, with new APK sideloading support for Android users of the Stuga dashboard.",
       "sections": [
         {
           "title": "Improvements",
@@ -304,7 +311,7 @@
       "version": "0.3.21",
       "date": "2026-01-28",
       "summary": "This release brings temperature display improvements and better support for Android sideloading.",
-      "seoSummary": "Manage Home Assistant temperature sensors in your preferred unit and install Stuga on Android via APK or Obtainium for flexible smart home control.",
+      "seoSummary": "Temperature now displays in your preferred unit from Home Assistant, plus Android APK sideloading support for the Stuga smart home dashboard.",
       "sections": [
         {
           "title": "Improvements",
@@ -319,7 +326,7 @@
       "version": "0.3.20",
       "date": "2026-01-26",
       "summary": "Control which smart home devices appear in your Home Assistant dashboard with new device visibility options.",
-      "seoSummary": "Control which smart home devices appear in your Home Assistant dashboard with new visibility options in Stuga, plus clearer SSL/TLS connection diagnostics.",
+      "seoSummary": "Control which smart home devices appear in your Home Assistant dashboard with new visibility options in Stuga, plus clearer SSL/TLS and DNS connection diagnostics.",
       "sections": [
         {
           "title": "New Features",
@@ -339,7 +346,7 @@
       "version": "0.3.19",
       "date": "2026-01-25",
       "summary": "Improved Home Assistant connection setup with smarter URL detection for both local and remote access.",
-      "seoSummary": "Connect to Home Assistant faster with smarter URL detection in Stuga, supporting both local and remote setups on iOS and Android.",
+      "seoSummary": "Connect to Home Assistant more easily with smarter URL detection in Stuga, automatically trying http and https for both local and remote dashboard access.",
       "sections": [
         {
           "title": "Improvements",
@@ -361,7 +368,7 @@
       "version": "0.3.18",
       "date": "2026-01-25",
       "summary": "Stability improvements and bug fixes for the Home Assistant dashboard app on Android devices.",
-      "seoSummary": "Stability improvements for the Stuga Home Assistant dashboard mobile app, with better diagnostics and fixes for Huawei and Android compatibility.",
+      "seoSummary": "Stability improvements for the Stuga Home Assistant dashboard on Android, including Huawei compatibility, smoother sliders, and better connection diagnostics.",
       "sections": [
         {
           "title": "Improvements",
@@ -386,7 +393,7 @@
       "version": "0.3.17",
       "date": "2026-01-23",
       "summary": "Display temperature and humidity sensors in your Home Assistant room cards with new customization options.",
-      "seoSummary": "Display temperature and humidity sensors on Home Assistant room cards in Stuga, with new customization options for lights, switches, and grid layout.",
+      "seoSummary": "Show temperature and humidity sensors directly on Home Assistant room cards in Stuga, with new toggles for which lights and switches belong to a room.",
       "sections": [
         {
           "title": "Improvements",
@@ -410,7 +417,7 @@
       "version": "0.3.16",
       "date": "2026-01-23",
       "summary": "Bug fixes for the Home Assistant mobile dashboard.",
-      "seoSummary": "Bug fixes for the Stuga Home Assistant mobile dashboard, ensuring video containers display correctly while scrolling on phones.",
+      "seoSummary": "Bug fixes for the Stuga Home Assistant mobile dashboard, resolving video container layout issues when scrolling on phones.",
       "sections": [
         {
           "title": "Bug Fixes",
@@ -424,7 +431,7 @@
       "version": "0.3.15",
       "date": "2026-01-22",
       "summary": "Android app improvements for the Home Assistant dashboard with better compatibility and app store presence.",
-      "seoSummary": "Android app improvements for the Stuga Home Assistant dashboard, with better device compatibility, refreshed visuals, and an updated Google Play listing.",
+      "seoSummary": "Android improvements for the Stuga Home Assistant dashboard, with better compatibility on newer devices and a refreshed Google Play store listing.",
       "sections": [
         {
           "title": "Improvements",
@@ -449,7 +456,7 @@
       "version": "0.3.6",
       "date": "2026-01-22",
       "summary": "Organize your smart home by floors with improved navigation and editing in the Home Assistant dashboard.",
-      "seoSummary": "Organize your smart home by floors in the Stuga Home Assistant dashboard with smoother room reordering, improved navigation, and mobile-friendly editing.",
+      "seoSummary": "Organize your smart home by floors in the Stuga Home Assistant dashboard, with smoother drag-and-drop room reordering and better mobile editing on iOS and Android.",
       "sections": [
         {
           "title": "Improvements",
@@ -478,7 +485,7 @@
       "version": "0.3.5",
       "date": "2026-01-21",
       "summary": "Simplified Home Assistant login with easier authentication method selection.",
-      "seoSummary": "Simplified Home Assistant login in the Stuga smart home dashboard, making authentication easier on iOS and Android.",
+      "seoSummary": "Simplified Home Assistant login in Stuga, with clearer authentication method selection during setup on iOS, Android, and web.",
       "sections": [
         {
           "title": "Improvements",
@@ -498,7 +505,7 @@
       "version": "0.3.4",
       "date": "2026-01-21",
       "summary": "Drag and drop room organization for your Home Assistant dashboard with multi-select and cross-floor support.",
-      "seoSummary": "Organize Home Assistant rooms with drag-and-drop in the Stuga dashboard, including multi-select and cross-floor moves on mobile.",
+      "seoSummary": "Organize your Home Assistant dashboard with drag-and-drop room arrangement in Stuga, including multi-select, cross-floor moves, and a touch-friendly mobile interface.",
       "sections": [
         {
           "title": "Improvements",

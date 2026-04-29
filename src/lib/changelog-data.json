@@ -1,6 +1,15 @@
 {
-  "generatedAt": "2026-04-29T12:53:56.252Z",
+  "generatedAt": "2026-04-29T20:18:48.235Z",
   "entries": [
+    {
+      "version": "0.3.37",
+      "date": "2026-04-29",
+      "summary": "This release is all behind-the-scenes work to keep Stuga shipping smoothly — no user-facing changes this time.",
+      "improvements": [],
+      "bugFixes": [],
+      "newFeatures": [],
+      "technical": []
+    },
     {
       "version": "0.3.36",
       "date": "2026-04-29",

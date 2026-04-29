@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.3.37] - 2026-04-29
+
+This release is all behind-the-scenes work to keep Stuga shipping smoothly — no user-facing changes this time.
+
+
 ## [0.3.36] - 2026-04-29
 
 A few small refinements in this release.
