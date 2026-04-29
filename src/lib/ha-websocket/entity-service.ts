@@ -9,7 +9,7 @@ import {
   OPTIMISTIC_DURATION,
   STUGA_HIDDEN_LABEL,
 } from '@/lib/constants'
-import { getDevModeSync } from '@/lib/hooks/useDevMode'
+import { getDevModeSync } from '@/lib/dev-mode'
 
 // Timer references for optimistic state cleanup
 const optimisticTimers = new Map<string, NodeJS.Timeout>()

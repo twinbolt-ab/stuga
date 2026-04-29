@@ -1,5 +1,5 @@
 import type { HAFloor, RoomWithDevices, HAEntity } from '@/types/ha'
-import type { MockScenario } from '../hooks/useDevMode'
+import type { MockScenario } from '../dev-mode'
 import { generateEmptyHome } from './empty'
 import { generateMinimalHome } from './minimal'
 import { generateComplexHome } from './complex'

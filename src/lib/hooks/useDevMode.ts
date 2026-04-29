@@ -1,106 +1,32 @@
 import { useEffect, useCallback, useSyncExternalStore } from 'react'
-import { STORAGE_KEYS } from '../constants'
+import {
+  ensureDevModeInitialized,
+  getDevModeServerSnapshot,
+  getDevModeSnapshot,
+  subscribeDevMode,
+  updateDevModeState,
+  type MockScenario,
+} from '../dev-mode'
 
-export type MockScenario =
-  | 'none'
-  | 'empty'
-  | 'minimal'
-  | 'complex'
-  | 'edge-cases'
-  | 'unassigned'
-  | 'apartment'
-
-interface DevModeState {
-  isDevMode: boolean
-  activeMockScenario: MockScenario
-}
-
-const defaultState: DevModeState = {
-  isDevMode: false,
-  activeMockScenario: 'none',
-}
-
-// Shared state store
-let currentState: DevModeState = defaultState
-const listeners = new Set<() => void>()
-
-function loadState(): DevModeState {
-  if (typeof window === 'undefined') return defaultState
-
-  try {
-    const isDevMode = localStorage.getItem(STORAGE_KEYS.DEV_MODE) === 'true'
-    const activeMockScenario =
-      (localStorage.getItem(STORAGE_KEYS.MOCK_SCENARIO) as MockScenario) || 'none'
-    return { isDevMode, activeMockScenario }
-  } catch {
-    return defaultState
-  }
-}
-
-function saveState(state: DevModeState) {
-  if (typeof window === 'undefined') return
-
-  try {
-    localStorage.setItem(STORAGE_KEYS.DEV_MODE, state.isDevMode ? 'true' : 'false')
-    localStorage.setItem(STORAGE_KEYS.MOCK_SCENARIO, state.activeMockScenario)
-  } catch {
-    // Ignore storage errors
-  }
-}
-
-function notifyListeners() {
-  listeners.forEach((listener) => {
-    listener()
-  })
-}
-
-function subscribe(listener: () => void) {
-  listeners.add(listener)
-  return () => listeners.delete(listener)
-}
-
-function getSnapshot() {
-  return currentState
-}
-
-function getServerSnapshot() {
-  return defaultState
-}
-
-function updateState(updates: Partial<DevModeState>) {
-  currentState = { ...currentState, ...updates }
-  saveState(currentState)
-  notifyListeners()
-}
-
-// Initialize on first load
-let initialized = false
-function initializeState() {
-  if (!initialized && typeof window !== 'undefined') {
-    currentState = loadState()
-    initialized = true
-  }
-}
+export type { MockScenario }
 
 export function useDevMode() {
-  // Initialize state store
   useEffect(() => {
-    initializeState()
+    ensureDevModeInitialized()
   }, [])
 
-  // Subscribe to state changes
-  const state = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
+  const state = useSyncExternalStore(subscribeDevMode, getDevModeSnapshot, getDevModeServerSnapshot)
 
   const enableDevMode = useCallback(() => {
-    updateState({ isDevMode: true })
+    updateDevModeState({ isDevMode: true })
   }, [])
 
   const disableDevMode = useCallback(() => {
-    updateState({ isDevMode: false, activeMockScenario: 'none' })
+    updateDevModeState({ isDevMode: false, activeMockScenario: 'none' })
   }, [])
 
   const setMockScenario = useCallback((scenario: MockScenario) => {
-    updateState({ activeMockScenario: scenario })
+    updateDevModeState({ activeMockScenario: scenario })
   }, [])
 
   return {
@@ -110,10 +36,4 @@ export function useDevMode() {
     disableDevMode,
     setMockScenario,
   }
-}
-
-// Sync getter for use outside React (e.g., in useRooms)
-export function getDevModeSync(): { isDevMode: boolean; activeMockScenario: MockScenario } {
-  initializeState()
-  return currentState
 }
