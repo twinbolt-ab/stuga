@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.36] - 2026-04-29
+
+A few small refinements in this release.
+
+- Layout and room order now reset properly when you log out
+- Removed climate and covers from the UI for now while we polish them
+- Behind-the-scenes cleanups for a smoother experience
+
+
 ## [0.3.35] - 2026-02-10
 
 This is a small maintenance release focused on bug fixes and reliability.
