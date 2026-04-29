@@ -15,25 +15,29 @@ platform :android do
     )
   end
 
-  desc "Deploy to production"
+  desc "Upload pre-built AAB to internal testing track"
   lane :internal do
-    build
     upload_to_play_store(
-      track: "production",
+      track: "internal",
       release_status: "completed",
-      aab: "app/build/outputs/bundle/release/app-release.aab",
+      aab: ENV["AAB_PATH"] || "app/build/outputs/bundle/release/app-release.aab",
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_changelogs: false,
       skip_upload_images: true,
       skip_upload_screenshots: true
     )
   end
 
-  desc "Deploy to production"
+  desc "Upload pre-built AAB to production"
   lane :production do
-    build
     upload_to_play_store(
       track: "production",
       release_status: "completed",
-      aab: "app/build/outputs/bundle/release/app-release.aab",
+      aab: ENV["AAB_PATH"] || "app/build/outputs/bundle/release/app-release.aab",
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_changelogs: false,
       skip_upload_images: true,
       skip_upload_screenshots: true
     )
@@ -45,6 +49,7 @@ platform :android do
       track: "internal",
       track_promote_to: "production",
       skip_upload_aab: true,
+      skip_upload_apk: true,
       skip_upload_metadata: true,
       skip_upload_images: true,
       skip_upload_screenshots: true

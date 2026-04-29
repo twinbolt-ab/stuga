@@ -134,9 +134,9 @@ jobs:
       - name: Build iOS
         working-directory: ios/App
         env:
-          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
-          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-          APP_STORE_CONNECT_API_KEY_PATH: ${{ runner.temp }}/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_KEY_ID }}.p8
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          ASC_KEY_PATH: ${{ runner.temp }}/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_KEY_ID }}.p8
           FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: 120
         run: bundle exec fastlane build
 
@@ -306,7 +306,7 @@ jobs:
 
           echo "Discussion created for $TAG"
 
-  # Upload to Play Store after release is created
+  # Upload to Play Store internal testing track after release is created
   publish-android:
     needs: [build-android, github-release]
     runs-on: ubuntu-latest
@@ -331,22 +331,15 @@ jobs:
           bundler-cache: true
           working-directory: android
 
-      - name: Upload to Play Store
+      - name: Upload to Play Store internal track
         working-directory: android
         run: |
           TAG="${{ needs.github-release.outputs.tag }}"
           VERSION="${TAG#v}"
+          AAB_PATH="${{ github.workspace }}/artifacts/stuga-${VERSION}.aab" \
+            bundle exec fastlane internal
 
-          bundle exec fastlane supply \
-            --aab ../artifacts/stuga-${VERSION}.aab \
-            --track production \
-            --json_key fastlane/play-store-credentials.json \
-            --package_name com.twinbolt.stuga \
-            --skip_upload_metadata \
-            --skip_upload_images \
-            --skip_upload_screenshots
-
-  # Upload to App Store after release is created
+  # Upload to TestFlight after release is created
   publish-ios:
     needs: [build-ios, github-release]
     runs-on: macos-26
@@ -370,23 +363,30 @@ jobs:
       - name: Setup App Store Connect API key
         run: |
           mkdir -p $RUNNER_TEMP/private_keys
-          KEY_CONTENT=$(echo "${{ secrets.APP_STORE_CONNECT_API_KEY }}" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read().strip()))")
-          cat > "$RUNNER_TEMP/private_keys/api_key.json" << APIEOF
-          {
-            "key_id": "${{ secrets.APP_STORE_CONNECT_KEY_ID }}",
-            "issuer_id": "${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}",
-            "key": $KEY_CONTENT,
-            "in_house": false
-          }
-          APIEOF
+          echo "${{ secrets.APP_STORE_CONNECT_API_KEY }}" > $RUNNER_TEMP/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_KEY_ID }}.p8
 
       - name: Copy IPA to fastlane build dir
         run: |
           mkdir -p ios/App/build
           cp artifacts/*.ipa ios/App/build/Stuga.ipa
 
-      - name: Upload to App Store
+      - name: Upload to TestFlight
         working-directory: ios/App
         env:
-          APP_STORE_CONNECT_API_KEY_PATH: ${{ runner.temp }}/private_keys/api_key.json
-        run: bundle exec fastlane upload
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          ASC_KEY_PATH: ${{ runner.temp }}/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_KEY_ID }}.p8
+        run: bundle exec fastlane testflight
+
+      - name: Push release notes to App Store Connect
+        working-directory: ios/App
+        continue-on-error: true
+        env:
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          ASC_KEY_PATH: ${{ runner.temp }}/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_KEY_ID }}.p8
+          APP_VERSION: ${{ needs.github-release.outputs.tag }}
+        run: |
+          # Strip leading "v" from tag (v1.2.3 -> 1.2.3)
+          export APP_VERSION="${APP_VERSION#v}"
+          bundle exec fastlane release_notes

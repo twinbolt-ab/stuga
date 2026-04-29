@@ -1,6 +1,19 @@
+require "fileutils"
+require "tmpdir"
+
 default_platform(:ios)
 
 platform :ios do
+  def asc_api_key
+    # CI sets ASC_KEY_PATH (not APP_STORE_CONNECT_API_KEY_PATH to avoid fastlane auto-detection conflict)
+    key_path = ENV["ASC_KEY_PATH"] || File.join(Dir.pwd, "keys", "AuthKey.p8")
+    app_store_connect_api_key(
+      key_id: ENV["ASC_KEY_ID"],
+      issuer_id: ENV["ASC_ISSUER_ID"],
+      key_filepath: key_path
+    )
+  end
+
   desc "Build release IPA"
   lane :build do
     update_code_signing_settings(
@@ -41,11 +54,24 @@ platform :ios do
     clean_build_artifacts
   end
 
-  desc "Upload to TestFlight"
+  desc "Upload to TestFlight (build + upload)"
   lane :beta do
     build
     upload_to_testflight(
+      api_key: asc_api_key,
       skip_waiting_for_build_processing: true
+    )
+  end
+
+  desc "Upload pre-built IPA to TestFlight"
+  lane :testflight do
+    release_notes_path = File.join(__dir__, "metadata/en-US/release_notes.txt")
+    changelog = File.exist?(release_notes_path) ? File.read(release_notes_path).strip : nil
+    upload_to_testflight(
+      api_key: asc_api_key,
+      ipa: "./build/Stuga.ipa",
+      skip_waiting_for_build_processing: true,
+      changelog: changelog
     )
   end
 
@@ -53,15 +79,18 @@ platform :ios do
   lane :release do
     build
     upload_to_app_store(
+      api_key: asc_api_key,
       skip_screenshots: true,
       skip_metadata: false,
-      force: true
+      force: true,
+      precheck_include_in_app_purchases: false
     )
   end
 
   desc "Upload pre-built IPA to App Store"
   lane :upload do
     upload_to_app_store(
+      api_key: asc_api_key,
       ipa: "./build/Stuga.ipa",
       skip_screenshots: true,
       skip_metadata: false,
@@ -70,12 +99,44 @@ platform :ios do
     )
   end
 
+  desc "Upload only release_notes.txt to App Store Connect for the given APP_VERSION"
+  lane :release_notes do
+    source = File.join(__dir__, "metadata/en-US/release_notes.txt")
+    unless File.exist?(source)
+      UI.important("No release_notes.txt found, skipping App Store Connect notes push")
+      next
+    end
+
+    app_version = ENV["APP_VERSION"]
+    if app_version.nil? || app_version.strip.empty?
+      UI.user_error!("APP_VERSION env var is required (e.g. set from the release tag)")
+    end
+
+    Dir.mktmpdir("stuga-release-notes") do |tmp|
+      locale_dir = File.join(tmp, "en-US")
+      FileUtils.mkdir_p(locale_dir)
+      FileUtils.cp(source, File.join(locale_dir, "release_notes.txt"))
+
+      upload_to_app_store(
+        api_key: asc_api_key,
+        app_version: app_version.strip,
+        metadata_path: tmp,
+        skip_binary_upload: true,
+        skip_screenshots: true,
+        force: true,
+        precheck_include_in_app_purchases: false
+      )
+    end
+  end
+
   desc "Upload metadata only (no build)"
   lane :metadata do
     upload_to_app_store(
+      api_key: asc_api_key,
       skip_binary_upload: true,
       skip_screenshots: true,
-      force: true
+      force: true,
+      precheck_include_in_app_purchases: false
     )
   end
 end
