@@ -10,7 +10,7 @@ import {
 } from '@/test/test-utils'
 import {
   mockUpdateEntity,
-  mockSetEntityHidden,
+  mockSetEntityHiddenInStuga,
   mockUpdateArea,
   mockCreateFloor,
   mockAddEntityToFavorites,
@@ -21,7 +21,7 @@ import {
 // Mock the ha-websocket module
 vi.mock('@/lib/ha-websocket', () => ({
   updateEntity: (...args: unknown[]) => mockUpdateEntity(...args),
-  setEntityHidden: (...args: unknown[]) => mockSetEntityHidden(...args),
+  setEntityHiddenInStuga: (...args: unknown[]) => mockSetEntityHiddenInStuga(...args),
   updateArea: (...args: unknown[]) => mockUpdateArea(...args),
   createArea: vi.fn().mockResolvedValue('new-area-id'),
   createFloor: (...args: unknown[]) => mockCreateFloor(...args),
@@ -43,10 +43,12 @@ describe('BulkEditDevicesModal', () => {
     mockOnComplete.mockClear()
   })
 
-  // Helper to select an option from a native select element
-  async function selectOption(selectElement: HTMLElement, value: string) {
+  // Helper to click the Hide all / Unhide all button in the hide/unhide button group
+  async function clickHiddenButton(value: 'hide' | 'unhide') {
+    const label = value === 'hide' ? /^hide all$/i : /^unhide all$/i
+    const button = screen.getByRole('button', { name: label })
     await act(async () => {
-      fireEvent.change(selectElement, { target: { value } })
+      fireEvent.click(button)
     })
   }
 
@@ -92,9 +94,7 @@ describe('BulkEditDevicesModal', () => {
         />
       )
 
-      // The hidden selector is a native <select> element
-      const hiddenSelect = screen.getByRole('combobox') // Native select uses combobox role
-      await selectOption(hiddenSelect, 'hide')
+      await clickHiddenButton('hide')
 
       // Click save
       const saveButton = screen.getByRole('button', { name: /save/i })
@@ -103,9 +103,9 @@ describe('BulkEditDevicesModal', () => {
       })
 
       await waitFor(() => {
-        expect(mockSetEntityHidden).toHaveBeenCalledTimes(2)
-        expect(mockSetEntityHidden).toHaveBeenCalledWith('light.living_room', true)
-        expect(mockSetEntityHidden).toHaveBeenCalledWith('light.bedroom', true)
+        expect(mockSetEntityHiddenInStuga).toHaveBeenCalledTimes(2)
+        expect(mockSetEntityHiddenInStuga).toHaveBeenCalledWith('light.living_room', true, false)
+        expect(mockSetEntityHiddenInStuga).toHaveBeenCalledWith('light.bedroom', true, false)
       })
 
       expect(mockOnComplete).toHaveBeenCalled()
@@ -128,8 +128,7 @@ describe('BulkEditDevicesModal', () => {
         />
       )
 
-      const hiddenSelect = screen.getByRole('combobox')
-      await selectOption(hiddenSelect, 'unhide')
+      await clickHiddenButton('unhide')
 
       const saveButton = screen.getByRole('button', { name: /save/i })
       await act(async () => {
@@ -137,9 +136,9 @@ describe('BulkEditDevicesModal', () => {
       })
 
       await waitFor(() => {
-        expect(mockSetEntityHidden).toHaveBeenCalledTimes(2)
-        expect(mockSetEntityHidden).toHaveBeenCalledWith('light.living_room', false)
-        expect(mockSetEntityHidden).toHaveBeenCalledWith('light.bedroom', false)
+        expect(mockSetEntityHiddenInStuga).toHaveBeenCalledTimes(2)
+        expect(mockSetEntityHiddenInStuga).toHaveBeenCalledWith('light.living_room', false, false)
+        expect(mockSetEntityHiddenInStuga).toHaveBeenCalledWith('light.bedroom', false, false)
       })
     })
 
@@ -159,8 +158,7 @@ describe('BulkEditDevicesModal', () => {
         />
       )
 
-      const hiddenSelect = screen.getByRole('combobox')
-      await selectOption(hiddenSelect, 'hide')
+      await clickHiddenButton('hide')
 
       const saveButton = screen.getByRole('button', { name: /save/i })
       await act(async () => {
@@ -168,9 +166,9 @@ describe('BulkEditDevicesModal', () => {
       })
 
       await waitFor(() => {
-        expect(mockSetEntityHidden).toHaveBeenCalledTimes(2)
-        expect(mockSetEntityHidden).toHaveBeenCalledWith('switch.garage', true)
-        expect(mockSetEntityHidden).toHaveBeenCalledWith('switch.outdoor', true)
+        expect(mockSetEntityHiddenInStuga).toHaveBeenCalledTimes(2)
+        expect(mockSetEntityHiddenInStuga).toHaveBeenCalledWith('switch.garage', true, false)
+        expect(mockSetEntityHiddenInStuga).toHaveBeenCalledWith('switch.outdoor', true, false)
       })
     })
 
@@ -190,8 +188,7 @@ describe('BulkEditDevicesModal', () => {
         />
       )
 
-      const hiddenSelect = screen.getByRole('combobox')
-      await selectOption(hiddenSelect, 'unhide')
+      await clickHiddenButton('unhide')
 
       const saveButton = screen.getByRole('button', { name: /save/i })
       await act(async () => {
@@ -199,9 +196,9 @@ describe('BulkEditDevicesModal', () => {
       })
 
       await waitFor(() => {
-        expect(mockSetEntityHidden).toHaveBeenCalledTimes(2)
-        expect(mockSetEntityHidden).toHaveBeenCalledWith('switch.garage', false)
-        expect(mockSetEntityHidden).toHaveBeenCalledWith('switch.outdoor', false)
+        expect(mockSetEntityHiddenInStuga).toHaveBeenCalledTimes(2)
+        expect(mockSetEntityHiddenInStuga).toHaveBeenCalledWith('switch.garage', false, false)
+        expect(mockSetEntityHiddenInStuga).toHaveBeenCalledWith('switch.outdoor', false, false)
       })
     })
 
@@ -221,8 +218,7 @@ describe('BulkEditDevicesModal', () => {
         />
       )
 
-      const hiddenSelect = screen.getByRole('combobox')
-      await selectOption(hiddenSelect, 'hide')
+      await clickHiddenButton('hide')
 
       const saveButton = screen.getByRole('button', { name: /save/i })
       await act(async () => {
@@ -230,9 +226,9 @@ describe('BulkEditDevicesModal', () => {
       })
 
       await waitFor(() => {
-        expect(mockSetEntityHidden).toHaveBeenCalledTimes(2)
-        expect(mockSetEntityHidden).toHaveBeenCalledWith('light.living_room', true)
-        expect(mockSetEntityHidden).toHaveBeenCalledWith('switch.garage', true)
+        expect(mockSetEntityHiddenInStuga).toHaveBeenCalledTimes(2)
+        expect(mockSetEntityHiddenInStuga).toHaveBeenCalledWith('light.living_room', true, false)
+        expect(mockSetEntityHiddenInStuga).toHaveBeenCalledWith('switch.garage', true, false)
       })
     })
 
@@ -252,8 +248,7 @@ describe('BulkEditDevicesModal', () => {
         />
       )
 
-      const hiddenSelect = screen.getByRole('combobox')
-      await selectOption(hiddenSelect, 'unhide')
+      await clickHiddenButton('unhide')
 
       const saveButton = screen.getByRole('button', { name: /save/i })
       await act(async () => {
@@ -261,9 +256,9 @@ describe('BulkEditDevicesModal', () => {
       })
 
       await waitFor(() => {
-        expect(mockSetEntityHidden).toHaveBeenCalledTimes(2)
-        expect(mockSetEntityHidden).toHaveBeenCalledWith('light.living_room', false)
-        expect(mockSetEntityHidden).toHaveBeenCalledWith('switch.garage', false)
+        expect(mockSetEntityHiddenInStuga).toHaveBeenCalledTimes(2)
+        expect(mockSetEntityHiddenInStuga).toHaveBeenCalledWith('light.living_room', false, false)
+        expect(mockSetEntityHiddenInStuga).toHaveBeenCalledWith('switch.garage', false, false)
       })
     })
   })
@@ -539,9 +534,8 @@ describe('BulkEditDevicesModal', () => {
         fireEvent.click(bedroomOption)
       })
 
-      // Set hidden using the native select
-      const hiddenSelect = screen.getByRole('combobox')
-      await selectOption(hiddenSelect, 'hide')
+      // Set hidden via the button group
+      await clickHiddenButton('hide')
 
       const saveButton = screen.getByRole('button', { name: /save/i })
       await act(async () => {
@@ -551,8 +545,8 @@ describe('BulkEditDevicesModal', () => {
       await waitFor(() => {
         // Should call updateEntity for room
         expect(mockUpdateEntity).toHaveBeenCalledTimes(2)
-        // Should call setEntityHidden for hidden state
-        expect(mockSetEntityHidden).toHaveBeenCalledTimes(2)
+        // Should call setEntityHiddenInStuga for hidden state
+        expect(mockSetEntityHiddenInStuga).toHaveBeenCalledTimes(2)
       })
 
       expect(mockOnComplete).toHaveBeenCalled()
@@ -572,8 +566,7 @@ describe('BulkEditDevicesModal', () => {
       )
 
       // Make some changes
-      const hiddenSelect = screen.getByRole('combobox')
-      await selectOption(hiddenSelect, 'hide')
+      await clickHiddenButton('hide')
 
       // Click cancel
       const cancelButton = screen.getByRole('button', { name: /cancel/i })
@@ -583,13 +576,13 @@ describe('BulkEditDevicesModal', () => {
 
       // No API calls should be made
       expect(mockUpdateEntity).not.toHaveBeenCalled()
-      expect(mockSetEntityHidden).not.toHaveBeenCalled()
+      expect(mockSetEntityHiddenInStuga).not.toHaveBeenCalled()
       expect(mockOnClose).toHaveBeenCalled()
       expect(mockOnComplete).not.toHaveBeenCalled()
     })
 
     it('should show error toast on API failure', async () => {
-      mockSetEntityHidden.mockRejectedValueOnce(new Error('API Error'))
+      mockSetEntityHiddenInStuga.mockRejectedValueOnce(new Error('API Error'))
 
       const devices = [createMockLight({ entity_id: 'light.living_room' })]
 
@@ -603,8 +596,7 @@ describe('BulkEditDevicesModal', () => {
         />
       )
 
-      const hiddenSelect = screen.getByRole('combobox')
-      await selectOption(hiddenSelect, 'hide')
+      await clickHiddenButton('hide')
 
       const saveButton = screen.getByRole('button', { name: /save/i })
       await act(async () => {

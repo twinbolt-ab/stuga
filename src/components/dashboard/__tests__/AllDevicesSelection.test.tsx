@@ -205,11 +205,19 @@ describe('Device Selection Flow', () => {
       expect(screen.getByTestId('count')).toHaveTextContent('0')
     })
 
-    it('should allow selecting all devices', async () => {
+    it('should allow selecting all devices of the same domain', async () => {
+      // Selection is domain-locked: starting from a switch, only other switches
+      // can be added. A different domain (e.g. light) exits edit mode.
+      const sameDomainDevices = [
+        createMockDevice('switch.garage', 'Garage Switch', 'off'),
+        createMockDevice('switch.kitchen', 'Kitchen Switch', 'on'),
+        createMockDevice('switch.outdoor', 'Outdoor Switch', 'off'),
+      ]
+
       render(
         <TestWrapper>
           <DeviceSelectionTestHarness
-            devices={devices}
+            devices={sameDomainDevices}
             initialSelection="switch.garage"
             autoEnterEditMode
           />
@@ -218,13 +226,13 @@ describe('Device Selection Flow', () => {
 
       // Click remaining devices
       const kitchenButton = screen.getByText('Kitchen Switch').closest('button')
-      const bedroomButton = screen.getByText('Bedroom Light').closest('button')
+      const outdoorButton = screen.getByText('Outdoor Switch').closest('button')
 
       await act(async () => {
         fireEvent.click(kitchenButton!)
       })
       await act(async () => {
-        fireEvent.click(bedroomButton!)
+        fireEvent.click(outdoorButton!)
       })
 
       expect(screen.getByTestId('count')).toHaveTextContent('3')
