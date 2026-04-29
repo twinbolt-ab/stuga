@@ -11,7 +11,19 @@ set -e
 # 4. Creates a git tag with changelog in message
 # 5. Pushes to GitHub (GHA will create the release)
 
-BUMP_TYPE="${1:-patch}"
+AUTO_APPROVE=false
+BUMP_TYPE=""
+for arg in "$@"; do
+  case "$arg" in
+    -y|--yes)
+      AUTO_APPROVE=true
+      ;;
+    *)
+      BUMP_TYPE="$arg"
+      ;;
+  esac
+done
+BUMP_TYPE="${BUMP_TYPE:-patch}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
@@ -145,7 +157,11 @@ echo ""
 SKIP_PUSH=false
 SILENT_RELEASE=false
 
-while true; do
+if [[ "$AUTO_APPROVE" == "true" ]]; then
+  echo -e "${YELLOW}Auto-approving changelog (--yes)${NC}"
+fi
+
+while [[ "$AUTO_APPROVE" != "true" ]]; do
   echo -e "${YELLOW}Options:${NC}"
   echo "  [y] Proceed with this changelog"
   echo "  [e] Edit changelog in \$EDITOR"
