@@ -12,4 +12,8 @@ export class WebStorage implements StorageAdapter {
   async removeItem(key: string): Promise<void> {
     localStorage.removeItem(key)
   }
+
+  async keys(): Promise<string[]> {
+    return Object.keys(localStorage)
+  }
 }

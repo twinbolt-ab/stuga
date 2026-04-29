@@ -140,7 +140,9 @@ export async function updateToken(token: string): Promise<void> {
 }
 
 /**
- * Clear all credentials and setup state
+ * Clear all credentials and setup state.
+ * Also clears cached data tied to the previous HA instance (layout cache,
+ * room/entity ordering) so logging into a different instance starts clean.
  */
 export async function clearCredentials(): Promise<void> {
   if (typeof window === 'undefined') return
@@ -151,6 +153,24 @@ export async function clearCredentials(): Promise<void> {
     await storage.removeItem(STORAGE_KEYS.HA_TOKEN)
     await storage.removeItem(STORAGE_KEYS.SETUP_COMPLETE)
     await storage.removeItem(STORAGE_KEYS.ENABLED_DOMAINS)
+
+    // Per-instance cached data — area/entity IDs from the previous HA
+    // instance won't match a different instance, so clearing avoids stale
+    // lights/rooms appearing after switching.
+    await storage.removeItem(STORAGE_KEYS.LAYOUT_CACHE)
+    await storage.removeItem(STORAGE_KEYS.ROOM_ORDER)
+    await storage.removeItem(STORAGE_KEYS.ROOM_ORDER_MIGRATED)
+    await storage.removeItem(STORAGE_KEYS.ROOM_ORDER_SYNC_TO_HA)
+    await storage.removeItem(STORAGE_KEYS.CUSTOM_ORDER_ENABLED)
+
+    // Entity order keys are dynamic (one per area), enumerate by prefix
+    const allKeys = await storage.keys()
+    await Promise.all(
+      allKeys
+        .filter((k) => k.startsWith(STORAGE_KEYS.ENTITY_ORDER_PREFIX))
+        .map((k) => storage.removeItem(k))
+    )
+
     // Also clear OAuth credentials
     await clearOAuthCredentials()
   } catch (error) {

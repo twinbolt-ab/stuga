@@ -51,4 +51,17 @@ export class SecureStorage implements StorageAdapter {
       }
     }
   }
+
+  async keys(): Promise<string[]> {
+    try {
+      const { value } = await SecureStoragePlugin.keys()
+      return value
+    } catch (error) {
+      void logError(
+        error instanceof Error ? error : new Error(String(error)),
+        'secure-storage-keys'
+      )
+      return []
+    }
+  }
 }

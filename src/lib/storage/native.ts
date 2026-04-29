@@ -39,4 +39,17 @@ export class NativeStorage implements StorageAdapter {
       throw error
     }
   }
+
+  async keys(): Promise<string[]> {
+    try {
+      const { keys } = await Preferences.keys()
+      return keys
+    } catch (error) {
+      void logError(
+        error instanceof Error ? error : new Error(String(error)),
+        'native-storage-keys'
+      )
+      return []
+    }
+  }
 }
