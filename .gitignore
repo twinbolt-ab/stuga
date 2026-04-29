@@ -50,3 +50,4 @@ android/fastlane/play-store-credentials.json
 .claude
 .screen-captures
 CLAUDE.local.md
+.playwright-mcp/
