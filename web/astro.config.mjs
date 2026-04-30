@@ -5,4 +5,7 @@ export default defineConfig({
   integrations: [tailwind()],
   site: 'https://stuga.app',
   trailingSlash: 'never',
+  build: {
+    format: 'file',
+  },
 })
