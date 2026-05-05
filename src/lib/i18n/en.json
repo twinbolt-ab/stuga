@@ -257,6 +257,7 @@
     "input_boolean": "Toggles",
     "input_number": "Sliders",
     "fan": "Fans",
+    "cover": "Blinds",
     "vacuum": "Vacuums",
     "media_player": "Media",
     "sensor": "Sensors"
@@ -295,6 +296,11 @@
     "lights": "Lights",
     "switches": "Switches",
     "inputs": "Inputs",
+    "covers": "Blinds",
+    "coverOpen": "Open",
+    "coverClosed": "Closed",
+    "coverOpening": "Opening",
+    "coverClosing": "Closing",
     "doneReordering": "Done"
   },
   "edit": {
@@ -369,6 +375,8 @@
     "editSliders": "Edit sliders",
     "editFan": "Edit fan",
     "editFans": "Edit fans",
+    "editCover": "Edit blind",
+    "editCovers": "Edit blinds",
     "editVacuum": "Edit vacuum",
     "editVacuums": "Edit vacuums",
     "editMedia": "Edit media",

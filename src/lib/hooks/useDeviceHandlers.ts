@@ -50,11 +50,51 @@ export function useDeviceHandlers() {
     [callService]
   )
 
+  const handleCoverToggle = useCallback(
+    (cover: HAEntity) => {
+      // While moving, tap stops. Otherwise, toggle: closed → open; open/partial → close.
+      if (cover.state === 'opening' || cover.state === 'closing') {
+        void callService('cover', 'stop_cover', { entity_id: cover.entity_id })
+        return
+      }
+      const isClosed = cover.state === 'closed'
+      const service = isClosed ? 'open_cover' : 'close_cover'
+      setOptimisticState(cover.entity_id, isClosed ? 'opening' : 'closing')
+      void callService('cover', service, { entity_id: cover.entity_id })
+    },
+    [callService]
+  )
+
+  const handleCoverPosition = useCallback(
+    (cover: HAEntity, position: number) => {
+      const clamped = Math.max(0, Math.min(100, Math.round(position)))
+      // Optimistic: while moving we don't know exact position, but mark direction.
+      const current =
+        typeof cover.attributes.current_position === 'number'
+          ? cover.attributes.current_position
+          : cover.state === 'open'
+            ? 100
+            : 0
+      if (clamped > current) {
+        setOptimisticState(cover.entity_id, 'opening')
+      } else if (clamped < current) {
+        setOptimisticState(cover.entity_id, 'closing')
+      }
+      void callService('cover', 'set_cover_position', {
+        entity_id: cover.entity_id,
+        position: clamped,
+      })
+    },
+    [callService]
+  )
+
   return {
     handleSceneActivate,
     handleSwitchToggle,
     handleInputBooleanToggle,
     handleInputNumberChange,
     handleFanToggle,
+    handleCoverToggle,
+    handleCoverPosition,
   }
 }

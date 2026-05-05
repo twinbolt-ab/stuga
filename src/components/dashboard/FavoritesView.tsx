@@ -8,7 +8,13 @@ import { ReorderableGrid } from './ReorderableGrid'
 import { ReorderableList } from '@/components/shared/ReorderableList'
 import { RoomCard } from './RoomCard'
 import { ROOM_EXPAND_DURATION } from '@/lib/constants'
-import { LightsSection, SwitchesSection, InputsSection, FansSection } from '@/components/devices'
+import {
+  LightsSection,
+  SwitchesSection,
+  InputsSection,
+  FansSection,
+  CoversSection,
+} from '@/components/devices'
 import { SectionHeader } from '@/components/ui/SectionHeader'
 import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox'
 import { MdiIcon } from '@/components/ui/MdiIcon'
@@ -543,6 +549,27 @@ export function FavoritesView({
                   isInEditMode={isEntitiesEditMode && selectedDomain === 'fan'}
                   isSelected={isSelected}
                   onToggle={handlers.handleFanToggle}
+                  onToggleSelection={(id) =>
+                    isEntitiesEditMode
+                      ? handleToggleSelection(id, 'entity')
+                      : handleEnterEditModeWithSelection(id, 'entity')
+                  }
+                  onEnterEditModeWithSelection={(id) =>
+                    handleEnterEditModeWithSelection(id, 'entity')
+                  }
+                  entityMeta={entityMeta}
+                  onReorderEntities={handleReorderEntities}
+                  selectedIds={selectedIds}
+                />
+              </DomainSection>
+            )}
+            {entityGroups.covers.length > 0 && (
+              <DomainSection domain="cover" selectedDomain={selectedDomain}>
+                <CoversSection
+                  covers={entityGroups.covers}
+                  isInEditMode={isEntitiesEditMode && selectedDomain === 'cover'}
+                  isSelected={isSelected}
+                  onToggle={handlers.handleCoverToggle}
                   onToggleSelection={(id) =>
                     isEntitiesEditMode
                       ? handleToggleSelection(id, 'entity')

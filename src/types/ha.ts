@@ -139,6 +139,7 @@ export type ConfigurableDomain =
   | 'input_boolean'
   | 'input_number'
   | 'fan'
+  | 'cover'
   | 'vacuum'
   | 'media_player'
 
@@ -148,6 +149,7 @@ export const DEFAULT_ENABLED_DOMAINS: ConfigurableDomain[] = [
   'scene',
   'input_boolean',
   'input_number',
+  'cover',
 ]
 
 export const ALL_CONFIGURABLE_DOMAINS: ConfigurableDomain[] = [
@@ -157,6 +159,7 @@ export const ALL_CONFIGURABLE_DOMAINS: ConfigurableDomain[] = [
   'input_boolean',
   'input_number',
   'fan',
+  'cover',
 ]
 
 // Type guards for runtime validation

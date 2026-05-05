@@ -11,6 +11,7 @@ const DOMAIN_LABELS: Record<string, { singular: string; plural: string }> = {
   input_boolean: { singular: t.bulkEdit.editToggle, plural: t.bulkEdit.editToggles },
   input_number: { singular: t.bulkEdit.editSlider, plural: t.bulkEdit.editSliders },
   fan: { singular: t.bulkEdit.editFan, plural: t.bulkEdit.editFans },
+  cover: { singular: t.bulkEdit.editCover, plural: t.bulkEdit.editCovers },
   vacuum: { singular: t.bulkEdit.editVacuum, plural: t.bulkEdit.editVacuums },
   media_player: { singular: t.bulkEdit.editMedia, plural: t.bulkEdit.editMediaPlayers },
 }

@@ -16,6 +16,7 @@ import {
   SwitchesSection,
   InputsSection,
   FansSection,
+  CoversSection,
   SensorsDisplay,
 } from '@/components/devices'
 
@@ -119,6 +120,13 @@ function RoomExpandedContent({ room, allRooms: _allRooms, isExpanded }: RoomExpa
         : [],
     [room.devices, enabledDomains]
   )
+  const covers = useMemo(
+    () =>
+      enabledDomains.includes('cover')
+        ? room.devices.filter((d) => d.entity_id.startsWith('cover.'))
+        : [],
+    [room.devices, enabledDomains]
+  )
 
   // Temperature and humidity sensors for display
   const temperatureSensors = useMemo(
@@ -146,7 +154,8 @@ function RoomExpandedContent({ room, allRooms: _allRooms, isExpanded }: RoomExpa
     scenes.length > 0 ||
     inputBooleans.length > 0 ||
     inputNumbers.length > 0 ||
-    fans.length > 0
+    fans.length > 0 ||
+    covers.length > 0
 
   // Measure content height whenever it might change
   useLayoutEffect(() => {
@@ -175,7 +184,7 @@ function RoomExpandedContent({ room, allRooms: _allRooms, isExpanded }: RoomExpa
       cancelAnimationFrame(rafId)
       resizeObserver.disconnect()
     }
-  }, [lights, switches, scenes, inputBooleans, inputNumbers, fans, hasDevices, isExpanded])
+  }, [lights, switches, scenes, inputBooleans, inputNumbers, fans, covers, hasDevices, isExpanded])
 
   return (
     <div
@@ -296,6 +305,20 @@ function RoomExpandedContent({ room, allRooms: _allRooms, isExpanded }: RoomExpa
               onEnterEditModeWithSelection={handleEnterEditModeWithSelection}
               entityOrder={getDomainOrder('fan')}
               onReorderEntities={(entities) => updateDomainOrder('fan', entities)}
+              selectedIds={selectedIds}
+            />
+          </DomainSection>
+
+          <DomainSection domain="cover" selectedDomain={selectedDomain}>
+            <CoversSection
+              covers={covers}
+              isInEditMode={isInEditMode && selectedDomain === 'cover'}
+              isSelected={isSelected}
+              onToggle={handlers.handleCoverToggle}
+              onToggleSelection={toggleSelection}
+              onEnterEditModeWithSelection={handleEnterEditModeWithSelection}
+              entityOrder={getDomainOrder('cover')}
+              onReorderEntities={(entities) => updateDomainOrder('cover', entities)}
               selectedIds={selectedIds}
             />
           </DomainSection>

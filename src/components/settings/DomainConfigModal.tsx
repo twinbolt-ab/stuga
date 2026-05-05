@@ -18,6 +18,7 @@ const DOMAIN_INFO: Record<ConfigurableDomain, { label: string; icon: string }> =
   input_boolean: { label: 'Toggles', icon: 'check-square' },
   input_number: { label: 'Sliders', icon: 'sliders' },
   fan: { label: 'Fans', icon: 'fan' },
+  cover: { label: 'Blinds', icon: 'blinds' },
   vacuum: { label: 'Vacuums', icon: 'bot' },
   media_player: { label: 'Media', icon: 'play-circle' },
 }

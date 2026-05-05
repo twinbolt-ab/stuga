@@ -14,6 +14,7 @@ import {
   SwitchesSection,
   InputsSection,
   FansSection,
+  CoversSection,
 } from '@/components/devices'
 
 export function AllDevicesView() {
@@ -114,6 +115,7 @@ export function AllDevicesView() {
   )
   const inputNumbers = useMemo(() => entitiesByDomain.get('input_number') || [], [entitiesByDomain])
   const fans = useMemo(() => entitiesByDomain.get('fan') || [], [entitiesByDomain])
+  const covers = useMemo(() => entitiesByDomain.get('cover') || [], [entitiesByDomain])
 
   const isEmpty =
     lights.length === 0 &&
@@ -121,7 +123,8 @@ export function AllDevicesView() {
     scenes.length === 0 &&
     inputBooleans.length === 0 &&
     inputNumbers.length === 0 &&
-    fans.length === 0
+    fans.length === 0 &&
+    covers.length === 0
 
   // Build subtitle text
   const subtitleParts: string[] = []
@@ -261,6 +264,17 @@ export function AllDevicesView() {
         isInEditMode={isInEditMode && selectedDomain === 'fan'}
         isSelected={isSelected}
         onToggle={handlers.handleFanToggle}
+        onToggleSelection={toggleSelection}
+        onEnterEditModeWithSelection={handleEnterEditModeWithSelection}
+        selectedIds={selectedIds}
+      />
+
+      <CoversSection
+        covers={covers}
+        entityMeta={entityMeta}
+        isInEditMode={isInEditMode && selectedDomain === 'cover'}
+        isSelected={isSelected}
+        onToggle={handlers.handleCoverToggle}
         onToggleSelection={toggleSelection}
         onEnterEditModeWithSelection={handleEnterEditModeWithSelection}
         selectedIds={selectedIds}
