@@ -1,529 +1,411 @@
 {
   "releases": [
     {
+      "version": "0.3.38",
+      "date": "2026-05-05",
+      "summary": "A small polish release with a fix for one of the in-app links.",
+      "seoSummary": "Polish update for the Stuga Home Assistant dashboard app, fixing an in-app App Store link on iOS.",
+      "sections": [
+        { "title": "Bug Fixes", "items": ["Fixed the \"Rate the app\" link so it now opens the correct App Store page"] }
+      ]
+    },
+    {
       "version": "0.3.37",
       "date": "2026-04-29",
       "summary": "This release is all behind-the-scenes work to keep Stuga shipping smoothly — no user-facing changes this time.",
-      "seoSummary": "Internal improvements to the Stuga Home Assistant dashboard app, ensuring smoother future releases on iOS and Android.",
+      "seoSummary": "Behind-the-scenes maintenance release for the Stuga Home Assistant dashboard to keep the iOS and Android apps shipping smoothly.",
       "sections": []
     },
     {
       "version": "0.3.36",
       "date": "2026-04-29",
       "summary": "A few small refinements in this release.",
-      "seoSummary": "Refinements to the Stuga Home Assistant dashboard, including proper layout reset on logout and a streamlined mobile experience.",
+      "seoSummary": "Refinements for the Stuga Home Assistant dashboard, including a cleaner logout reset for room layout and order on iOS, Android, and web.",
       "sections": [
-        {
-          "title": "Improvements",
-          "items": [
-            "Layout and room order now reset properly when you log out",
-            "Removed climate and covers from the UI for now while we polish them",
-            "Behind-the-scenes cleanups for a smoother experience"
-          ]
-        }
+        { "title": "Improvements", "items": [
+          "Layout and room order now reset properly when you log out",
+          "Removed climate and covers from the UI for now while we polish them",
+          "Behind-the-scenes cleanups for a smoother experience"
+        ] }
       ]
     },
     {
       "version": "0.3.35",
       "date": "2026-02-10",
       "summary": "This is a small maintenance release focused on bug fixes and reliability.",
-      "seoSummary": "Maintenance update for the Stuga Home Assistant dashboard, improving reliability of device settings and external links on iOS and Android.",
+      "seoSummary": "Maintenance release improving reliability of the Stuga Home Assistant dashboard mobile app on iOS and Android.",
       "sections": [
-        {
-          "title": "Bug Fixes",
-          "items": [
-            "Fixed device type settings not saving properly when navigating between screens",
-            "Fixed external links not opening correctly on iOS and Android",
-            "Removed an empty \"Other\" tab that could appear when no floors are set up",
-            "Fixed redirect issues with certain web links"
-          ]
-        }
+        { "title": "Bug Fixes", "items": [
+          "Fixed device type settings not saving properly when navigating between screens",
+          "Fixed external links not opening correctly on iOS and Android",
+          "Removed an empty \"Other\" tab that could appear when no floors are set up",
+          "Fixed redirect issues with certain web links"
+        ] }
       ]
     },
     {
       "version": "0.3.34",
       "date": "2026-02-10",
       "summary": "This release focuses on stability and fixing a handful of annoying bugs.",
-      "seoSummary": "Stability fixes for the Stuga Home Assistant dashboard app, resolving device settings issues and external link handling on iOS and Android.",
+      "seoSummary": "Stability fixes for the Stuga Home Assistant dashboard, resolving device type settings and external link issues on iOS and Android.",
       "sections": [
-        {
-          "title": "Bug Fixes",
-          "items": [
-            "Fixed device type settings not saving properly when navigating between screens",
-            "Fixed external links not opening correctly on iOS and Android",
-            "Removed an empty \"Other\" tab that could appear when no floors are set up"
-          ]
-        }
+        { "title": "Bug Fixes", "items": [
+          "Fixed device type settings not saving properly when navigating between screens",
+          "Fixed external links not opening correctly on iOS and Android",
+          "Removed an empty \"Other\" tab that could appear when no floors are set up"
+        ] }
       ]
     },
     {
       "version": "0.3.33",
       "date": "2026-02-10",
       "summary": "This release fixes several bugs and improves the overall experience.",
-      "seoSummary": "Bug fixes for the Stuga Home Assistant dashboard, improving device control reliability and the smart home experience on mobile.",
+      "seoSummary": "Bug fixes and experience improvements for the Stuga Home Assistant dashboard on iOS and Android.",
       "sections": [
-        {
-          "title": "Bug Fixes",
-          "items": [
-            "Fixed device type settings not saving properly when navigating between screens",
-            "Fixed external links not opening correctly on iOS and Android",
-            "Removed an empty \"Other\" tab that could appear when no floors are set up"
-          ]
-        }
+        { "title": "Bug Fixes", "items": [
+          "Fixed device type settings not saving properly when navigating between screens",
+          "Fixed external links not opening correctly on iOS and Android",
+          "Removed an empty \"Other\" tab that could appear when no floors are set up"
+        ] }
       ]
     },
     {
       "version": "0.3.32",
       "date": "2026-02-10",
       "summary": "This release cleans up a few rough edges and fixes some annoying bugs.",
-      "seoSummary": "Polish update for the Stuga Home Assistant dashboard, fixing device type settings and external link behavior on iOS and Android.",
+      "seoSummary": "Polish update for the Stuga Home Assistant dashboard with fixes for device type settings (lights, fans) and external links on iOS and Android.",
       "sections": [
-        {
-          "title": "Improvements",
-          "items": [
-            "The \"Other\" tab no longer shows up when you don't have any floors set up"
-          ]
-        },
-        {
-          "title": "Bug Fixes",
-          "items": [
-            "Device type settings (like setting a light as a fan) now save properly and stick around as you navigate",
-            "Links to external sites now open correctly on iOS and Android instead of getting stuck"
-          ]
-        }
+        { "title": "Improvements", "items": [
+          "The \"Other\" tab no longer shows up when you don't have any floors set up"
+        ] },
+        { "title": "Bug Fixes", "items": [
+          "Device type settings (like setting a light as a fan) now save properly and stick around as you navigate",
+          "Links to external sites now open correctly on iOS and Android instead of getting stuck"
+        ] }
       ]
     },
     {
       "version": "0.3.31",
       "date": "2026-02-10",
       "summary": "This release squashes a handful of bugs and tidies things up.",
-      "seoSummary": "Bug fixes for the Stuga Home Assistant dashboard app, improving device settings persistence and external link handling on iOS and Android.",
+      "seoSummary": "Bug squashing release for the Stuga Home Assistant dashboard on iOS and Android, fixing device settings persistence and external links.",
       "sections": [
-        {
-          "title": "Bug Fixes",
-          "items": [
-            "Fixed device settings (like device type) not saving properly when navigating between screens",
-            "Fixed external links not opening correctly on iOS and Android",
-            "Removed an empty \"Other\" tab that could appear when your home has no floors set up"
-          ]
-        }
+        { "title": "Bug Fixes", "items": [
+          "Fixed device settings (like device type) not saving properly when navigating between screens",
+          "Fixed external links not opening correctly on iOS and Android",
+          "Removed an empty \"Other\" tab that could appear when your home has no floors set up"
+        ] }
       ]
     },
     {
       "version": "0.3.30",
       "date": "2026-02-06",
       "summary": "This update fixes a couple of annoying bugs to make things smoother.",
-      "seoSummary": "Smoother navigation in the Stuga Home Assistant dashboard, with fixes for swiping between floors and room card selection on mobile.",
+      "seoSummary": "Smoother navigation in the Stuga Home Assistant dashboard with fixes for swiping between floors and room card visuals on the Favorites tab.",
       "sections": [
-        {
-          "title": "Bug Fixes",
-          "items": [
-            "Fixed swiping between floors on the Favorites tab",
-            "Fixed the selection ring not showing correctly on room cards"
-          ]
-        }
+        { "title": "Bug Fixes", "items": [
+          "Fixed swiping between floors on the Favorites tab",
+          "Fixed the selection ring not showing correctly on room cards"
+        ] }
       ]
     },
     {
       "version": "0.3.29",
       "date": "2026-02-03",
       "summary": "This release brings a smoother experience when organizing your favorites.",
-      "seoSummary": "Organize favorite smart home devices and rooms more easily in the Stuga Home Assistant dashboard with a refined custom order experience.",
+      "seoSummary": "Organize your favorite Home Assistant scenes and rooms more smoothly in Stuga, with simpler custom ordering and refined edit mode visuals.",
       "sections": [
-        {
-          "title": "Improvements",
-          "items": [
-            "Added a loading indicator when toggling custom order on or off",
-            "Simplified settings with a single \"Custom room & device order\" option"
-          ]
-        },
-        {
-          "title": "Bug Fixes",
-          "items": [
-            "Fixed an issue where items would jump around when reordering favorites",
-            "Improved visual consistency in favorites edit mode"
-          ]
-        }
+        { "title": "Improvements", "items": [
+          "Added a loading indicator when toggling custom order on or off",
+          "Simplified settings with a single \"Custom room & device order\" option"
+        ] },
+        { "title": "Bug Fixes", "items": [
+          "Fixed an issue where items would jump around when reordering favorites",
+          "Improved visual consistency in favorites edit mode"
+        ] }
       ]
     },
     {
       "version": "0.3.28",
       "date": "2026-02-02",
       "summary": "This update brings the all-new **Favorites view** – a dedicated tab where you can pin your most-used devices and scenes for quick access. We're also rolling out a few improvements from earlier today that you might have missed.",
-      "seoSummary": "Pin your most-used Home Assistant devices, scenes, and sensors with the new Favorites tab in Stuga, plus drag-and-drop reordering and faster dashboard loading on iOS and Android.",
+      "seoSummary": "Pin your most-used Home Assistant devices, scenes, and sensors with the new Favorites tab in Stuga, plus drag-and-drop reordering on iOS and Android.",
       "sections": [
-        {
-          "title": "New Features",
-          "items": [
-            "Favorites tab for instant access to your most important controls",
-            "Drag and drop to reorder devices, scenes, and sensors in any room",
-            "Select multiple items and move them together",
-            "Choose to keep your room and device order local or sync it to Home Assistant (Settings → Advanced)",
-            "The first temperature sensor now shows on the room card",
-            "News section in settings to stay up to date with Stuga",
-            "Quick links to give feedback and join discussions (Settings menu)"
-          ]
-        },
-        {
-          "title": "Improvements",
-          "items": [
-            "Faster dashboard loading with cached layouts",
-            "Smoother login flow with instant redirect after connecting",
-            "Clearer indication of where hidden devices are synced",
-            "Simplified room order settings",
-            "Better visual feedback when selecting multiple devices"
-          ]
-        },
-        {
-          "title": "Bug Fixes",
-          "items": [
-            "Fixed crash on Huawei and other non-Google Play Services Android devices"
-          ]
-        }
+        { "title": "New Features", "items": [
+          "Favorites tab for instant access to your most important controls",
+          "Drag and drop to reorder devices, scenes, and sensors in any room",
+          "Select multiple items and move them together",
+          "Choose to keep your room and device order local or sync it to Home Assistant (Settings → Advanced)",
+          "The first temperature sensor now shows on the room card",
+          "News section in settings to stay up to date with Stuga",
+          "Quick links to give feedback and join discussions (Settings menu)"
+        ] },
+        { "title": "Improvements", "items": [
+          "Faster dashboard loading with cached layouts",
+          "Smoother login flow with instant redirect after connecting",
+          "Clearer indication of where hidden devices are synced",
+          "Simplified room order settings",
+          "Better visual feedback when selecting multiple devices"
+        ] },
+        { "title": "Bug Fixes", "items": [
+          "Fixed crash on Huawei and other non-Google Play Services Android devices"
+        ] }
       ]
     },
     {
       "version": "0.3.27",
       "date": "2026-02-02",
       "summary": "This update brings a much-requested feature: you can now reorder devices, scenes, and sensors within your rooms! We've also added a news section to settings and made several quality-of-life improvements.",
-      "seoSummary": "Reorder Home Assistant devices, scenes, and sensors within rooms in Stuga, with a new drag-and-drop interface and the option to sync custom order back to Home Assistant.",
+      "seoSummary": "Reorder Home Assistant devices, scenes, and sensors within rooms in Stuga with drag-and-drop, and sync the order to Home Assistant on iOS and Android.",
       "sections": [
-        {
-          "title": "New Features",
-          "items": [
-            "Drag and drop to reorder devices, scenes, and sensors in any room",
-            "Choose to keep your room and device order local or sync it to Home Assistant via labels (Settings → Advanced)",
-            "The first temperature sensor will be the one that shows in the room card",
-            "Select multiple items and move them together",
-            "News section in settings to stay up to date with Stuga"
-          ]
-        },
-        {
-          "title": "Improvements",
-          "items": [
-            "Clearer indication of where hidden devices are synced",
-            "Simplified room order settings",
-            "Better visual feedback when selecting multiple devices"
-          ]
-        }
+        { "title": "New Features", "items": [
+          "Drag and drop to reorder devices, scenes, and sensors in any room",
+          "Choose to keep your room and device order local or sync it to Home Assistant via labels (Settings → Advanced)",
+          "The first temperature sensor will be the one that shows in the room card",
+          "Select multiple items and move them together",
+          "News section in settings to stay up to date with Stuga"
+        ] },
+        { "title": "Improvements", "items": [
+          "Clearer indication of where hidden devices are synced",
+          "Simplified room order settings",
+          "Better visual feedback when selecting multiple devices"
+        ] }
       ]
     },
     {
       "version": "0.3.26",
       "date": "2026-01-30",
       "summary": "This release brings a refreshed settings experience and several quality-of-life improvements.",
-      "seoSummary": "Refreshed settings experience in the Stuga Home Assistant dashboard with a full-screen menu, smoother room reordering, and easier server switching on mobile.",
+      "seoSummary": "Refreshed settings menu for the Stuga Home Assistant dashboard with smoother room reordering and quality-of-life improvements on iOS and Android.",
       "sections": [
-        {
-          "title": "Improvements",
-          "items": [
-            "Settings now opens as a full-screen menu sliding in from the right for easier navigation",
-            "Settings button moved to the top-right corner with a cleaner icon",
-            "Added a logout option when connection is lost, so you can switch servers more easily",
-            "Improved room reordering with better touch-based swiping",
-            "Cleaner layout when your home doesn't have multiple floors"
-          ]
-        },
-        {
-          "title": "Bug Fixes",
-          "items": [
-            "Fixed rooms sometimes not appearing when assigned to a missing floor",
-            "Hidden technical entities (config/diagnostic) that aren't meant for daily use"
-          ]
-        }
+        { "title": "Improvements", "items": [
+          "Settings now opens as a full-screen menu sliding in from the right for easier navigation",
+          "Settings button moved to the top-right corner with a cleaner icon",
+          "Added a logout option when connection is lost, so you can switch servers more easily",
+          "Improved room reordering with better touch-based swiping",
+          "Cleaner layout when your home doesn't have multiple floors"
+        ] },
+        { "title": "Bug Fixes", "items": [
+          "Fixed rooms sometimes not appearing when assigned to a missing floor",
+          "Hidden technical entities (config/diagnostic) that aren't meant for daily use"
+        ] }
       ]
     },
     {
       "version": "0.3.25",
       "date": "2026-01-30",
       "summary": "This release brings a refreshed settings experience and several quality-of-life improvements.",
-      "seoSummary": "Refreshed settings menu and quality-of-life improvements in the Stuga Home Assistant dashboard, with smoother room reordering on iOS and Android.",
+      "seoSummary": "Redesigned settings experience in the Stuga Home Assistant dashboard with touch-friendly room reordering and easier server switching on mobile.",
       "sections": [
-        {
-          "title": "Improvements",
-          "items": [
-            "Settings now opens as a full-screen menu sliding in from the right for easier navigation",
-            "Settings button moved to the top-right corner with a cleaner icon",
-            "Added a logout option when connection is lost, so you can switch servers more easily",
-            "Improved room reordering with better touch-based swiping",
-            "Cleaner layout when your home doesn't have multiple floors"
-          ]
-        },
-        {
-          "title": "Bug Fixes",
-          "items": [
-            "Fixed rooms sometimes not appearing when assigned to a missing floor",
-            "Hidden technical entities (config/diagnostic) that aren't meant for daily use"
-          ]
-        }
+        { "title": "Improvements", "items": [
+          "Settings now opens as a full-screen menu sliding in from the right for easier navigation",
+          "Settings button moved to the top-right corner with a cleaner icon",
+          "Added a logout option when connection is lost, so you can switch servers more easily",
+          "Improved room reordering with better touch-based swiping",
+          "Cleaner layout when your home doesn't have multiple floors"
+        ] },
+        { "title": "Bug Fixes", "items": [
+          "Fixed rooms sometimes not appearing when assigned to a missing floor",
+          "Hidden technical entities (config/diagnostic) that aren't meant for daily use"
+        ] }
       ]
     },
     {
       "version": "0.3.24",
       "date": "2026-01-29",
       "summary": "This release contains only internal build system fixes - no user-facing changes.",
-      "seoSummary": "Internal build fixes for the Stuga Home Assistant dashboard Android release pipeline — no user-facing changes.",
+      "seoSummary": "Internal build fixes for the Stuga Home Assistant dashboard Android app — no user-facing changes.",
       "sections": [
-        {
-          "title": "Technical",
-          "items": [
-            "Fixed build configuration for Android releases"
-          ]
-        }
+        { "title": "Technical", "items": ["Fixed build configuration for Android releases"] }
       ]
     },
     {
       "version": "0.3.23",
       "date": "2026-01-29",
       "summary": "This release focuses on behind-the-scenes improvements to our release process.",
-      "seoSummary": "Behind-the-scenes release pipeline improvements for the Stuga Home Assistant dashboard app on iOS and Android.",
+      "seoSummary": "Behind-the-scenes release pipeline improvements for the Stuga Home Assistant dashboard mobile app.",
       "sections": [
-        {
-          "title": "Notes",
-          "items": [
-            "No user-facing changes in this version - just internal fixes to make future releases smoother"
-          ]
-        }
+        { "title": "Notes", "items": ["No user-facing changes in this version - just internal fixes to make future releases smoother"] }
       ]
     },
     {
       "version": "0.3.22",
       "date": "2026-01-28",
       "summary": "This release brings temperature display improvements and better support for Android sideloading.",
-      "seoSummary": "Display temperature in Celsius or Fahrenheit based on your Home Assistant preferences, with new APK sideloading support for Android users of the Stuga dashboard.",
+      "seoSummary": "Display temperatures in Celsius or Fahrenheit based on your Home Assistant settings in Stuga, plus direct APK downloads for Android sideloading.",
       "sections": [
-        {
-          "title": "Improvements",
-          "items": [
-            "Temperature now displays in your preferred unit (Celsius or Fahrenheit) based on your Home Assistant settings",
-            "Android users can now download the APK directly for sideloading or use with Obtainium"
-          ]
-        },
-        {
-          "title": "Bug fix",
-          "items": [
-            "Removed accidental advertising ID from Android manifesto"
-          ]
-        }
+        { "title": "Improvements", "items": [
+          "Temperature now displays in your preferred unit (Celsius or Fahrenheit) based on your Home Assistant settings",
+          "Android users can now download the APK directly for sideloading or use with Obtainium"
+        ] },
+        { "title": "Bug fix", "items": [
+          "Removed accidental advertising ID from Android manifesto"
+        ] }
       ]
     },
     {
       "version": "0.3.21",
       "date": "2026-01-28",
       "summary": "This release brings temperature display improvements and better support for Android sideloading.",
-      "seoSummary": "Temperature now displays in your preferred unit from Home Assistant, plus Android APK sideloading support for the Stuga smart home dashboard.",
+      "seoSummary": "Show temperature in your preferred unit from Home Assistant settings in the Stuga dashboard, with new direct APK support for Android sideloading.",
       "sections": [
-        {
-          "title": "Improvements",
-          "items": [
-            "Temperature now displays in your preferred unit (Celsius or Fahrenheit) based on your Home Assistant settings",
-            "Android users can now download the APK directly for sideloading or use with Obtainium"
-          ]
-        }
+        { "title": "Improvements", "items": [
+          "Temperature now displays in your preferred unit (Celsius or Fahrenheit) based on your Home Assistant settings",
+          "Android users can now download the APK directly for sideloading or use with Obtainium"
+        ] }
       ]
     },
     {
       "version": "0.3.20",
       "date": "2026-01-26",
       "summary": "Control which smart home devices appear in your Home Assistant dashboard with new device visibility options.",
-      "seoSummary": "Control which smart home devices appear in your Home Assistant dashboard with new visibility options in Stuga, plus clearer SSL/TLS and DNS connection diagnostics.",
+      "seoSummary": "Control which smart home devices appear in your Home Assistant dashboard with new visibility options in Stuga, plus clearer SSL/TLS connection diagnostics.",
       "sections": [
-        {
-          "title": "New Features",
-          "items": [
-            "You can now choose to hide devices either just in Stuga or in Home Assistant too - giving you more control over what shows up where"
-          ]
-        },
-        {
-          "title": "Improvements",
-          "items": [
-            "Better error messages when there are SSL/TLS or DNS connection issues, making it easier to troubleshoot connection problems"
-          ]
-        }
+        { "title": "New Features", "items": [
+          "You can now choose to hide devices either just in Stuga or in Home Assistant too - giving you more control over what shows up where"
+        ] },
+        { "title": "Improvements", "items": [
+          "Better error messages when there are SSL/TLS or DNS connection issues, making it easier to troubleshoot connection problems"
+        ] }
       ]
     },
     {
       "version": "0.3.19",
       "date": "2026-01-25",
       "summary": "Improved Home Assistant connection setup with smarter URL detection for both local and remote access.",
-      "seoSummary": "Connect to Home Assistant more easily with smarter URL detection in Stuga, automatically trying http and https for both local and remote dashboard access.",
+      "seoSummary": "Smarter Home Assistant connection setup in Stuga with automatic protocol detection for local and remote URLs on iOS and Android.",
       "sections": [
-        {
-          "title": "Improvements",
-          "items": [
-            "Smarter URL handling when setting up your connection - the app now automatically tries different protocols (http/https) and suggests alternatives if your initial URL doesn't work",
-            "When multiple connection options are found, you can now easily pick the one that works best for you"
-          ]
-        },
-        {
-          "title": "Bug Fixes",
-          "items": [
-            "Fixed an issue where the setup wizard wouldn't scroll properly when the keyboard appeared",
-            "Fixed a timing issue that could cause connection testing to behave unexpectedly"
-          ]
-        }
+        { "title": "Improvements", "items": [
+          "Smarter URL handling when setting up your connection - the app now automatically tries different protocols (http/https) and suggests alternatives if your initial URL doesn't work",
+          "When multiple connection options are found, you can now easily pick the one that works best for you"
+        ] },
+        { "title": "Bug Fixes", "items": [
+          "Fixed an issue where the setup wizard wouldn't scroll properly when the keyboard appeared",
+          "Fixed a timing issue that could cause connection testing to behave unexpectedly"
+        ] }
       ]
     },
     {
       "version": "0.3.18",
       "date": "2026-01-25",
       "summary": "Stability improvements and bug fixes for the Home Assistant dashboard app on Android devices.",
-      "seoSummary": "Stability improvements for the Stuga Home Assistant dashboard on Android, including Huawei compatibility, smoother sliders, and better connection diagnostics.",
+      "seoSummary": "Stability and compatibility improvements for the Stuga Home Assistant dashboard app on Android, including Huawei devices, modal sheets, and slider controls.",
       "sections": [
-        {
-          "title": "Improvements",
-          "items": [
-            "Added connection diagnostics to help troubleshoot connectivity issues",
-            "Updated privacy policy to reflect our crash reporting practices"
-          ]
-        },
-        {
-          "title": "Bug Fixes",
-          "items": [
-            "Fixed compatibility issues on Huawei Android 12 devices",
-            "Fixed modal sheets sometimes closing unexpectedly when swiping",
-            "Fixed slider controls flickering while dragging",
-            "Fixed icon picker scrolling issues on Android",
-            "Fixed room card layout and sizing inconsistencies"
-          ]
-        }
+        { "title": "Improvements", "items": [
+          "Added connection diagnostics to help troubleshoot connectivity issues",
+          "Updated privacy policy to reflect our crash reporting practices"
+        ] },
+        { "title": "Bug Fixes", "items": [
+          "Fixed compatibility issues on Huawei Android 12 devices",
+          "Fixed modal sheets sometimes closing unexpectedly when swiping",
+          "Fixed slider controls flickering while dragging",
+          "Fixed icon picker scrolling issues on Android",
+          "Fixed room card layout and sizing inconsistencies"
+        ] }
       ]
     },
     {
       "version": "0.3.17",
       "date": "2026-01-23",
       "summary": "Display temperature and humidity sensors in your Home Assistant room cards with new customization options.",
-      "seoSummary": "Show temperature and humidity sensors directly on Home Assistant room cards in Stuga, with new toggles for which lights and switches belong to a room.",
+      "seoSummary": "Display temperature and humidity sensors on Home Assistant room cards in Stuga, with new options to customize lights, switches, and grid layout.",
       "sections": [
-        {
-          "title": "Improvements",
-          "items": [
-            "Redesigned floor editing with a cleaner, more intuitive interface",
-            "Room cards now show humidity alongside temperature",
-            "New settings to show or hide temperature and humidity in room cards",
-            "You can now exclude specific lights or switches from the room toggle",
-            "Simplified grid layout with a cleaner 2-column default"
-          ]
-        },
-        {
-          "title": "Bug Fixes",
-          "items": [
-            "Switches now behave correctly based on their device type when toggling rooms"
-          ]
-        }
+        { "title": "Improvements", "items": [
+          "Redesigned floor editing with a cleaner, more intuitive interface",
+          "Room cards now show humidity alongside temperature",
+          "New settings to show or hide temperature and humidity in room cards",
+          "You can now exclude specific lights or switches from the room toggle",
+          "Simplified grid layout with a cleaner 2-column default"
+        ] },
+        { "title": "Bug Fixes", "items": [
+          "Switches now behave correctly based on their device type when toggling rooms"
+        ] }
       ]
     },
     {
       "version": "0.3.16",
       "date": "2026-01-23",
       "summary": "Bug fixes for the Home Assistant mobile dashboard.",
-      "seoSummary": "Bug fixes for the Stuga Home Assistant mobile dashboard, resolving video container layout issues when scrolling on phones.",
+      "seoSummary": "Bug fixes for the Stuga Home Assistant mobile dashboard, including a scrolling fix for video containers on phones.",
       "sections": [
-        {
-          "title": "Bug Fixes",
-          "items": [
-            "Fixed video containers getting squashed when scrolling on phones"
-          ]
-        }
+        { "title": "Bug Fixes", "items": [
+          "Fixed video containers getting squashed when scrolling on phones"
+        ] }
       ]
     },
     {
       "version": "0.3.15",
       "date": "2026-01-22",
       "summary": "Android app improvements for the Home Assistant dashboard with better compatibility and app store presence.",
-      "seoSummary": "Android improvements for the Stuga Home Assistant dashboard, with better compatibility on newer devices and a refreshed Google Play store listing.",
+      "seoSummary": "Android compatibility improvements and app store updates for the Stuga Home Assistant dashboard, including new screenshots and a promo video.",
       "sections": [
-        {
-          "title": "Improvements",
-          "items": [
-            "Improved Android app versioning for more reliable updates",
-            "Added screenshot gallery to the landing page",
-            "Added promotional video to app store listing",
-            "Updated screenshots and visuals",
-            "Improved compatibility with newer Android devices",
-            "Improved app store listings with better descriptions and metadata"
-          ]
-        },
-        {
-          "title": "Bug Fixes",
-          "items": [
-            "Fixed Android app build issues"
-          ]
-        }
+        { "title": "Improvements", "items": [
+          "Improved Android app versioning for more reliable updates",
+          "Added screenshot gallery to the landing page",
+          "Added promotional video to app store listing",
+          "Updated screenshots and visuals",
+          "Improved compatibility with newer Android devices",
+          "Improved app store listings with better descriptions and metadata"
+        ] },
+        { "title": "Bug Fixes", "items": [
+          "Fixed Android app build issues"
+        ] }
       ]
     },
     {
       "version": "0.3.6",
       "date": "2026-01-22",
       "summary": "Organize your smart home by floors with improved navigation and editing in the Home Assistant dashboard.",
-      "seoSummary": "Organize your smart home by floors in the Stuga Home Assistant dashboard, with smoother drag-and-drop room reordering and better mobile editing on iOS and Android.",
+      "seoSummary": "Organize your smart home by floors in the Stuga Home Assistant dashboard with smoother drag-and-drop room reordering on iOS and Android.",
       "sections": [
-        {
-          "title": "Improvements",
-          "items": [
-            "Show floor name when swiping between floors",
-            "Add floating 'Create floor' button when editing floors",
-            "Swipe to dismiss dropdowns and pickers on mobile",
-            "Smoother drag and drop when reordering room cards",
-            "Better contrast for accent colored buttons",
-            "New segmented control for hide options (replaces dropdown)"
-          ]
-        },
-        {
-          "title": "Bug Fixes",
-          "items": [
-            "Fix keyboard covering search results on iOS",
-            "Fix cards jumping when starting to drag during reorder",
-            "Fix dragging cards between floors",
-            "Fix duplicate login messages",
-            "Fix connection status showing incorrectly on empty floors"
-          ]
-        }
+        { "title": "Improvements", "items": [
+          "Show floor name when swiping between floors",
+          "Add floating 'Create floor' button when editing floors",
+          "Swipe to dismiss dropdowns and pickers on mobile",
+          "Smoother drag and drop when reordering room cards",
+          "Better contrast for accent colored buttons",
+          "New segmented control for hide options (replaces dropdown)"
+        ] },
+        { "title": "Bug Fixes", "items": [
+          "Fix keyboard covering search results on iOS",
+          "Fix cards jumping when starting to drag during reorder",
+          "Fix dragging cards between floors",
+          "Fix duplicate login messages",
+          "Fix connection status showing incorrectly on empty floors"
+        ] }
       ]
     },
     {
       "version": "0.3.5",
       "date": "2026-01-21",
       "summary": "Simplified Home Assistant login with easier authentication method selection.",
-      "seoSummary": "Simplified Home Assistant login in Stuga, with clearer authentication method selection during setup on iOS, Android, and web.",
+      "seoSummary": "Simplified Home Assistant login flow in Stuga with easier authentication method selection on iOS and Android.",
       "sections": [
-        {
-          "title": "Improvements",
-          "items": [
-            "Simplified the login method selection during setup"
-          ]
-        },
-        {
-          "title": "Bug Fixes",
-          "items": [
-            "Fixed missing text for switching between login methods"
-          ]
-        }
+        { "title": "Improvements", "items": [
+          "Simplified the login method selection during setup"
+        ] },
+        { "title": "Bug Fixes", "items": [
+          "Fixed missing text for switching between login methods"
+        ] }
       ]
     },
     {
       "version": "0.3.4",
       "date": "2026-01-21",
       "summary": "Drag and drop room organization for your Home Assistant dashboard with multi-select and cross-floor support.",
-      "seoSummary": "Organize your Home Assistant dashboard with drag-and-drop room arrangement in Stuga, including multi-select, cross-floor moves, and a touch-friendly mobile interface.",
+      "seoSummary": "Organize Home Assistant rooms with drag-and-drop, multi-select, and cross-floor support in the Stuga dashboard on iOS and Android.",
       "sections": [
-        {
-          "title": "Improvements",
-          "items": [
-            "Added multi-room drag selection with visual stacking when selecting multiple rooms",
-            "Added ghost placeholders showing where rooms will be placed during drag",
-            "Added ability to drag rooms between floors by holding over a floor tab",
-            "Added option to disable room ordering in Advanced settings",
-            "Improved visual consistency of floor tabs in edit mode"
-          ]
-        },
-        {
-          "title": "Bug Fixes",
-          "items": [
-            "Fixed floor edit mode exit causing unexpected page animation",
-            "Fixed edit mode sometimes opening on the wrong floor"
-          ]
-        }
+        { "title": "Improvements", "items": [
+          "Added multi-room drag selection with visual stacking when selecting multiple rooms",
+          "Added ghost placeholders showing where rooms will be placed during drag",
+          "Added ability to drag rooms between floors by holding over a floor tab",
+          "Added option to disable room ordering in Advanced settings",
+          "Improved visual consistency of floor tabs in edit mode"
+        ] },
+        { "title": "Bug Fixes", "items": [
+          "Fixed floor edit mode exit causing unexpected page animation",
+          "Fixed edit mode sometimes opening on the wrong floor"
+        ] }
       ]
     }
   ]

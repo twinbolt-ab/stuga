@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.38] - 2026-05-05
+
+A small polish release with a fix for one of the in-app links.
+
+**Bug Fixes**
+- Fixed the "Rate the app" link so it now opens the correct App Store page
+
+
 ## [0.3.37] - 2026-04-29
 
 This release is all behind-the-scenes work to keep Stuga shipping smoothly — no user-facing changes this time.

@@ -1,6 +1,17 @@
 {
-  "generatedAt": "2026-04-29T20:18:48.235Z",
+  "generatedAt": "2026-05-05T11:04:15.049Z",
   "entries": [
+    {
+      "version": "0.3.38",
+      "date": "2026-05-05",
+      "summary": "A small polish release with a fix for one of the in-app links.",
+      "improvements": [],
+      "bugFixes": [
+        "Fixed the \"Rate the app\" link so it now opens the correct App Store page"
+      ],
+      "newFeatures": [],
+      "technical": []
+    },
     {
       "version": "0.3.37",
       "date": "2026-04-29",
