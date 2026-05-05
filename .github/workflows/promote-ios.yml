@@ -1,0 +1,39 @@
+name: Promote iOS to App Store
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version already in TestFlight to promote (e.g. 0.3.38, no v prefix)'
+        required: true
+        type: string
+
+jobs:
+  promote:
+    runs-on: macos-26
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: v${{ inputs.version }}
+
+      - name: Setup Ruby (for fastlane)
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: ios/App
+
+      - name: Setup App Store Connect API key
+        run: |
+          mkdir -p $RUNNER_TEMP/private_keys
+          echo "${{ secrets.APP_STORE_CONNECT_API_KEY }}" > $RUNNER_TEMP/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_KEY_ID }}.p8
+
+      - name: Submit TestFlight build to App Store
+        working-directory: ios/App
+        env:
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          ASC_KEY_PATH: ${{ runner.temp }}/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_KEY_ID }}.p8
+          APP_VERSION: ${{ inputs.version }}
+        run: bundle exec fastlane submit

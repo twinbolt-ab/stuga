@@ -139,4 +139,29 @@ platform :ios do
       precheck_include_in_app_purchases: false
     )
   end
+
+  desc "Submit an existing TestFlight build to App Store review (phased release)"
+  lane :submit do
+    app_version = ENV["APP_VERSION"]
+    if app_version.nil? || app_version.strip.empty?
+      UI.user_error!("APP_VERSION env var is required (e.g. 0.3.38)")
+    end
+
+    upload_to_app_store(
+      api_key: asc_api_key,
+      app_version: app_version.strip,
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      skip_metadata: false,
+      submit_for_review: true,
+      automatic_release: true,
+      phased_release: true,
+      force: true,
+      precheck_include_in_app_purchases: false,
+      submission_information: {
+        add_id_info_uses_idfa: false,
+        export_compliance_uses_encryption: false
+      }
+    )
+  end
 end
