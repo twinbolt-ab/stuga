@@ -275,6 +275,7 @@ export function AllDevicesView() {
         isInEditMode={isInEditMode && selectedDomain === 'cover'}
         isSelected={isSelected}
         onToggle={handlers.handleCoverToggle}
+        onPosition={handlers.handleCoverPosition}
         onToggleSelection={toggleSelection}
         onEnterEditModeWithSelection={handleEnterEditModeWithSelection}
         selectedIds={selectedIds}

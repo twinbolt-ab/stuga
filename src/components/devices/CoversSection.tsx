@@ -1,4 +1,5 @@
-import { useMemo } from 'react'
+import { useMemo, useState, useRef, useCallback, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Blinds } from 'lucide-react'
 import { clsx } from 'clsx'
 import type { HAEntity } from '@/types/ha'
@@ -12,8 +13,26 @@ import { useLongPress } from '@/lib/hooks/useLongPress'
 import { sortEntitiesByOrder } from '@/lib/utils/entity-sort'
 import { ReorderableList } from '@/components/shared/ReorderableList'
 import { haptic } from '@/lib/haptics'
+import { OPTIMISTIC_DURATION, OVERLAY_HIDE_DELAY } from '@/lib/constants'
 import { t } from '@/lib/i18n'
 import type { EntityMeta } from '@/lib/hooks/useAllEntities'
+
+// HA cover entity supported_features bitmask
+// https://developers.home-assistant.io/docs/core/entity/cover/
+const COVER_FEATURE = {
+  OPEN: 1,
+  CLOSE: 2,
+  SET_POSITION: 4,
+  STOP: 8,
+} as const
+
+function supports(cover: HAEntity, flag: number): boolean {
+  const f = cover.attributes.supported_features
+  return typeof f === 'number' && (f & flag) !== 0
+}
+
+const DRAG_THRESHOLD = 10
+const SLIDER_PADDING = 24
 
 function getEntityDisplayName(entity: HAEntity): string {
   return entity.attributes.friendly_name || entity.entity_id.split('.')[1]
@@ -47,6 +66,7 @@ interface CoversSectionProps {
   isInEditMode: boolean
   isSelected: (id: string) => boolean
   onToggle: (cover: HAEntity) => void
+  onPosition?: (cover: HAEntity, position: number) => void
   onToggleSelection: (id: string) => void
   onEnterEditModeWithSelection?: (deviceId: string) => void
   entityMeta?: Map<string, EntityMeta>
@@ -61,6 +81,7 @@ function CoverItem({
   isInEditMode,
   isSelected,
   onToggle,
+  onPosition,
   onToggleSelection,
   onEnterEditModeWithSelection,
   entityMeta,
@@ -70,23 +91,132 @@ function CoverItem({
   isInEditMode: boolean
   isSelected: boolean
   onToggle: (cover: HAEntity) => void
+  onPosition?: (cover: HAEntity, position: number) => void
   onToggleSelection: (id: string) => void
   onEnterEditModeWithSelection?: (deviceId: string) => void
   entityMeta?: EntityMeta
   isReorderSelected?: boolean
 }) {
-  const position = getCoverPosition(cover)
-  const isClosed = cover.state === 'closed' || position === 0
+  const haPosition = getCoverPosition(cover)
+  const isClosed = cover.state === 'closed' || haPosition === 0
   const isMoving = cover.state === 'opening' || cover.state === 'closing'
-  // Treat "open" as the active/highlighted state — matches how lights highlight when on.
   const isActive = !isClosed
   const coverIcon = getEntityIcon(cover.entity_id)
+
+  const supportsPosition = supports(cover, COVER_FEATURE.SET_POSITION)
+  const canSlide = supportsPosition && !!onPosition && !isInEditMode
+
+  // Slider drag state — only used when canSlide
+  const [localPosition, setLocalPosition] = useState(haPosition ?? 0)
+  const [isDragging, setIsDragging] = useState(false)
+  const [showOverlay, setShowOverlay] = useState(false)
+  const [useOptimisticValue, setUseOptimisticValue] = useState(false)
+  const dragStartRef = useRef<{ x: number; y: number } | null>(null)
+  const isDraggingRef = useRef(false)
+  const didDragRef = useRef(false)
+  const optimisticTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const capturedElementRef = useRef<HTMLElement | null>(null)
+  const capturedPointerIdRef = useRef<number | null>(null)
 
   const longPress = useLongPress({
     duration: 500,
     disabled: isInEditMode,
     onLongPress: () => onEnterEditModeWithSelection?.(cover.entity_id),
   })
+
+  const calculatePosition = useCallback((clientX: number) => {
+    const screenWidth = window.innerWidth
+    const effectiveWidth = screenWidth - SLIDER_PADDING * 2
+    const relativeX = clientX - SLIDER_PADDING
+    return Math.round(Math.max(0, Math.min(100, (relativeX / effectiveWidth) * 100)))
+  }, [])
+
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      longPress.onPointerDown(e)
+      if (!canSlide) return
+      didDragRef.current = false
+      const start = isDragging || useOptimisticValue ? localPosition : (haPosition ?? 0)
+      dragStartRef.current = { x: e.clientX, y: e.clientY }
+      setLocalPosition(start)
+    },
+    [canSlide, longPress, isDragging, useOptimisticValue, localPosition, haPosition]
+  )
+
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      longPress.onPointerMove(e)
+      if (!canSlide || !dragStartRef.current) return
+
+      const deltaX = e.clientX - dragStartRef.current.x
+      const deltaY = e.clientY - dragStartRef.current.y
+
+      if (!isDraggingRef.current) {
+        if (Math.abs(deltaY) > DRAG_THRESHOLD) {
+          dragStartRef.current = null
+          return
+        }
+        if (Math.abs(deltaX) > DRAG_THRESHOLD) {
+          if (Math.abs(deltaY) > Math.abs(deltaX)) {
+            dragStartRef.current = null
+            return
+          }
+          isDraggingRef.current = true
+          didDragRef.current = true
+          setIsDragging(true)
+          setShowOverlay(true)
+          const element = e.currentTarget as HTMLElement
+          element.setPointerCapture(e.pointerId)
+          capturedElementRef.current = element
+          capturedPointerIdRef.current = e.pointerId
+          setLocalPosition(calculatePosition(e.clientX))
+        }
+      } else {
+        setLocalPosition(calculatePosition(e.clientX))
+      }
+    },
+    [canSlide, longPress, calculatePosition]
+  )
+
+  const handlePointerUp = useCallback(
+    (e: React.PointerEvent) => {
+      longPress.onPointerUp()
+      if (!canSlide) return
+
+      if (isDraggingRef.current) {
+        const finalPosition = calculatePosition(e.clientX)
+        setLocalPosition(finalPosition)
+        onPosition?.(cover, finalPosition)
+
+        if (capturedElementRef.current && capturedPointerIdRef.current !== null) {
+          capturedElementRef.current.releasePointerCapture(capturedPointerIdRef.current)
+          capturedElementRef.current = null
+          capturedPointerIdRef.current = null
+        }
+
+        setUseOptimisticValue(true)
+        if (optimisticTimerRef.current) clearTimeout(optimisticTimerRef.current)
+        optimisticTimerRef.current = setTimeout(() => {
+          setUseOptimisticValue(false)
+          optimisticTimerRef.current = null
+        }, OPTIMISTIC_DURATION)
+
+        setTimeout(() => setShowOverlay(false), OVERLAY_HIDE_DELAY)
+        haptic.light()
+      }
+
+      isDraggingRef.current = false
+      setIsDragging(false)
+      dragStartRef.current = null
+    },
+    [canSlide, longPress, calculatePosition, onPosition, cover]
+  )
+
+  useEffect(() => {
+    return () => {
+      if (optimisticTimerRef.current) clearTimeout(optimisticTimerRef.current)
+    }
+  }, [])
 
   if (isInEditMode) {
     return (
@@ -145,8 +275,16 @@ function CoverItem({
     )
   }
 
-  // Subtle position fill behind row — mirrors the brightness fill on lights, but static.
-  const showFill = isActive && typeof position === 'number'
+  // Display position: prefer local while dragging or in optimistic window, otherwise HA value.
+  const displayPosition = isDragging || useOptimisticValue ? localPosition : haPosition
+  const showFill = isActive || (isDragging && (displayPosition ?? 0) > 0)
+  const fillScale = typeof displayPosition === 'number' ? displayPosition / 100 : isActive ? 1 : 0
+
+  const handleTap = () => {
+    if (didDragRef.current) return
+    haptic.light()
+    onToggle(cover)
+  }
 
   return (
     <div
@@ -157,28 +295,37 @@ function CoverItem({
         isActive ? 'bg-accent/20' : 'bg-border/30',
         isReorderSelected && 'ring-2 ring-accent ring-offset-1 ring-offset-bg-primary'
       )}
-      onPointerDown={longPress.onPointerDown}
-      onPointerMove={longPress.onPointerMove}
-      onPointerUp={longPress.onPointerUp}
-      onPointerCancel={longPress.onPointerUp}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+      onClick={handleTap}
+      style={canSlide ? { touchAction: 'pan-y' } : undefined}
     >
       {showFill && (
-        <div
-          className="absolute inset-0 origin-left pointer-events-none transition-transform duration-300"
-          style={{
-            backgroundColor: 'var(--brightness-fill)',
-            transform: `scaleX(${(position ?? 0) / 100})`,
-          }}
+        <motion.div
+          className="absolute inset-0 origin-left pointer-events-none"
+          style={{ backgroundColor: 'var(--brightness-fill)' }}
+          initial={false}
+          animate={{ scaleX: fillScale }}
+          transition={{ duration: isDragging ? 0 : 0.3 }}
         />
       )}
 
-      <button
-        onClick={() => {
-          haptic.light()
-          onToggle(cover)
-        }}
-        className="relative z-0 flex-1 flex items-center gap-3 touch-feedback"
-      >
+      <AnimatePresence>
+        {showOverlay && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="absolute inset-0 flex items-center justify-center bg-card/80 backdrop-blur-sm z-10 pointer-events-none"
+          >
+            <span className="text-2xl font-bold text-accent">{displayPosition ?? 0}%</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="relative z-0 flex-1 flex items-center gap-3 pointer-events-none">
         <div
           className={clsx(
             'p-2 rounded-lg transition-colors flex-shrink-0',
@@ -218,13 +365,17 @@ function CoverItem({
               {entityMeta.roomName}
             </span>
           )}
-          {/* Show partial position only when not fully open/closed */}
-          {isActive && typeof position === 'number' && position > 0 && position < 100 && (
-            <span className="text-xs text-accent font-medium w-8 text-right">{position}%</span>
-          )}
+          {isActive &&
+            typeof displayPosition === 'number' &&
+            displayPosition > 0 &&
+            displayPosition < 100 && (
+              <span className="text-xs text-accent font-medium w-8 text-right">
+                {displayPosition}%
+              </span>
+            )}
           <span className="text-xs text-muted w-16 text-right">{getCoverStateLabel(cover)}</span>
         </div>
-      </button>
+      </div>
     </div>
   )
 }
@@ -234,6 +385,7 @@ export function CoversSection({
   isInEditMode,
   isSelected,
   onToggle,
+  onPosition,
   onToggleSelection,
   onEnterEditModeWithSelection,
   entityMeta,
@@ -272,6 +424,7 @@ export function CoversSection({
               isInEditMode={true}
               isSelected={isSelected(cover.entity_id)}
               onToggle={onToggle}
+              onPosition={onPosition}
               onToggleSelection={onToggleSelection}
               onEnterEditModeWithSelection={onEnterEditModeWithSelection}
               entityMeta={entityMeta?.get(cover.entity_id)}
@@ -288,6 +441,7 @@ export function CoversSection({
               isInEditMode={false}
               isSelected={isSelected(cover.entity_id)}
               onToggle={onToggle}
+              onPosition={onPosition}
               onToggleSelection={onToggleSelection}
               onEnterEditModeWithSelection={onEnterEditModeWithSelection}
               entityMeta={entityMeta?.get(cover.entity_id)}

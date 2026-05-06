@@ -315,6 +315,7 @@ function RoomExpandedContent({ room, allRooms: _allRooms, isExpanded }: RoomExpa
               isInEditMode={isInEditMode && selectedDomain === 'cover'}
               isSelected={isSelected}
               onToggle={handlers.handleCoverToggle}
+              onPosition={handlers.handleCoverPosition}
               onToggleSelection={toggleSelection}
               onEnterEditModeWithSelection={handleEnterEditModeWithSelection}
               entityOrder={getDomainOrder('cover')}

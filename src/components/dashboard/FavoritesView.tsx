@@ -570,6 +570,7 @@ export function FavoritesView({
                   isInEditMode={isEntitiesEditMode && selectedDomain === 'cover'}
                   isSelected={isSelected}
                   onToggle={handlers.handleCoverToggle}
+                  onPosition={handlers.handleCoverPosition}
                   onToggleSelection={(id) =>
                     isEntitiesEditMode
                       ? handleToggleSelection(id, 'entity')
