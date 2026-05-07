@@ -52,12 +52,20 @@ export function RateAppModal({ isOpen, onClose, onDismissed }: RateAppModalProps
   const handleRate = async () => {
     void logRateAppAction('rated')
 
+    // Mark as dismissed so it doesn't show again
+    try {
+      const storage = getStorage()
+      await storage.setItem(STORAGE_KEYS.RATE_APP_DISMISSED, 'true')
+    } catch {
+      // Ignore storage errors
+    }
+
     // Open appropriate store based on platform
     const platform = Capacitor.getPlatform()
     const url = platform === 'ios' ? APP_STORE_URL : PLAY_STORE_URL
 
     await openExternalUrl(url)
-    onClose()
+    onDismissed()
   }
 
   const handleLater = () => {
