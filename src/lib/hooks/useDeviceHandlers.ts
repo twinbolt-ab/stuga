@@ -57,7 +57,11 @@ export function useDeviceHandlers() {
         void callService('cover', 'stop_cover', { entity_id: cover.entity_id })
         return
       }
-      const isClosed = cover.state === 'closed'
+      // Trust is_closed when present (more reliable than state for IKEA Tradfri shades).
+      const isClosed =
+        typeof cover.attributes.is_closed === 'boolean'
+          ? cover.attributes.is_closed
+          : cover.state === 'closed'
       const service = isClosed ? 'open_cover' : 'close_cover'
       setOptimisticState(cover.entity_id, isClosed ? 'opening' : 'closing')
       void callService('cover', service, { entity_id: cover.entity_id })

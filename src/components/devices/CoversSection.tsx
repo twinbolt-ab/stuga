@@ -38,12 +38,34 @@ function getEntityDisplayName(entity: HAEntity): string {
   return entity.attributes.friendly_name || entity.entity_id.split('.')[1]
 }
 
+// Whether the cover is closed.
+// `is_closed` is more reliable than `state==='closed'` or `current_position===0`
+// for integrations that report position oddly (e.g. IKEA Tradfri shades, where
+// `is_closed: false` can coexist with `current_position: 0`).
+function isCoverClosed(cover: HAEntity): boolean {
+  if (typeof cover.attributes.is_closed === 'boolean') {
+    return cover.attributes.is_closed
+  }
+  if (cover.state === 'closed') return true
+  if (cover.state === 'open' || cover.state === 'opening' || cover.state === 'closing') {
+    return false
+  }
+  return cover.attributes.current_position === 0
+}
+
 function getCoverPosition(cover: HAEntity): number | undefined {
   const pos = cover.attributes.current_position
-  if (typeof pos === 'number') return Math.max(0, Math.min(100, Math.round(pos)))
-  if (cover.state === 'open') return 100
-  if (cover.state === 'closed') return 0
-  return undefined
+  if (typeof pos !== 'number') {
+    if (cover.state === 'open') return 100
+    if (cover.state === 'closed') return 0
+    return undefined
+  }
+  // Drop position when it contradicts is_closed — the integration is reporting
+  // unreliable data (seen on IKEA shades). Caller falls back to is_closed.
+  const closed = isCoverClosed(cover)
+  if (closed === false && pos === 0) return undefined
+  if (closed === true && pos === 100) return undefined
+  return Math.max(0, Math.min(100, Math.round(pos)))
 }
 
 function getCoverStateLabel(cover: HAEntity): string {
@@ -98,7 +120,7 @@ function CoverItem({
   isReorderSelected?: boolean
 }) {
   const haPosition = getCoverPosition(cover)
-  const isClosed = cover.state === 'closed' || haPosition === 0
+  const isClosed = isCoverClosed(cover)
   const isMoving = cover.state === 'opening' || cover.state === 'closing'
   const isActive = !isClosed
   const coverIcon = getEntityIcon(cover.entity_id)
