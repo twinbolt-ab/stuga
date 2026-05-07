@@ -8,11 +8,12 @@ import { scrollIntoVisualViewport } from '@/lib/utils/scroll-into-visual-viewpor
 interface Props {
   token: string
   url: string
+  keyboardOffset: number
   onTokenChange: (token: string) => void
   onSwitchToOAuth: () => void
 }
 
-export function TokenInput({ token, url, onTokenChange, onSwitchToOAuth }: Props) {
+export function TokenInput({ token, url, keyboardOffset, onTokenChange, onSwitchToOAuth }: Props) {
   const tokenInputRef = useRef<HTMLTextAreaElement>(null)
 
   return (
@@ -49,10 +50,9 @@ export function TokenInput({ token, url, onTokenChange, onSwitchToOAuth }: Props
           value={token}
           onChange={(e) => onTokenChange(e.target.value)}
           onFocus={() => {
-            // Scroll input into the visual viewport once the keyboard has opened.
-            // visualViewport reflects the area not covered by the keyboard on iOS.
+            // Scroll input into the visible area once the keyboard has opened.
             setTimeout(() => {
-              scrollIntoVisualViewport(tokenInputRef.current)
+              scrollIntoVisualViewport(tokenInputRef.current, keyboardOffset)
             }, 300)
           }}
           placeholder={t.setup.token.placeholder}

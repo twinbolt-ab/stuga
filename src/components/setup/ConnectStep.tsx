@@ -22,6 +22,7 @@ interface Props {
   liveDiagnostic: LiveDiagnosticState
   workingUrls: string[]
   selectedUrl: string | null
+  keyboardOffset: number
   onUrlChange: (url: string) => void
   onTokenChange: (token: string) => void
   onAuthMethodChange: (method: AuthMethod) => void
@@ -52,6 +53,7 @@ export function ConnectStep({
   liveDiagnostic,
   workingUrls,
   selectedUrl,
+  keyboardOffset,
   onUrlChange,
   onTokenChange,
   onAuthMethodChange,
@@ -92,9 +94,9 @@ export function ConnectStep({
               value={url}
               onChange={(e) => onUrlChange(e.target.value)}
               onFocus={() => {
-                // Scroll input into the visual viewport once the keyboard has opened.
+                // Scroll input into the visible area once the keyboard has opened.
                 setTimeout(() => {
-                  scrollIntoVisualViewport(urlInputRef.current)
+                  scrollIntoVisualViewport(urlInputRef.current, keyboardOffset)
                 }, 300)
               }}
               onBlur={() => {
@@ -155,6 +157,7 @@ export function ConnectStep({
             <TokenInput
               token={token}
               url={url}
+              keyboardOffset={keyboardOffset}
               onTokenChange={onTokenChange}
               onSwitchToOAuth={() => {
                 onAuthMethodChange('oauth')

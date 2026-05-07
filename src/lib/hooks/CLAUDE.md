@@ -37,6 +37,7 @@ When asked to do something, find the row that matches your task and start there.
 | `useSettingsMenuState` | Track which settings modal is open (single-modal-at-a-time pattern). |
 | `useModalKeyboard` | Wire up Escape-to-close for modals. |
 | `useBodyScrollLock` | Prevent the page scrolling under an open modal/sheet. |
+| `useKeyboardHeight` | Track the on-screen keyboard height (Capacitor on native, visualViewport on web). |
 
 ## Gestures, drag & reorder
 

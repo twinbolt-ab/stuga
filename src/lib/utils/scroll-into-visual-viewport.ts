@@ -1,19 +1,21 @@
 /**
- * Scrolls `element` into the visual viewport (the area not covered by the
- * on-screen keyboard on mobile). Falls back to `scrollIntoView` when the
- * Visual Viewport API is unavailable.
+ * Scrolls `element` into the area not covered by the on-screen keyboard.
+ *
+ * Pass `bottomInset` (the keyboard height in CSS pixels) when the
+ * Visual Viewport API can't be trusted — e.g. on Capacitor with
+ * `Keyboard.resize: 'none'`, where visualViewport doesn't shrink for
+ * the keyboard.
  *
  * Walks up the DOM to find the nearest scrollable ancestor and adjusts its
- * scrollTop so the element ends up roughly centered in the visible area.
+ * scrollTop so the element ends up roughly inside the visible area.
  */
-export function scrollIntoVisualViewport(element: HTMLElement | null): void {
+export function scrollIntoVisualViewport(element: HTMLElement | null, bottomInset = 0): void {
   if (!element) return
 
   const viewport = window.visualViewport
-  if (!viewport) {
-    element.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    return
-  }
+  const visibleTop = viewport?.offsetTop ?? 0
+  const visibleHeight = viewport?.height ?? window.innerHeight
+  const visibleBottom = visibleTop + visibleHeight - bottomInset
 
   const container = findScrollableAncestor(element)
   if (!container) {
@@ -22,8 +24,6 @@ export function scrollIntoVisualViewport(element: HTMLElement | null): void {
   }
 
   const elRect = element.getBoundingClientRect()
-  const visibleTop = viewport.offsetTop
-  const visibleBottom = viewport.offsetTop + viewport.height
   const margin = 16
 
   let delta = 0
