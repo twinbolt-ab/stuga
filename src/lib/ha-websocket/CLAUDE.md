@@ -11,6 +11,7 @@ Long-lived WebSocket connection to Home Assistant. Module-private singleton stat
 | `message-router.ts` | Dispatches incoming messages, manages pending request callbacks and subscription handlers. |
 | `registry-manager.ts` | Subscribes to state changes; fetches entity / area / floor / label registries on auth. |
 | `entity-service.ts` | Entity reads/writes: state, registry, hidden flags, ordering, `callService`. Owns the `stuga-hidden` label. |
+| `cover-service.ts` | Per-cover Stuga overrides (inverted direction, custom closed-position). Owns `stuga-cover-inverted` and `stuga-cover-closed-prc-*` labels. |
 | `area-service.ts` | Area (room) CRUD + ordering. Owns `stuga-room-order-XX` and `stuga-temp-sensor.<entity_id>` labels. |
 | `floor-service.ts` | Floor CRUD + ordering. |
 | `favorites-service.ts` | Favorited rooms/scenes/entities. Owns `stuga-favorite-{A,B,C}-XX` labels. |
@@ -53,6 +54,8 @@ User data lives **inside Home Assistant** as labels. **Never invent a new `stuga
 | `stuga-favorite-C-XX` (entities) | `favorites-service.ts` | — |
 | `stuga-hidden` (single label, applied to entities) | `entity-service.ts` | `STUGA_HIDDEN_LABEL` |
 | `stuga-XXX` (per-domain entity order) | `entity-service.ts` | `DEVICE_ORDER_LABEL_PREFIX` |
+| `stuga-cover-inverted` (single label, applied to cover entities) | `cover-service.ts` | `COVER_INVERTED_LABEL` |
+| `stuga-cover-closed-prc-NN` (per-entity, NN = 0-100) | `cover-service.ts` | `COVER_CLOSED_PRC_PREFIX` |
 
 ## Adding a new command
 

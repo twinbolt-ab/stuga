@@ -26,6 +26,15 @@ export const TEMPERATURE_SENSOR_LABEL_PREFIX = `${STUGA_PREFIX}temp-`
 // Label for entities hidden in Stuga (but not necessarily in HA)
 export const STUGA_HIDDEN_LABEL = `${STUGA_PREFIX}hidden`
 
+// Per-cover Stuga-side overrides (HA's reported direction/range can be wrong on
+// some integrations — see CoversSection.tsx for usage).
+// Single label, presence means inverted.
+export const COVER_INVERTED_LABEL = `${STUGA_PREFIX}cover-inverted`
+// Prefix label encoding the HA-position the user calls "fully closed" (0-100).
+// e.g. `stuga-cover-closed-prc-70` means HA position 70 (after inversion) is
+// the user's closed position.
+export const COVER_CLOSED_PRC_PREFIX = `${STUGA_PREFIX}cover-closed-prc-`
+
 // Default order value for items without explicit order
 export const DEFAULT_ORDER = 99
 

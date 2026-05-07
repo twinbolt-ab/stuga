@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef, useCallback, useEffect } from 'react'
+import { useMemo, useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Blinds } from 'lucide-react'
 import { clsx } from 'clsx'
@@ -8,9 +8,10 @@ import { MdiIcon } from '@/components/ui/MdiIcon'
 import { SectionHeader } from '@/components/ui/SectionHeader'
 import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox'
 import { EntityBadges } from '@/components/ui/EntityBadge'
-import { getEntityIcon } from '@/lib/ha-websocket'
+import { getEntityIcon, getCoverSettings } from '@/lib/ha-websocket'
 import { useLongPress } from '@/lib/hooks/useLongPress'
 import { sortEntitiesByOrder } from '@/lib/utils/entity-sort'
+import { haToUserPosition, type CoverSettings } from '@/lib/utils/cover'
 import { ReorderableList } from '@/components/shared/ReorderableList'
 import { haptic } from '@/lib/haptics'
 import { OPTIMISTIC_DURATION, OVERLAY_HIDE_DELAY } from '@/lib/constants'
@@ -38,11 +39,11 @@ function getEntityDisplayName(entity: HAEntity): string {
   return entity.attributes.friendly_name || entity.entity_id.split('.')[1]
 }
 
-// Whether the cover is closed.
+// Whether the cover is closed in HA's view (without applying user inversion).
 // `is_closed` is more reliable than `state==='closed'` or `current_position===0`
 // for integrations that report position oddly (e.g. IKEA Tradfri shades, where
 // `is_closed: false` can coexist with `current_position: 0`).
-function isCoverClosed(cover: HAEntity): boolean {
+function isCoverClosedRaw(cover: HAEntity): boolean {
   if (typeof cover.attributes.is_closed === 'boolean') {
     return cover.attributes.is_closed
   }
@@ -53,23 +54,49 @@ function isCoverClosed(cover: HAEntity): boolean {
   return cover.attributes.current_position === 0
 }
 
-function getCoverPosition(cover: HAEntity): number | undefined {
-  const pos = cover.attributes.current_position
-  if (typeof pos !== 'number') {
-    if (cover.state === 'open') return 100
-    if (cover.state === 'closed') return 0
-    return undefined
+// Resolve the user-facing position and closed state from a cover, applying
+// per-entity Stuga overrides (inverted, closedPrc).
+function getCoverDisplay(
+  cover: HAEntity,
+  settings: CoverSettings
+): { position: number | undefined; isClosed: boolean } {
+  const rawIsClosed = isCoverClosedRaw(cover)
+  const rawPos = cover.attributes.current_position
+  const noOverrides = !settings.inverted && settings.closedPrc <= 0
+
+  if (typeof rawPos !== 'number') {
+    return {
+      position: undefined,
+      isClosed: settings.inverted ? !rawIsClosed : rawIsClosed,
+    }
   }
-  // Drop position when it contradicts is_closed — the integration is reporting
-  // unreliable data (seen on IKEA shades). Caller falls back to is_closed.
-  const closed = isCoverClosed(cover)
-  if (closed === false && pos === 0) return undefined
-  if (closed === true && pos === 100) return undefined
-  return Math.max(0, Math.min(100, Math.round(pos)))
+
+  // Without user overrides, drop position when it contradicts is_closed —
+  // the integration is reporting unreliable data (seen on IKEA shades).
+  if (noOverrides) {
+    if (!rawIsClosed && rawPos === 0) {
+      return { position: undefined, isClosed: false }
+    }
+    if (rawIsClosed && rawPos === 100) {
+      return { position: undefined, isClosed: true }
+    }
+  }
+
+  const userPos = haToUserPosition(rawPos, settings)
+  return { position: userPos, isClosed: userPos === 0 }
 }
 
-function getCoverStateLabel(cover: HAEntity): string {
-  switch (cover.state) {
+function getCoverStateLabel(cover: HAEntity, settings: CoverSettings): string {
+  // When the cover is inverted in Stuga, flip the state's open/closed meaning
+  // so the label matches what the user sees.
+  let state = cover.state
+  if (settings.inverted) {
+    if (state === 'open') state = 'closed'
+    else if (state === 'closed') state = 'open'
+    else if (state === 'opening') state = 'closing'
+    else if (state === 'closing') state = 'opening'
+  }
+  switch (state) {
     case 'opening':
       return t.devices.coverOpening
     case 'closing':
@@ -119,9 +146,12 @@ function CoverItem({
   entityMeta?: EntityMeta
   isReorderSelected?: boolean
 }) {
-  const haPosition = getCoverPosition(cover)
-  const isClosed = isCoverClosed(cover)
-  const isMoving = cover.state === 'opening' || cover.state === 'closing'
+  const settings = getCoverSettings(cover.entity_id)
+  const { position: haPosition, isClosed } = getCoverDisplay(cover, settings)
+  const rawState = cover.state
+  // When inverted, flip motion direction so optimistic 'opening' from HA reads
+  // as 'closing' for the user (and vice versa).
+  const isMoving = rawState === 'opening' || rawState === 'closing'
   const isActive = !isClosed
   const coverIcon = getEntityIcon(cover.entity_id)
 
@@ -146,93 +176,84 @@ function CoverItem({
     onLongPress: () => onEnterEditModeWithSelection?.(cover.entity_id),
   })
 
-  const calculatePosition = useCallback((clientX: number) => {
+  const calculatePosition = (clientX: number) => {
     const screenWidth = window.innerWidth
     const effectiveWidth = screenWidth - SLIDER_PADDING * 2
     const relativeX = clientX - SLIDER_PADDING
     return Math.round(Math.max(0, Math.min(100, (relativeX / effectiveWidth) * 100)))
-  }, [])
+  }
 
-  const handlePointerDown = useCallback(
-    (e: React.PointerEvent) => {
-      longPress.onPointerDown(e)
-      if (!canSlide) return
-      didDragRef.current = false
-      const start = isDragging || useOptimisticValue ? localPosition : (haPosition ?? 0)
-      dragStartRef.current = { x: e.clientX, y: e.clientY }
-      setLocalPosition(start)
-    },
-    [canSlide, longPress, isDragging, useOptimisticValue, localPosition, haPosition]
-  )
+  const handlePointerDown = (e: React.PointerEvent) => {
+    longPress.onPointerDown(e)
+    if (!canSlide) return
+    didDragRef.current = false
+    const start = isDragging || useOptimisticValue ? localPosition : (haPosition ?? 0)
+    dragStartRef.current = { x: e.clientX, y: e.clientY }
+    setLocalPosition(start)
+  }
 
-  const handlePointerMove = useCallback(
-    (e: React.PointerEvent) => {
-      longPress.onPointerMove(e)
-      if (!canSlide || !dragStartRef.current) return
+  const handlePointerMove = (e: React.PointerEvent) => {
+    longPress.onPointerMove(e)
+    if (!canSlide || !dragStartRef.current) return
 
-      const deltaX = e.clientX - dragStartRef.current.x
-      const deltaY = e.clientY - dragStartRef.current.y
+    const deltaX = e.clientX - dragStartRef.current.x
+    const deltaY = e.clientY - dragStartRef.current.y
 
-      if (!isDraggingRef.current) {
-        if (Math.abs(deltaY) > DRAG_THRESHOLD) {
+    if (!isDraggingRef.current) {
+      if (Math.abs(deltaY) > DRAG_THRESHOLD) {
+        dragStartRef.current = null
+        return
+      }
+      if (Math.abs(deltaX) > DRAG_THRESHOLD) {
+        if (Math.abs(deltaY) > Math.abs(deltaX)) {
           dragStartRef.current = null
           return
         }
-        if (Math.abs(deltaX) > DRAG_THRESHOLD) {
-          if (Math.abs(deltaY) > Math.abs(deltaX)) {
-            dragStartRef.current = null
-            return
-          }
-          isDraggingRef.current = true
-          didDragRef.current = true
-          setIsDragging(true)
-          setShowOverlay(true)
-          const element = e.currentTarget as HTMLElement
-          element.setPointerCapture(e.pointerId)
-          capturedElementRef.current = element
-          capturedPointerIdRef.current = e.pointerId
-          setLocalPosition(calculatePosition(e.clientX))
-        }
-      } else {
+        isDraggingRef.current = true
+        didDragRef.current = true
+        setIsDragging(true)
+        setShowOverlay(true)
+        const element = e.currentTarget as HTMLElement
+        element.setPointerCapture(e.pointerId)
+        capturedElementRef.current = element
+        capturedPointerIdRef.current = e.pointerId
         setLocalPosition(calculatePosition(e.clientX))
       }
-    },
-    [canSlide, longPress, calculatePosition]
-  )
+    } else {
+      setLocalPosition(calculatePosition(e.clientX))
+    }
+  }
 
-  const handlePointerUp = useCallback(
-    (e: React.PointerEvent) => {
-      longPress.onPointerUp()
-      if (!canSlide) return
+  const handlePointerUp = (e: React.PointerEvent) => {
+    longPress.onPointerUp()
+    if (!canSlide) return
 
-      if (isDraggingRef.current) {
-        const finalPosition = calculatePosition(e.clientX)
-        setLocalPosition(finalPosition)
-        onPosition?.(cover, finalPosition)
+    if (isDraggingRef.current) {
+      const finalPosition = calculatePosition(e.clientX)
+      setLocalPosition(finalPosition)
+      onPosition?.(cover, finalPosition)
 
-        if (capturedElementRef.current && capturedPointerIdRef.current !== null) {
-          capturedElementRef.current.releasePointerCapture(capturedPointerIdRef.current)
-          capturedElementRef.current = null
-          capturedPointerIdRef.current = null
-        }
-
-        setUseOptimisticValue(true)
-        if (optimisticTimerRef.current) clearTimeout(optimisticTimerRef.current)
-        optimisticTimerRef.current = setTimeout(() => {
-          setUseOptimisticValue(false)
-          optimisticTimerRef.current = null
-        }, OPTIMISTIC_DURATION)
-
-        setTimeout(() => setShowOverlay(false), OVERLAY_HIDE_DELAY)
-        haptic.light()
+      if (capturedElementRef.current && capturedPointerIdRef.current !== null) {
+        capturedElementRef.current.releasePointerCapture(capturedPointerIdRef.current)
+        capturedElementRef.current = null
+        capturedPointerIdRef.current = null
       }
 
-      isDraggingRef.current = false
-      setIsDragging(false)
-      dragStartRef.current = null
-    },
-    [canSlide, longPress, calculatePosition, onPosition, cover]
-  )
+      setUseOptimisticValue(true)
+      if (optimisticTimerRef.current) clearTimeout(optimisticTimerRef.current)
+      optimisticTimerRef.current = setTimeout(() => {
+        setUseOptimisticValue(false)
+        optimisticTimerRef.current = null
+      }, OPTIMISTIC_DURATION)
+
+      setTimeout(() => setShowOverlay(false), OVERLAY_HIDE_DELAY)
+      haptic.light()
+    }
+
+    isDraggingRef.current = false
+    setIsDragging(false)
+    dragStartRef.current = null
+  }
 
   useEffect(() => {
     return () => {
@@ -291,7 +312,9 @@ function CoverItem({
               {entityMeta.roomName}
             </span>
           )}
-          <span className="text-xs text-muted w-16 text-right">{getCoverStateLabel(cover)}</span>
+          <span className="text-xs text-muted w-16 text-right">
+            {getCoverStateLabel(cover, settings)}
+          </span>
         </div>
       </button>
     )
@@ -395,7 +418,9 @@ function CoverItem({
                 {displayPosition}%
               </span>
             )}
-          <span className="text-xs text-muted w-16 text-right">{getCoverStateLabel(cover)}</span>
+          <span className="text-xs text-muted w-16 text-right">
+            {getCoverStateLabel(cover, settings)}
+          </span>
         </div>
       </div>
     </div>

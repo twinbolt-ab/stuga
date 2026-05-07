@@ -67,6 +67,8 @@ Stuga stores user data **inside Home Assistant**, not in app storage, using labe
 | `stuga-favorite-C-XX` | Favorited entities | `lib/ha-websocket/favorites-service.ts` |
 | `stuga-hidden` | Entities hidden in Stuga only | `lib/ha-websocket/entity-service.ts` |
 | `stuga-temp-sensor.<entity_id>` | Per-area temperature sensor | `lib/ha-websocket/area-service.ts` |
+| `stuga-cover-inverted` | Cover entities the user wants Stuga to invert | `lib/ha-websocket/cover-service.ts` |
+| `stuga-cover-closed-prc-NN` | Per-cover "fully closed" position (0-100, after inversion) | `lib/ha-websocket/cover-service.ts` |
 
 Rules:
 - **Never invent a new `stuga-*` label prefix without updating this table.**

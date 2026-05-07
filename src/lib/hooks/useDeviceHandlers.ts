@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 import { useHAConnection } from './useHAConnection'
-import { setOptimisticState } from '@/lib/ha-websocket'
+import { setOptimisticState, getCoverSettings } from '@/lib/ha-websocket'
+import { userToHaPosition } from '@/lib/utils/cover'
 import type { HAEntity } from '@/types/ha'
 
 export function useDeviceHandlers() {
@@ -58,20 +59,29 @@ export function useDeviceHandlers() {
         return
       }
       // Trust is_closed when present (more reliable than state for IKEA Tradfri shades).
-      const isClosed =
+      const haIsClosed =
         typeof cover.attributes.is_closed === 'boolean'
           ? cover.attributes.is_closed
           : cover.state === 'closed'
-      const service = isClosed ? 'open_cover' : 'close_cover'
-      setOptimisticState(cover.entity_id, isClosed ? 'opening' : 'closing')
+      const settings = getCoverSettings(cover.entity_id)
+      const userIsClosed = settings.inverted ? !haIsClosed : haIsClosed
+      const userWantsToOpen = userIsClosed
+      // XOR: if the cover is inverted in Stuga, "open" the user-facing direction
+      // means closing in HA's frame.
+      const wantHaOpen = userWantsToOpen !== settings.inverted
+      const service = wantHaOpen ? 'open_cover' : 'close_cover'
+      setOptimisticState(cover.entity_id, wantHaOpen ? 'opening' : 'closing')
       void callService('cover', service, { entity_id: cover.entity_id })
     },
     [callService]
   )
 
   const handleCoverPosition = useCallback(
-    (cover: HAEntity, position: number) => {
-      const clamped = Math.max(0, Math.min(100, Math.round(position)))
+    // `userPosition` is in user space (0-100). Map to HA's frame using the
+    // per-entity Stuga settings before sending.
+    (cover: HAEntity, userPosition: number) => {
+      const settings = getCoverSettings(cover.entity_id)
+      const haTarget = userToHaPosition(userPosition, settings)
       // Optimistic: while moving we don't know exact position, but mark direction.
       const current =
         typeof cover.attributes.current_position === 'number'
@@ -79,14 +89,14 @@ export function useDeviceHandlers() {
           : cover.state === 'open'
             ? 100
             : 0
-      if (clamped > current) {
+      if (haTarget > current) {
         setOptimisticState(cover.entity_id, 'opening')
-      } else if (clamped < current) {
+      } else if (haTarget < current) {
         setOptimisticState(cover.entity_id, 'closing')
       }
       void callService('cover', 'set_cover_position', {
         entity_id: cover.entity_id,
-        position: clamped,
+        position: haTarget,
       })
     },
     [callService]

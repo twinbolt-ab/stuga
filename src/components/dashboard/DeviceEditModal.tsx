@@ -17,6 +17,9 @@ import {
   setEntityHiddenInStuga,
   deleteScene,
   createArea,
+  getCoverSettings,
+  setCoverInverted,
+  setCoverClosedPrc,
 } from '@/lib/ha-websocket'
 import { useSettings } from '@/lib/hooks/useSettings'
 import { isEntityFavorite, toggleEntityFavorite } from '@/lib/hooks/useFavorites'
@@ -38,6 +41,8 @@ export function DeviceEditModal({ device, rooms, onClose, onDeviceHidden }: Devi
   const [hidden, setHidden] = useState(false)
   const [favorite, setFavorite] = useState(false)
   const [actsAsLight, setActsAsLight] = useState(false)
+  const [coverInverted, setCoverInvertedState] = useState(false)
+  const [coverClosedPrc, setCoverClosedPrcState] = useState(0)
   const [isSaving, setIsSaving] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -52,6 +57,11 @@ export function DeviceEditModal({ device, rooms, onClose, onDeviceHidden }: Devi
   // Determine if this is a switch (only switches show "Show as" option)
   const isSwitch = useMemo(() => {
     return device?.entity_id.startsWith('switch.') ?? false
+  }, [device])
+
+  // Determine if this is a cover (covers show inverted + closed-at)
+  const isCover = useMemo(() => {
+    return device?.entity_id.startsWith('cover.') ?? false
   }, [device])
 
   // Get the appropriate translations
@@ -81,6 +91,16 @@ export function DeviceEditModal({ device, rooms, onClose, onDeviceHidden }: Devi
 
       // Get "acts as light" state (for switches: device_class === 'light')
       setActsAsLight(device.attributes.device_class === 'light')
+
+      // Cover-specific settings
+      if (deviceId.startsWith('cover.')) {
+        const coverSettings = getCoverSettings(deviceId)
+        setCoverInvertedState(coverSettings.inverted)
+        setCoverClosedPrcState(coverSettings.closedPrc)
+      } else {
+        setCoverInvertedState(false)
+        setCoverClosedPrcState(0)
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deviceId])
@@ -115,6 +135,17 @@ export function DeviceEditModal({ device, rooms, onClose, onDeviceHidden }: Devi
       const currentFavorite = isEntityFavorite(device.entity_id)
       if (favorite !== currentFavorite) {
         await toggleEntityFavorite(device.entity_id, isScene)
+      }
+
+      // Cover-specific persistence
+      if (isCover) {
+        const previous = getCoverSettings(device.entity_id)
+        if (previous.inverted !== coverInverted) {
+          await setCoverInverted(device.entity_id, coverInverted)
+        }
+        if (previous.closedPrc !== coverClosedPrc) {
+          await setCoverClosedPrc(device.entity_id, coverClosedPrc > 0 ? coverClosedPrc : null)
+        }
       }
 
       // Notify parent if device was hidden (so it can be deselected)
@@ -187,6 +218,33 @@ export function DeviceEditModal({ device, rooms, onClose, onDeviceHidden }: Devi
             <FormField label={t.edit.device.actAsLight} hint={t.edit.device.actAsLightHint}>
               <Toggle checked={actsAsLight} onChange={setActsAsLight} />
             </FormField>
+          )}
+
+          {isCover && (
+            <>
+              <FormField label={t.edit.cover.inverted} hint={t.edit.cover.invertedHint}>
+                <Toggle checked={coverInverted} onChange={setCoverInvertedState} />
+              </FormField>
+
+              <FormField label={t.edit.cover.closedAt} hint={t.edit.cover.closedAtHint}>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={coverClosedPrc}
+                    onChange={(e) => {
+                      setCoverClosedPrcState(parseInt(e.target.value, 10))
+                    }}
+                    className="flex-1 h-1.5 bg-border rounded-full appearance-none cursor-pointer accent-accent"
+                  />
+                  <span className="text-sm text-muted tabular-nums w-12 text-right">
+                    {coverClosedPrc === 0 ? t.edit.cover.closedAtOff : `${coverClosedPrc}%`}
+                  </span>
+                </div>
+              </FormField>
+            </>
           )}
 
           <div className="pt-4">

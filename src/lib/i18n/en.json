@@ -335,6 +335,13 @@
       "hiddenHintAlsoHA": "Hidden in Stuga and Home Assistant",
       "favorite": "Favorite"
     },
+    "cover": {
+      "inverted": "Inverted",
+      "invertedHint": "Flip open and closed when Home Assistant has them backwards",
+      "closedAt": "Closed at",
+      "closedAtHint": "Treat positions below this as fully closed in Stuga",
+      "closedAtOff": "Off"
+    },
     "floor": {
       "title": "Edit Floor",
       "name": "Name",

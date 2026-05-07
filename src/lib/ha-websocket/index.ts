@@ -32,6 +32,7 @@ import * as floorSvc from './floor-service'
 import * as entitySvc from './entity-service'
 import * as labelSvc from './label-service'
 import * as favoritesSvc from './favorites-service'
+import * as coverSvc from './cover-service'
 import { logger } from '@/lib/logger'
 import { getConnectionType } from '@/lib/crashlytics'
 import { logConnectionSuccess, logConnectionFailure } from '@/lib/analytics'
@@ -240,6 +241,13 @@ export const updateEntityFavoriteOrderBatch = (updates: { entityId: string; orde
   favoritesSvc.updateEntityFavoriteOrderBatch(state, updates)
 export const updateAreaFavoriteOrderBatch = (updates: { areaId: string; order: number }[]) =>
   favoritesSvc.updateAreaFavoriteOrderBatch(state, updates)
+
+// Covers
+export const getCoverSettings = (entityId: string) => coverSvc.getCoverSettings(state, entityId)
+export const setCoverInverted = (entityId: string, inverted: boolean) =>
+  coverSvc.setCoverInverted(state, entityId, inverted)
+export const setCoverClosedPrc = (entityId: string, prc: number | null) =>
+  coverSvc.setCoverClosedPrc(state, entityId, prc)
 
 // State access (for metadata service)
 export const getState = () => state
