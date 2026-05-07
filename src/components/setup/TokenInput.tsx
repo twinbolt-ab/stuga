@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { ExternalLink } from 'lucide-react'
 import { t } from '@/lib/i18n'
 import { openExternalUrl } from '@/lib/browser'
+import { scrollIntoVisualViewport } from '@/lib/utils/scroll-into-visual-viewport'
 
 interface Props {
   token: string
@@ -48,12 +49,10 @@ export function TokenInput({ token, url, onTokenChange, onSwitchToOAuth }: Props
           value={token}
           onChange={(e) => onTokenChange(e.target.value)}
           onFocus={() => {
-            // Scroll input into view when keyboard opens
+            // Scroll input into the visual viewport once the keyboard has opened.
+            // visualViewport reflects the area not covered by the keyboard on iOS.
             setTimeout(() => {
-              tokenInputRef.current?.scrollIntoView({
-                behavior: 'smooth',
-                block: 'center',
-              })
+              scrollIntoVisualViewport(tokenInputRef.current)
             }, 300)
           }}
           placeholder={t.setup.token.placeholder}

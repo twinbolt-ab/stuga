@@ -43,8 +43,27 @@ export function SetupWizard() {
   const [urlVerified, setUrlVerified] = useState(false)
   const [workingUrls, setWorkingUrls] = useState<string[]>([])
   const [selectedUrl, setSelectedUrl] = useState<string | null>(null)
+  const [keyboardOffset, setKeyboardOffset] = useState(0)
   const hasProbed = useRef(false)
   const userHasTyped = useRef(false)
+
+  // Track keyboard height via visualViewport so the scroll container can grow
+  // and let focused inputs scroll above the on-screen keyboard (iOS, Android).
+  useEffect(() => {
+    if (!window.visualViewport) return
+    const viewport = window.visualViewport
+    const handleResize = () => {
+      const offset = Math.max(0, window.innerHeight - viewport.height)
+      setKeyboardOffset(offset)
+    }
+    viewport.addEventListener('resize', handleResize)
+    viewport.addEventListener('scroll', handleResize)
+    handleResize()
+    return () => {
+      viewport.removeEventListener('resize', handleResize)
+      viewport.removeEventListener('scroll', handleResize)
+    }
+  }, [])
 
   // Check if OAuth is available for current URL
   const oauthAvailable = isOAuthAvailable(url)
@@ -502,7 +521,10 @@ export function SetupWizard() {
   }
 
   return (
-    <div className="flex-1 bg-background flex flex-col items-center justify-start p-6 overflow-y-auto relative">
+    <div
+      className="flex-1 bg-background flex flex-col items-center justify-start p-6 overflow-y-auto relative"
+      style={{ paddingBottom: `calc(1.5rem + ${keyboardOffset}px)` }}
+    >
       {/* Subtle glow effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         {/* Primary warm glow - center */}

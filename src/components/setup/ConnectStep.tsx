@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, ArrowRight, Loader2, AlertCircle, Key } from 'lucide-react'
 import { t } from '@/lib/i18n'
 import { isNativeApp } from '@/lib/ha-oauth'
+import { scrollIntoVisualViewport } from '@/lib/utils/scroll-into-visual-viewport'
 import { type AuthMethod, type UrlSuggestion, type LiveDiagnosticState } from './types'
 import { DiagnosticDetails } from './DiagnosticDetails'
 import { WebCorsConfig } from './WebCorsConfig'
@@ -91,12 +92,9 @@ export function ConnectStep({
               value={url}
               onChange={(e) => onUrlChange(e.target.value)}
               onFocus={() => {
-                // Scroll input into view when keyboard opens
+                // Scroll input into the visual viewport once the keyboard has opened.
                 setTimeout(() => {
-                  urlInputRef.current?.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center',
-                  })
+                  scrollIntoVisualViewport(urlInputRef.current)
                 }, 300)
               }}
               onBlur={() => {
