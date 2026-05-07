@@ -11,26 +11,17 @@ import { EntityBadges } from '@/components/ui/EntityBadge'
 import { getEntityIcon, getCoverSettings } from '@/lib/ha-websocket'
 import { useLongPress } from '@/lib/hooks/useLongPress'
 import { sortEntitiesByOrder } from '@/lib/utils/entity-sort'
-import { haToUserPosition, type CoverSettings } from '@/lib/utils/cover'
+import {
+  haToUserPosition,
+  supportsCoverFeature,
+  COVER_FEATURE,
+  type CoverSettings,
+} from '@/lib/utils/cover'
 import { ReorderableList } from '@/components/shared/ReorderableList'
 import { haptic } from '@/lib/haptics'
 import { OPTIMISTIC_DURATION, OVERLAY_HIDE_DELAY } from '@/lib/constants'
 import { t } from '@/lib/i18n'
 import type { EntityMeta } from '@/lib/hooks/useAllEntities'
-
-// HA cover entity supported_features bitmask
-// https://developers.home-assistant.io/docs/core/entity/cover/
-const COVER_FEATURE = {
-  OPEN: 1,
-  CLOSE: 2,
-  SET_POSITION: 4,
-  STOP: 8,
-} as const
-
-function supports(cover: HAEntity, flag: number): boolean {
-  const f = cover.attributes.supported_features
-  return typeof f === 'number' && (f & flag) !== 0
-}
 
 const DRAG_THRESHOLD = 10
 const SLIDER_PADDING = 24
@@ -155,7 +146,7 @@ function CoverItem({
   const isActive = !isClosed
   const coverIcon = getEntityIcon(cover.entity_id)
 
-  const supportsPosition = supports(cover, COVER_FEATURE.SET_POSITION)
+  const supportsPosition = supportsCoverFeature(cover, COVER_FEATURE.SET_POSITION)
   const canSlide = supportsPosition && !!onPosition && !isInEditMode
 
   // Slider drag state — only used when canSlide

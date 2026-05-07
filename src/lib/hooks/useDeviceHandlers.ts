@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { useHAConnection } from './useHAConnection'
 import { setOptimisticState, getCoverSettings } from '@/lib/ha-websocket'
-import { userToHaPosition } from '@/lib/utils/cover'
+import { userToHaPosition, supportsCoverFeature, COVER_FEATURE } from '@/lib/utils/cover'
 import type { HAEntity } from '@/types/ha'
 
 export function useDeviceHandlers() {
@@ -66,6 +66,31 @@ export function useDeviceHandlers() {
       const settings = getCoverSettings(cover.entity_id)
       const userIsClosed = settings.inverted ? !haIsClosed : haIsClosed
       const userWantsToOpen = userIsClosed
+
+      // When closing, honor the user's custom "fully closed" position by sending
+      // set_cover_position to that target instead of close_cover.
+      if (
+        !userWantsToOpen &&
+        settings.closedPrc > 0 &&
+        supportsCoverFeature(cover, COVER_FEATURE.SET_POSITION)
+      ) {
+        const haTarget = userToHaPosition(0, settings)
+        const current =
+          typeof cover.attributes.current_position === 'number'
+            ? cover.attributes.current_position
+            : haIsClosed
+              ? 0
+              : 100
+        if (haTarget !== current) {
+          setOptimisticState(cover.entity_id, haTarget > current ? 'opening' : 'closing')
+        }
+        void callService('cover', 'set_cover_position', {
+          entity_id: cover.entity_id,
+          position: haTarget,
+        })
+        return
+      }
+
       // XOR: if the cover is inverted in Stuga, "open" the user-facing direction
       // means closing in HA's frame.
       const wantHaOpen = userWantsToOpen !== settings.inverted

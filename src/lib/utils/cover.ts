@@ -1,3 +1,19 @@
+import type { HAEntity } from '@/types/ha'
+
+// HA cover entity supported_features bitmask
+// https://developers.home-assistant.io/docs/core/entity/cover/
+export const COVER_FEATURE = {
+  OPEN: 1,
+  CLOSE: 2,
+  SET_POSITION: 4,
+  STOP: 8,
+} as const
+
+export function supportsCoverFeature(cover: HAEntity, flag: number): boolean {
+  const f = cover.attributes.supported_features
+  return typeof f === 'number' && (f & flag) !== 0
+}
+
 // Per-cover Stuga overrides for direction (`inverted`) and the user's preferred
 // "fully closed" position (`closedPrc`, 0-100 in HA convention after inversion).
 //
