@@ -523,7 +523,6 @@ export function SetupWizard() {
   return (
     <div
       className="flex-1 bg-background flex flex-col items-center justify-start p-6 overflow-y-auto relative"
-      style={{ paddingBottom: `calc(1.5rem + ${keyboardOffset}px)` }}
     >
       {/* Subtle glow effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
@@ -582,8 +581,12 @@ export function SetupWizard() {
         </AnimatePresence>
       </div>
 
-      {/* Spacer to help center content vertically when there's room */}
-      <div className="flex-1 min-h-8" />
+      {/* Spacer to help center content vertically when there's room.
+          When the keyboard is up, expand it so the form can scroll above the keyboard. */}
+      <div
+        className="flex-1 min-h-8 flex-shrink-0"
+        style={keyboardOffset > 0 ? { minHeight: keyboardOffset + 32 } : undefined}
+      />
     </div>
   )
 }
