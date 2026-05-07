@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.39] - 2026-05-07
+
+Covers and blinds are here, with smart controls for tricky setups and smoother input on iOS.
+
+**New**
+- Covers and blinds support — control your shades, curtains, and garage doors right from Stuga
+- Drag-to-position covers for precise control
+- Per-cover settings: invert direction or set a custom "closed" position for covers that don't fully close
+
+**Improvements**
+- Setup form now stays visible above the keyboard on iOS
+- Smoother keyboard handling on iOS and Android
+
+
 ## [0.3.38] - 2026-05-05
 
 A small polish release with a fix for one of the in-app links.

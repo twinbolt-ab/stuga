@@ -1,6 +1,18 @@
 {
-  "generatedAt": "2026-05-05T11:04:15.049Z",
+  "generatedAt": "2026-05-07T07:31:33.810Z",
   "entries": [
+    {
+      "version": "0.3.39",
+      "date": "2026-05-07",
+      "summary": "Covers and blinds are here, with smart controls for tricky setups and smoother input on iOS.",
+      "improvements": [
+        "Setup form now stays visible above the keyboard on iOS",
+        "Smoother keyboard handling on iOS and Android"
+      ],
+      "bugFixes": [],
+      "newFeatures": [],
+      "technical": []
+    },
     {
       "version": "0.3.38",
       "date": "2026-05-05",
